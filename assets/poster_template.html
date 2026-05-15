@@ -1,0 +1,306 @@
+<!--
+  ══════════════════════════════════════════════════════════════════════
+  Poster Template (Single Card)  —  wjy-mockup  "多卡海报" mode
+  ══════════════════════════════════════════════════════════════════════
+
+  Poster mode produces ONE HTML FILE PER CARD.  A multi-slide poster is
+  a set of separate 1080x1440 HTML files that share this template.
+
+  Placeholders (replaced before rendering):
+  ─────────────────────────────────────────────────────────────────────
+  {{BG_COLOR}}       — background / canvas color (sets --bg)
+  {{ACCENT_COLOR}}   — accent color (sets --accent)
+  {{LOGO}}           — path to brand logo image
+  {{BRAND_NAME}}     — brand / series name text
+
+  {{HEADER_BLOCK}}   — running header HTML (empty for title card):
+                        <div class="header">
+                          <span class="running-title">…</span>
+                          <span class="page-indicator">2 / 4</span>
+                        </div>
+  {{TITLE_BLOCK}}    — title area HTML (empty for continuation cards):
+                        <div class="title-area">…</div>
+  {{BODY_HTML}}      — card body content (paragraphs, items,
+                        highlights, dividers, data-rows, etc.)
+  {{PAGE_INFO}}      — "1 / N" page indicator text; empty for single-card
+  {{COLOPHON_BLOCK}} — colophon HTML (last card only, empty for others):
+                        <div class="colophon">…</div>
+  ══════════════════════════════════════════════════════════════════════
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* ── Fonts ──────────────────────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('file:///Users/kennywu/Documents/3-VibeProject/skills/wjy-mockup/assets/fonts/XiangcuiDengcusong.ttf') format('truetype');
+    font-weight: normal;
+  }
+
+  /* ── Design tokens (brand-agnostic, overridden per card) ───────── */
+  :root {
+    --bg:          {{BG_COLOR}};
+    --surface-1:   #ffffff;
+    --surface-2:   #eef2f7;
+    --accent:      {{ACCENT_COLOR}};
+    --ink:         #0a2540;
+    --ink-muted:   #425466;
+    --hairline:    #e3e8ee;
+    --radius:      6px;
+
+    /* type system */
+    --sans:     'DM Sans', -apple-system, system-ui, sans-serif;
+    --zh-serif: 'XiangcuiDengcusong', Georgia, serif;
+    --mono:     'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  }
+
+  /* ── Reset ─────────────────────────────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1080px;
+    height: 1440px;
+    background: var(--bg);
+  }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Card container ────────────────────────────────────────────── */
+  .card {
+    width: 1080px;
+    height: 1440px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    padding: 90px 80px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Running header (continuation cards) ───────────────────────── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: 48px;
+  }
+
+  .running-title {
+    font: 500 22px/1 var(--sans);
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+  }
+
+  .page-indicator {
+    font: 500 20px/1 var(--mono);
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Title area (title card only) ──────────────────────────────── */
+  .title-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .title-area h1 {
+    font-family: var(--zh-serif);
+    font-size: 96px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+
+  .title-area .subtitle {
+    font: 500 36px/1.5 var(--sans);
+    color: var(--ink-muted);
+    letter-spacing: -0.01em;
+  }
+
+  .title-area .topic-tag {
+    display: inline-block;
+    margin-top: 32px;
+    padding: 10px 24px;
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    font: 500 24px/1 var(--mono);
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .subtitle-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    font: 500 22px/1 var(--mono);
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+    margin-bottom: 24px;
+  }
+
+  /* ── Body content ──────────────────────────────────────────────── */
+  .body-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .body-content h2 {
+    font: 600 52px/1.2 var(--sans);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 40px;
+  }
+
+  .body-content p {
+    font: 400 34px/1.75 var(--sans);
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+
+  /* ── Highlight (golden sentence) ───────────────────────────────── */
+  .highlight {
+    padding: 28px 32px;
+    border-left: 5px solid var(--accent);
+    background: var(--surface-1);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 24px 0;
+  }
+
+  .highlight p {
+    font: 400 34px/1.75 var(--sans);
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 0;
+  }
+
+  /* ── Labeled items ─────────────────────────────────────────────── */
+  .item {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .item:last-child {
+    border-bottom: none;
+  }
+
+  .item .label {
+    font: 600 28px/1.3 var(--mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .item p:last-child {
+    font: 400 32px/1.65 var(--sans);
+    color: var(--ink);
+    margin-bottom: 0;
+  }
+
+  /* ── Section divider ───────────────────────────────────────────── */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: var(--hairline);
+    margin: 36px 0;
+  }
+
+  /* ── Data row (key-value display) ──────────────────────────────── */
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .data-row:last-child {
+    border-bottom: none;
+  }
+
+  .data-row .key {
+    font: 500 28px/1.3 var(--sans);
+    color: var(--ink-muted);
+  }
+
+  .data-row .value {
+    font: 600 32px/1.3 var(--sans);
+    color: var(--ink);
+    text-align: right;
+  }
+
+  /* ── Colophon (last card footer) ───────────────────────────────── */
+  .colophon {
+    margin-top: auto;
+    padding-top: 28px;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .colophon .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .colophon .brand-mark .stripe-bar {
+    width: 36px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .colophon .brand-mark span {
+    font: 600 18px/1 var(--sans);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .colophon .logo-mark {
+    height: 32px;
+    width: auto;
+    opacity: 0.5;
+  }
+
+  .colophon .endmark {
+    font: 500 24px/1 var(--zh-serif);
+    color: var(--ink-muted);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  {{HEADER_BLOCK}}
+
+  {{TITLE_BLOCK}}
+
+  <div class="body-content">
+    {{BODY_HTML}}
+  </div>
+
+  {{COLOPHON_BLOCK}}
+
+</div>
+</body>
+</html>

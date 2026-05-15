@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>wjy-mockup — Big Mode</title>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  BIG MODE TEMPLATE (大字报)                                     ║
+  ║  Brand-agnostic — override CSS variables to theme               ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║                                                                  ║
+  ║  PLACEHOLDERS                                                    ║
+  ║  ──────────────────────────────────────────────────────────────  ║
+  ║  {{PHRASE_HTML}}                                                 ║
+  ║    The main body text. Use <br> for line breaks and              ║
+  ║    <span class="accent">word</span> to highlight words in the   ║
+  ║    accent color.                                                 ║
+  ║    Example: <span class="accent">Agent</span> 不是<br>加了循环  ║
+  ║                                                                  ║
+  ║  {{FONT_SIZE}}                                                   ║
+  ║    Dynamic font-size for the main phrase, based on character     ║
+  ║    count. Typical values: "160px", "190px", "220px".             ║
+  ║    Guide:  <=10 chars → 220px, 11-20 → 190px, 21+ → 160px      ║
+  ║                                                                  ║
+  ║  {{GHOST_CHAR}}                                                  ║
+  ║    Single character used as a large, low-opacity watermark       ║
+  ║    behind the main text.                                         ║
+  ║    Example: "A", "问", "知"                                      ║
+  ║                                                                  ║
+  ║  {{ATTRIBUTION}}                                                 ║
+  ║    Optional attribution line below the main phrase.              ║
+  ║    Can be empty string — the attribution element is hidden when  ║
+  ║    no attribution is needed.                                     ║
+  ║    Example: "— Alan Kay", "—— 出自《人月神话》"                  ║
+  ║                                                                  ║
+  ║  {{LOGO}}                                                        ║
+  ║    Absolute file path or URL to the brand logo image.            ║
+  ║    Example: "file:///path/to/logo.png"                           ║
+  ║                                                                  ║
+  ║  {{BRAND_NAME}}                                                  ║
+  ║    Brand name displayed in the colophon footer next to the logo. ║
+  ║    Example: "wjy-mockup", "MyBrand"                              ║
+  ║                                                                  ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║  CSS VARIABLE OVERRIDES                                         ║
+  ║  ──────────────────────────────────────────────────────────────  ║
+  ║  Override these on :root to change the color scheme:             ║
+  ║    --bg          Canvas / card background (default: #0a0a0e)     ║
+  ║    --accent      Highlight / accent color (default: #7176c4)     ║
+  ║    --ink         Main text color (default: #e2dfd9)              ║
+  ║    --ink-muted   Secondary / muted text (default: #8a8f98)       ║
+  ║    --surface-1   Card / surface overlay (default: #111215)       ║
+  ║    --hairline    Divider / border color (default: #23252a)       ║
+  ║                                                                  ║
+  ║  LIGHT THEME EXAMPLE:                                            ║
+  ║    --bg: #faf6f0; --accent: #d97757; --ink: #2c2418;            ║
+  ║    --ink-muted: #7a6f5f; --surface-1: #f2ebe0;                  ║
+  ║    --hairline: #d4c9b8;                                          ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=Permanent+Marker&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ── Design Tokens (dark default — override on :root to theme) ── */
+  :root {
+    --bg:         #0a0a0e;
+    --accent:     #7176c4;
+    --ink:        #e2dfd9;
+    --ink-muted:  #8a8f98;
+    --surface-1:  #111215;
+    --hairline:   #23252a;
+    --radius:     12px;
+  }
+
+  /* ── Font Face: XiangcuiDengcusong (local) ── */
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('file:///Users/kennywu/Documents/3-VibeProject/skills/wjy-mockup/assets/fonts/XiangcuiDengcusong.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* ── Page Canvas ── */
+  body {
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Card: fixed 1080×1440 canvas ── */
+  .card {
+    position: relative;
+    width: 1080px;
+    height: 1440px;
+    overflow: hidden;
+    background: var(--bg);
+    border-radius: var(--radius);
+  }
+
+  /* ── SVG Filters (hidden) ── */
+  .svg-filters {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  /* ── Atmosphere: subtle radial glow ── */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse 70% 50% at 50% 45%,
+        color-mix(in srgb, var(--accent) 4%, transparent) 0%,
+        transparent 100%
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Weathered paper grain overlay (washi effect) ── */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    filter: url(#paper-grain);
+    opacity: 0.30;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Ghost Watermark Character ── */
+  .ghost {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 900px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 6%, transparent);
+    paint-order: stroke fill;
+    pointer-events: none;
+    z-index: 1;
+    user-select: none;
+  }
+
+  /* ── Main Content Wrapper ── */
+  .content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 80px 60px;
+    text-align: center;
+  }
+
+  /* ── Depth surface behind text ── */
+  .content::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 820px;
+    height: 680px;
+    background: linear-gradient(
+      180deg,
+      var(--surface-1) 0%,
+      var(--bg) 100%
+    );
+    border-radius: var(--radius);
+    z-index: -1;
+    opacity: 0.7;
+  }
+
+  /* ── Main Phrase (大字报) ── */
+  .phrase {
+    font-family: 'XiangcuiDengcusong', serif;
+    /* {{FONT_SIZE}} placeholder is set via inline style */
+    line-height: 1.22;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .phrase .accent {
+    color: var(--accent);
+  }
+
+  /* ── Decorative Hairline Rules ── */
+  .rule {
+    width: 80px;
+    height: 1px;
+    background: var(--hairline);
+    margin: 40px auto;
+  }
+
+  /* ── Attribution Line ── */
+  .attribution {
+    font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    margin-top: 12px;
+  }
+
+  /* Hide attribution when empty */
+  .attribution:empty {
+    display: none;
+  }
+
+  /* ── Colophon / Footer ── */
+  .colophon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 36px 40px;
+    border-top: 1px solid var(--hairline);
+    background: linear-gradient(0deg, var(--bg) 60%, transparent 100%);
+  }
+
+  .colophon img {
+    width: 28px;
+    height: 28px;
+    opacity: 0.55;
+  }
+
+  .colophon span {
+    font-family: 'JetBrains Mono', 'DM Sans', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG Filters: weathered paper grain (washi effect) -->
+<svg class="svg-filters">
+  <defs>
+    <filter id="paper-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="gray-noise"/>
+      <feBlend in="SourceGraphic" in2="gray-noise" mode="multiply"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="card">
+
+  <!-- Ghost watermark: single low-opacity character behind the text -->
+  <div class="ghost">{{GHOST_CHAR}}</div>
+
+  <!-- Main content -->
+  <div class="content">
+    <div class="rule"></div>
+    <div class="phrase" style="font-size: {{FONT_SIZE}};">
+      {{PHRASE_HTML}}
+    </div>
+    <!-- Attribution: rendered below the phrase; hidden when empty -->
+    <div class="attribution">{{ATTRIBUTION}}</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- Colophon: brand logo + name at the bottom -->
+  <div class="colophon">
+    <img src="{{LOGO}}" alt="logo">
+    <span>{{BRAND_NAME}}</span>
+  </div>
+
+</div>
+
+</body>
+</html>

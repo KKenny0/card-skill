@@ -1,0 +1,40 @@
+{
+  "skill_name": "wjy-mockup",
+  "evals": [
+    {
+      "id": 1,
+      "name": "chinese-tech-infograph",
+      "prompt": "把下面这段内容做成信息图，用 --design linear\n\n## AI 安全防线三层架构\n\nAI 系统的安全不能靠单一防线。就像洋葱一样，需要一层包一层。\n\n第一层是输入过滤。所有用户输入进入模型之前，必须经过内容审核。关键词匹配、语义分类、意图识别三道关卡并行。拦截率要求达到 99.7%。\n\n第二层是推理监控。模型在生成过程中，实时检测输出偏移。如果发现模型开始产生有害内容，立即触发中断机制。这一层的关键是速度——必须在 50ms 内完成判断。\n\n第三层是输出审计。所有生成内容在返回给用户之前，经过最终审查。这一层不仅检查内容安全性，还评估事实准确性。审计日志保留 90 天，支持追溯。\n\n三层防线各自独立运行，任何一层失效不会影响其他层。这就是纵深防御的核心思想。",
+      "expected_output": "PNG infographic in Linear dark style, 2160px wide, with three-layer architecture layout, accent #7176c4, ink #e2dfd9, correct Chinese typography",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "english-big-mode",
+      "prompt": "做成大字报，用 --design apple\n\nThe best way to predict the future is to invent it.",
+      "expected_output": "PNG big mode (1080x1440x2) in Apple light style, canvas #fafafa, single accent highlight, clean minimal typography",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "chinese-long-article",
+      "prompt": "做成长图，用 --design claude\n\n## 为什么好文章需要改三遍\n\n海明威说过，所有初稿都是垃圾。这句话被引用了无数次，但很少有人真正理解它的含义。\n\n第一遍改结构。把那些华丽的开头砍掉，直接进入主题。读者没有义务等你铺垫。每一句话要么推进论点，要么制造悬念。做不到这两点的，删。\n\n第二遍改节奏。长句后面跟短句，短句后面跟例子。段与段之间要有呼吸感。像音乐一样，有渐强也有休止。如果你发现连续三段都是同一个长度，那说明你的节奏出了问题。\n\n第三遍改用词。把「非常」「十分」「极其」这些副词全部找出来，用一个更精确的动词替代。不是「非常大」，是「庞大」。不是「跑得非常快」，是「疾驰」。\n\n写完这三遍，你的文章才算从「能看」变成了「值得看」。",
+      "expected_output": "PNG long-form reading mode in Claude warm style, canvas #faf6f0, accent #d97757, dropcap on first paragraph, highlight for key sentence, section dividers, body >=36px",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "chinese-poster-multi",
+      "prompt": "做成海报卡组，用 --design stripe\n\n## 从零到一：创业第一年的 10 条教训\n\n1. 不要等产品完美才上线。MVP 的 M 不是 Minimum，是 Mother——够用就行。\n\n2. 找到第一个付费用户比找到一千个免费用户重要。付费是最好的产品验证。\n\n3. 竞争对手不是你的敌人，傲慢才是。每周花 30 分钟研究竞品，你会少走很多弯路。\n\n4. 招人的标准只有一个：这个人能不能在你不在的时候做正确的决定。如果能，雇。如果不能，再便宜也别要。\n\n5. 现金流是氧气。没有利润可以活，没有现金流会死。每月看一次现金跑道，不是每季度。\n\n6. 别跟大公司比福利，你比不起。比的是速度和透明度——这两个你天然比大公司强。\n\n7. 用户骂你不是坏事，用户不理你才是。骂你的人是在免费帮你做 QA。\n\n8. 第一次裁员永远太晚。当你开始想「要不要裁」的时候，答案已经是「要」。\n\n9. 技术债务就像信用卡，短期好用，长期致命。每个月至少还一点。\n\n10. 创业最难的不是做选择，是做了选择之后不回头看。",
+      "expected_output": "Multiple PNG cards (each 2160x2880) in Stripe style, canvas #f6f9fc, accent #635bff, each card with page indicator, last card with colophon and endmark",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "chinese-whiteboard-reasoning",
+      "prompt": "做成白板笔记，用 --design vercel\n\n## 编程的本质不是写代码\n\n大多数人对编程的理解是：学一门语言，写一堆代码，运行看结果。\n\n这就像把写作理解成「打字」一样。\n\n编程的本质是建模——把现实世界的问题抽象成可计算的结构。\n\n第一层抽象：识别实体和关系。用户、订单、商品——它们之间是什么关系？一对一？一对多？多对多？\n\n第二层抽象：定义状态和转换。订单从「待付款」到「已发货」需要经过哪些状态？每个状态的进入条件和退出条件是什么？\n\n第三层抽象：处理边界情况。如果支付超时怎么办？如果库存不足怎么办？如果用户取消订单但快递已经发出怎么办？\n\n代码只是这些抽象的最后一步——把思维模型翻译成机器能执行的指令。\n\n所以学编程最重要的不是学语法，是学怎么把模糊的问题变成清晰的模型。语法可以查文档，思维模型只能靠练。",
+      "expected_output": "PNG whiteboard reasoning mode in Vercel dark style, canvas #000000, accent white/blue, chain-of-thought layout with arrows, hand-writing fonts, accent <=3 places",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Test artifacts
+wjy-mockup-workspace/
+
+# Dependencies
+node_modules/
+
+# Font files (73MB, too large for git)
+assets/fonts/*.ttf
+
+# OS files
+.DS_Store

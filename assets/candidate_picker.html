@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计候选预览 — wjy-mockup</title>
+<style>
+  :root {
+    --canvas: #f5f5f5;
+    --ink: #1a1a1a;
+    --muted: #666;
+    --border: #e0e0e0;
+    --selected-bg: #f0f7ff;
+    --selected-border: #0066cc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--canvas);
+    color: var(--ink);
+    padding: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+  .content-preview {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .content-preview h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .content-preview p {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .candidates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+  }
+  .candidate {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .candidate:hover {
+    border-color: #999;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .candidate.selected {
+    border-color: var(--selected-border);
+    background: var(--selected-bg);
+  }
+  .candidate.selected::after {
+    content: '✓ 已选择';
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--selected-border);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+  .candidate-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .candidate-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .candidate-name {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .candidate-tags {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .candidate-reason {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .swatches {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .swatch-group {
+    flex: 1;
+    text-align: center;
+  }
+  .swatch {
+    height: 48px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+  .swatch-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  .type-sample {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .type-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .type-body {
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.8;
+  }
+  .type-caption {
+    font-size: 11px;
+    opacity: 0.6;
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  .preview-mockup {
+    padding: 16px;
+    border-radius: 6px;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .preview-subtitle {
+    font-size: 15px;
+    line-height: 1.4;
+    opacity: 0.75;
+  }
+  .confirm-bar {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 40px -40px -40px -40px;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+    z-index: 100;
+  }
+  .confirm-bar .status {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .confirm-bar .status.selected-state {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .confirm-btn {
+    display: none;
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    background: var(--selected-border);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .confirm-btn.visible {
+    display: inline-block;
+  }
+  .confirm-btn:hover {
+    background: #0055aa;
+  }
+  .confirmed-msg {
+    display: none;
+    padding: 12px 24px;
+    background: #e6f9e6;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2e7d32;
+    font-weight: 500;
+    text-align: center;
+  }
+  .confirmed-msg.visible {
+    display: block;
+  }
+  .confirmed-msg code {
+    background: rgba(0,0,0,0.06);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .confirmed-msg code:hover {
+    background: rgba(0,0,0,0.12);
+  }
+</style>
+</head>
+<body>
+
+<h1>设计候选预览</h1>
+<p class="subtitle">点击选择一个设计系统，然后告诉 Claude 你的选择。</p>
+
+<div class="content-preview">
+  <h2 id="content-title">{{CONTENT_TITLE}}</h2>
+  <p id="content-subtitle">{{CONTENT_SUBTITLE}}</p>
+</div>
+
+<div class="candidates" id="candidates">
+  <!-- Injected by Claude -->
+</div>
+
+<div class="confirm-bar">
+  <span class="status" id="status-text">点击卡片选择一个设计系统</span>
+  <button class="confirm-btn" id="confirm-btn" onclick="confirmSelection()">确认选择</button>
+</div>
+
+<div class="confirmed-msg" id="confirmed-msg">
+  已选择 <strong id="confirmed-name"></strong> — 请将以下内容复制给 Claude：<br>
+  <code id="confirmed-code" onclick="copyCode()" title="点击复制"></code>
+</div>
+
+<script>
+const candidates = {{CANDIDATES_JSON}};
+
+const container = document.getElementById('candidates');
+let selectedId = null;
+
+document.getElementById('content-title').textContent = candidates.title || '';
+document.getElementById('content-subtitle').textContent = candidates.subtitle || '';
+
+candidates.items.forEach((item, index) => {
+  const card = document.createElement('div');
+  card.className = 'candidate';
+  card.dataset.id = item.id;
+  card.onclick = () => selectCandidate(item.id);
+
+  card.innerHTML = `
+    <div class="candidate-header">
+      <div class="candidate-number" style="background:${item.accent}">${index + 1}</div>
+      <div class="candidate-name">${item.name}</div>
+      <div class="candidate-tags">${item.tags}</div>
+    </div>
+    <div class="candidate-reason">${item.reason}</div>
+
+    <div class="section-label">Color Palette</div>
+    <div class="swatches">
+      <div class="swatch-group">
+        <div class="swatch" style="background:${item.canvas}"></div>
+        <div class="swatch-label">canvas<br>${item.canvas}</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background:${item.accent}"></div>
+        <div class="swatch-label">accent<br>${item.accent}</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background:${item.ink}"></div>
+        <div class="swatch-label">ink<br>${item.ink}</div>
+      </div>
+      ${item.secondary ? `
+      <div class="swatch-group">
+        <div class="swatch" style="background:${item.secondary}"></div>
+        <div class="swatch-label">secondary<br>${item.secondary}</div>
+      </div>` : ''}
+    </div>
+
+    <div class="section-label">Typography</div>
+    <div class="type-sample">
+      <div class="type-title" style="font-family:${item.fontStack}">${item.name}</div>
+      <div class="type-body" style="font-family:${item.fontStack}">信息图的排版节奏来自设计系统的字体层级</div>
+      <div class="type-caption">REF — 设计系统 / ${item.name}</div>
+    </div>
+
+    <div class="section-label">Preview</div>
+    <div class="preview-mockup" style="background:${item.canvas}; color:${item.ink}">
+      <div class="preview-title" style="font-family:${item.fontStack}; color:${item.ink}">${candidates.title || item.name}</div>
+      <div class="preview-subtitle" style="color:${item.ink}">${candidates.subtitle || '内容副标题'}</div>
+    </div>
+  `;
+
+  container.appendChild(card);
+});
+
+function selectCandidate(id) {
+  document.querySelectorAll('.candidate').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`[data-id="${id}"]`);
+  card.classList.add('selected');
+  selectedId = id;
+
+  const item = candidates.items.find(i => i.id === id);
+  const status = document.getElementById('status-text');
+  const btn = document.getElementById('confirm-btn');
+  status.textContent = `已选中: ${item.name} — ${item.tags}`;
+  status.className = 'status selected-state';
+  btn.classList.add('visible');
+  btn.textContent = `确认选择 ${item.name}`;
+
+  // Hide confirmed message if re-selecting
+  document.getElementById('confirmed-msg').classList.remove('visible');
+}
+
+function confirmSelection() {
+  if (!selectedId) return;
+  const item = candidates.items.find(i => i.id === selectedId);
+
+  // Hide confirm bar
+  document.getElementById('confirm-btn').classList.remove('visible');
+  document.getElementById('status-text').textContent = '已确认 — 正在通知 Claude...';
+  document.getElementById('confirmed-name').textContent = item.name;
+  const code = `我选 ${item.name}`;
+  document.getElementById('confirmed-code').textContent = code;
+  document.getElementById('confirmed-msg').classList.add('visible');
+
+  // Send selection to local server for Claude to detect
+  const selection = {
+    design: item.id,
+    name: item.name,
+    accent: item.accent,
+    canvas: item.canvas,
+    ink: item.ink,
+    fontStack: item.fontStack,
+    timestamp: new Date().toISOString()
+  };
+  fetch('http://localhost:8421/select', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(selection)
+  }).then(r => r.json()).then(data => {
+    document.getElementById('status-text').textContent = '已确认 — Claude 已收到选择';
+  }).catch(() => {
+    // Fallback: download as file
+    const blob = new Blob([JSON.stringify(selection, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wjy_selection.json';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
+
+  // Also copy to clipboard
+  navigator.clipboard.writeText(code).catch(() => {});
+}
+
+function copyCode() {
+  const code = document.getElementById('confirmed-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    document.getElementById('confirmed-code').textContent += ' ✓ 已复制';
+    setTimeout(() => {
+      document.getElementById('confirmed-code').textContent = code;
+    }, 1500);
+  }).catch(() => {});
+}
+</script>
+
+</body>
+</html>
