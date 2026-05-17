@@ -353,8 +353,8 @@ Read `assets/comic_template.html`
 | `{{SOURCE_LINE}}` | 内容来源（可选）：`<span class="info-source">来源文字</span>`，无来源时空字符串 |
 
 写入：
-- 单张：`/tmp/ljg_cast_comic_{name}.html`
-- 多张：`/tmp/ljg_cast_comic_{name}_{N}.html`（N = 01, 02, ...）
+- 单张：`/tmp/wjy_mockup_comic_{name}.html`
+- 多张：`/tmp/wjy_mockup_comic_{name}_{N}.html`（N = 01, 02, ...）
 
 ## 步骤 5：自检
 
@@ -372,12 +372,12 @@ Read `assets/comic_template.html`
 
 单张：
 ```bash
-node assets/capture.js /tmp/ljg_cast_comic_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
+node assets/capture.js /tmp/wjy_mockup_comic_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
 ```
 
 多张：逐张截图，文件名带序号
 ```bash
-node assets/capture.js /tmp/ljg_cast_comic_{name}_01.html ~/Downloads/{name}_01.png 1080 800 fullpage
-node assets/capture.js /tmp/ljg_cast_comic_{name}_02.html ~/Downloads/{name}_02.png 1080 800 fullpage
+node assets/capture.js /tmp/wjy_mockup_comic_{name}_01.html ~/Downloads/{name}_01.png 1080 800 fullpage
+node assets/capture.js /tmp/wjy_mockup_comic_{name}_02.html ~/Downloads/{name}_02.png 1080 800 fullpage
 # ... 逐张执行
 ```

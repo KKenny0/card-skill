@@ -77,37 +77,21 @@ version: "0.1.0"
 
 输出候选列表，每个附一句话匹配理由。
 
-### Step 3: 候选预览（HTML Picker）
+### Step 3: 候选确认
 
-为 3-5 个候选生成交互式 HTML 选择页面。
+在终端展示候选列表，每个附一句话匹配理由和色板信息：
 
-1. 清除旧的选择文件：`rm -f /tmp/wjy_mockup_selection.json`
-2. 启动 picker 服务器（后台）：`node scripts/picker_server.js &`
-3. 从 design-index.md 提取每个候选的关键 token
-4. Read `assets/candidate_picker.html` 模板
-5. 注入候选 token 生成 picker：
-   - 色板条（canvas / accent / ink 色块 + hex 值）
-   - 字体样例（标题/正文/标注三个层级）
-   - 用内容的实际标题+副标题渲染一段排版预览
-   - 点击选择 → 确认按钮 → 自动 POST 到本地服务器
-6. 保存到 `/tmp/wjy_mockup_picker_{name}.html`
-7. 通过服务器打开：`open "http://localhost:8421/?html=/tmp/wjy_mockup_picker_{name}.html"`
-
-告知用户：已打开候选预览，在浏览器中点击卡片 → 点确认按钮，我会自动检测并继续渲染。
-
-### Step 4: 自动等待选择
-
-打开 picker 后，运行以下命令等待用户确认：
-
-```bash
-echo "⏳ 等待你在浏览器中选择设计系统..." && while [ ! -f /tmp/wjy_mockup_selection.json ]; do sleep 1; done && sleep 0.5 && echo "✅ 检测到选择！" && cat /tmp/wjy_mockup_selection.json
+```
+候选设计系统：
+1. linear — 精密暗色，适合技术架构内容 (Canvas: #010102, Accent: #5e6ad2)
+2. claude — 温暖编辑风，适合人文思考 (Canvas: #faf9f5, Accent: #cc785c)
+3. stripe — 数据密集，适合金融展示 (Canvas: #ffffff, Accent: #533afd)
+4. notion — 简约留白，适合知识管理 (Canvas: #ffffff, Accent: #5645d4)
 ```
 
-读取到选择后，提取 `design` 字段作为选定结果，自动进入 Step 5。
+告知用户：选择编号（如"用 2"），或说"换一批"重新推荐。用户确认后进入 Step 4。
 
-如果用户等不及，也可以直接告诉 Claude 选择结果，或要求换一批候选。完成后关闭服务器：`kill %1 2>/dev/null`
-
-### Step 5: 渲染
+### Step 4: 渲染
 
 根据 Step 1 确定的模式，选择对应模板：
 
@@ -136,7 +120,8 @@ echo "⏳ 等待你在浏览器中选择设计系统..." && while [ ! -f /tmp/wj
 | `--pink`（弹点色） | accent / primary 色 |
 | `--ink` | ink 主文字色（降饱和度 10-20% 模拟印刷） |
 | `--ink-light` | ink-muted 色 |
-| 字体 | 设计文件推荐的 web 可用字体 |
+
+字体不在此表——由 mode 固定决定，见 `references/taste.md` 第 2 节。
 
 **字号和排版遵循 ljg-card，不遵循品牌设计系统。** 品牌设计系统只提供色彩和视觉氛围参考（色板、阴影哲学、圆角风格、留白节奏）。字号规则严格执行 ljg-card 的移动端优先标准：正文 ≥36px，标注 ≥24px。元素比例按模式分级：big≥10:1, infograph≥6:1, comic≥8:1, sketchnote≥5:1, long/poster/whiteboard≥4:1（详见 `references/taste.md`）。
 
@@ -150,7 +135,7 @@ echo "⏳ 等待你在浏览器中选择设计系统..." && while [ ! -f /tmp/wj
 
 **署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
 
-### Step 6: 自检
+### Step 5: 自检
 
 - [ ] 视觉形式从内容生长出来？换内容这布局还说得出吗？
 - [ ] 设计系统的品牌语言在画面中可感知（不只是换了色板，排版节奏也匹配）？
@@ -160,15 +145,15 @@ echo "⏳ 等待你在浏览器中选择设计系统..." && while [ ! -f /tmp/wj
 - [ ] 多卡模式：每张卡只覆盖一个章节/话题？不同主题的内容没有被混在同一张卡上？
 - [ ] 告诉别人"AI 做的"会被一眼看穿？
 
-### Step 7: 截图（4K）
+### Step 6: 截图（4K）
 
 ```bash
-node assets/capture4k.js /tmp/wjy_mockup_{name}.html ~/Downloads/{name}.png 1080 800 2 fullpage
+node assets/capture.js /tmp/wjy_mockup_{name}.html ~/Downloads/{name}.png 2160 800 fullpage
 ```
 
 DPR=2，实际渲染 2160px 宽。
 
-### Step 8: 交付
+### Step 7: 交付
 
 报告文件路径。
 
@@ -177,10 +162,9 @@ DPR=2，实际渲染 2160px 宽。
 - "换个设计系统" → 回到 Step 3
 - "调整配色" → 微调 CSS 变量，保持同一设计系统
 - "改布局" → 重新设计，同一设计系统
-- "标准版" → 用 `assets/capture.js` 替代 capture4k.js
 
 ## 快捷模式（--design 指定）
 
-用户通过 `--design` 指定设计系统时，跳过 Step 3-4 直接进入 Step 5。
+用户通过 `--design` 指定设计系统时，跳过 Step 3 直接进入 Step 4。
 
 可用名称见 `references/design-index.md` 的目录名列。
