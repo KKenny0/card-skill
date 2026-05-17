@@ -1,40 +1,142 @@
 {
   "skill_name": "wjy-mockup",
+  "version": 2,
   "evals": [
     {
       "id": 1,
       "name": "chinese-tech-infograph",
       "prompt": "把下面这段内容做成信息图，用 --design linear\n\n## AI 安全防线三层架构\n\nAI 系统的安全不能靠单一防线。就像洋葱一样，需要一层包一层。\n\n第一层是输入过滤。所有用户输入进入模型之前，必须经过内容审核。关键词匹配、语义分类、意图识别三道关卡并行。拦截率要求达到 99.7%。\n\n第二层是推理监控。模型在生成过程中，实时检测输出偏移。如果发现模型开始产生有害内容，立即触发中断机制。这一层的关键是速度——必须在 50ms 内完成判断。\n\n第三层是输出审计。所有生成内容在返回给用户之前，经过最终审查。这一层不仅检查内容安全性，还评估事实准确性。审计日志保留 90 天，支持追溯。\n\n三层防线各自独立运行，任何一层失效不会影响其他层。这就是纵深防御的核心思想。",
-      "expected_output": "PNG infographic in Linear dark style, 2160px wide, with three-layer architecture layout, accent #7176c4, ink #e2dfd9, correct Chinese typography",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"name": "design_system_accurate", "check": "Uses Linear dark palette: canvas #010102 or near-black, accent #5e6ad2, ink #f7f8f8 or warm-white"},
+        {"name": "three_layer_layout", "check": "HTML shows 3 distinct structural layers (not just flat paragraphs). Could be cards, sections with borders, or numbered blocks with hierarchy"},
+        {"name": "accent_count_standard", "check": "Accent color (#5e6ad2 or mapped --pink) appears <= 2 places (standard accent rule from taste.md)"},
+        {"name": "body_text_min_36px", "check": "Body/paragraph text >= 36px in CSS"},
+        {"name": "element_ratio_infograph", "check": "Font size ratio between largest and smallest text >= 6:1 (infograph minimum per taste.md)"},
+        {"name": "no_ai_gradient", "check": "No neon purple-blue gradients, no glow box-shadows, no saturated rainbow effects"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated"}
+      ]
     },
     {
       "id": 2,
       "name": "english-big-mode",
       "prompt": "做成大字报，用 --design apple\n\nThe best way to predict the future is to invent it.",
-      "expected_output": "PNG big mode (1080x1440x2) in Apple light style, canvas #fafafa, single accent highlight, clean minimal typography",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"name": "big_mode_canvas", "check": "HTML renders at 1080x1440 viewport (or equivalent fixed canvas)"},
+        {"name": "font_size_range", "check": "Main text font-size >= 90px (big mode minimum per mode-big.md). For 52 chars, expect ~98-115px"},
+        {"name": "manual_line_breaks", "check": "Main text uses <br> tags for manual line breaks, not browser auto-wrap"},
+        {"name": "accent_highlight_max_1", "check": "At most 1 <span class='shu'> or accent highlight in main text"},
+        {"name": "weathered_filter", "check": "Main text has filter: url(#weathered) or equivalent distressed/aged effect"},
+        {"name": "paper_texture", "check": "Background has paper-like texture (radial-gradient clouds, SVG noise, or warm off-white #F4EFE6)"},
+        {"name": "dark_outer_frame", "check": "Outer container creates dark frame/shadow border effect"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated at 1080x1440"}
+      ]
     },
     {
       "id": 3,
       "name": "chinese-long-article",
       "prompt": "做成长图，用 --design claude\n\n## 为什么好文章需要改三遍\n\n海明威说过，所有初稿都是垃圾。这句话被引用了无数次，但很少有人真正理解它的含义。\n\n第一遍改结构。把那些华丽的开头砍掉，直接进入主题。读者没有义务等你铺垫。每一句话要么推进论点，要么制造悬念。做不到这两点的，删。\n\n第二遍改节奏。长句后面跟短句，短句后面跟例子。段与段之间要有呼吸感。像音乐一样，有渐强也有休止。如果你发现连续三段都是同一个长度，那说明你的节奏出了问题。\n\n第三遍改用词。把「非常」「十分」「极其」这些副词全部找出来，用一个更精确的动词替代。不是「非常大」，是「庞大」。不是「跑得非常快」，是「疾驰」。\n\n写完这三遍，你的文章才算从「能看」变成了「值得看」。",
-      "expected_output": "PNG long-form reading mode in Claude warm style, canvas #faf6f0, accent #d97757, dropcap on first paragraph, highlight for key sentence, section dividers, body >=36px",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"name": "design_system_accurate", "check": "Uses Claude warm palette: canvas #faf9f5 or warm cream, accent #cc785c, ink #141413"},
+        {"name": "dropcap_first_paragraph", "check": "First body paragraph has class 'dropcap' (首字下沉)"},
+        {"name": "highlight_golden_sentence", "check": "At least one element with class 'highlight' for the golden sentence (e.g. '所有初稿都是垃圾')"},
+        {"name": "body_text_min_36px", "check": "Body text >= 36px"},
+        {"name": "section_dividers", "check": "Has section dividers between the three editing passes (class 'divider' or equivalent)"},
+        {"name": "fullpage_render", "check": "Rendered as fullpage long image (not fixed viewport crop)"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated"}
+      ]
     },
     {
       "id": 4,
       "name": "chinese-poster-multi",
       "prompt": "做成海报卡组，用 --design stripe\n\n## 从零到一：创业第一年的 10 条教训\n\n1. 不要等产品完美才上线。MVP 的 M 不是 Minimum，是 Mother——够用就行。\n\n2. 找到第一个付费用户比找到一千个免费用户重要。付费是最好的产品验证。\n\n3. 竞争对手不是你的敌人，傲慢才是。每周花 30 分钟研究竞品，你会少走很多弯路。\n\n4. 招人的标准只有一个：这个人能不能在你不在的时候做正确的决定。如果能，雇。如果不能，再便宜也别要。\n\n5. 现金流是氧气。没有利润可以活，没有现金流会死。每月看一次现金跑道，不是每季度。\n\n6. 别跟大公司比福利，你比不起。比的是速度和透明度——这两个你天然比大公司强。\n\n7. 用户骂你不是坏事，用户不理你才是。骂你的人是在免费帮你做 QA。\n\n8. 第一次裁员永远太晚。当你开始想「要不要裁」的时候，答案已经是「要」。\n\n9. 技术债务就像信用卡，短期好用，长期致命。每个月至少还一点。\n\n10. 创业最难的不是做选择，是做了选择之后不回头看。",
-      "expected_output": "Multiple PNG cards (each 2160x2880) in Stripe style, canvas #f6f9fc, accent #635bff, each card with page indicator, last card with colophon and endmark",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"name": "multiple_cards", "check": "Multiple PNG cards generated (>= 3), each as separate file"},
+        {"name": "page_indicator", "check": "Cards show page indicator (N/M format or equivalent)"},
+        {"name": "last_card_endmark", "check": "Last card has colophon, endmark, or closing signature"},
+        {"name": "body_text_min_36px", "check": "Body text >= 36px in all cards"},
+        {"name": "design_system_accurate", "check": "Uses Stripe light palette: canvas #f6f9fc or white, accent #533afd or #635bff"},
+        {"name": "one_topic_per_card", "check": "Each card covers one coherent topic/chapter, not mixing unrelated lessons"},
+        {"name": "output_is_png", "check": "PNG files were successfully generated for each card"}
+      ]
     },
     {
       "id": 5,
       "name": "chinese-whiteboard-reasoning",
       "prompt": "做成白板笔记，用 --design vercel\n\n## 编程的本质不是写代码\n\n大多数人对编程的理解是：学一门语言，写一堆代码，运行看结果。\n\n这就像把写作理解成「打字」一样。\n\n编程的本质是建模——把现实世界的问题抽象成可计算的结构。\n\n第一层抽象：识别实体和关系。用户、订单、商品——它们之间是什么关系？一对一？一对多？多对多？\n\n第二层抽象：定义状态和转换。订单从「待付款」到「已发货」需要经过哪些状态？每个状态的进入条件和退出条件是什么？\n\n第三层抽象：处理边界情况。如果支付超时怎么办？如果库存不足怎么办？如果用户取消订单但快递已经发出怎么办？\n\n代码只是这些抽象的最后一步——把思维模型翻译成机器能执行的指令。\n\n所以学编程最重要的不是学语法，是学怎么把模糊的问题变成清晰的模型。语法可以查文档，思维模型只能靠练。",
-      "expected_output": "PNG whiteboard reasoning mode in Vercel dark style, canvas #000000, accent white/blue, chain-of-thought layout with arrows, hand-writing fonts, accent <=3 places",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"name": "design_system_accurate", "check": "Uses Vercel dark style: canvas #000000 or near-black, ink #ededed or white, minimal accent"},
+        {"name": "chain_layout", "check": "Content shows chain-of-thought progression with visual connectors (arrows, lines, numbered steps, or flow indicators)"},
+        {"name": "accent_weak_rule", "check": "Visual highlights <= 3 places (weak accent rule: Vercel white accent has low contrast with ink)"},
+        {"name": "body_text_min_36px", "check": "Body text >= 36px"},
+        {"name": "element_ratio_whiteboard", "check": "Font size ratio between largest and smallest text >= 4:1 (whiteboard minimum)"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated"}
+      ]
+    },
+    {
+      "id": 6,
+      "name": "chinese-comic-drama",
+      "prompt": "做成漫画\n\n## 服务器宕机的生死 60 秒\n\n凌晨 2:17，监控告警第一次亮红灯。\n\n我以为是误报。凌晨的流量低谷，Grafana 面板偶尔跳一下很正常。我翻了个身准备继续睡。\n\n2:18，手机炸了。不是一条告警，是 47 条。CPU 99%，内存 98%，磁盘 IO 等待时间超过 2 秒。主数据库的连接池满了。\n\n我光脚冲到电脑前。SSH 连上去，`top` 一看——一个我写的定时任务正在疯狂 fork 子进程。每个子进程占 200MB 内存。服务器 16GB 内存，已经用了 15.8GB。\n\nkill 掉？不够。子进程的父进程还在不断产生新的。kill 父进程？风险是数据库正在写入的事务会全部丢失。\n\n2:19，用户开始投诉了。客服群里消息刷屏。\"页面打不开\"\"下单失败\"\"钱扣了但订单没生成\"。\n\n我选择了最粗暴的方案：先 kill 所有相关进程，再处理善后。`killall -9`。\n\n一瞬间，世界安静了。CPU 降到 3%，内存回到正常。但紧接着——数据库报错。那 47 个被中断的事务，数据不一致了。\n\n花了两个小时修数据。修完的时候天已经亮了。\n\n后来我把定时任务加了进程数上限和内存监控。再后来，我给所有线上操作加了 rollback 方案。\n\n凌晨 2:17 那一分钟，教会我一件事：生产环境不相信\"应该没问题\"。",
+      "files": [],
+      "assertions": [
+        {"name": "comic_panels_present", "check": "HTML contains at least 3 distinct panel elements (e.g., .panel, grid cells with borders), not just regular article sections"},
+        {"name": "comic_elements_present", "check": "HTML uses at least 2 comic-specific visual elements: speech bubbles, thought bubbles, focus lines, speed lines, screentone, onomatopoeia/SFX, or ink wash"},
+        {"name": "black_white_only", "check": "No color accents used - only black, white, and gray tones (CSS vars like --ink, --white, --tone, no saturated colors like blue, red, purple)"},
+        {"name": "panel_size_contrast", "check": "Panels have different sizes (not all equal width/height) - at least one large panel and one small panel"},
+        {"name": "title_size_minimum", "check": "At least one text element has font-size >= 72px (comic title or dramatic text)"},
+        {"name": "body_text_minimum", "check": "Body/panel text is >= 32px"},
+        {"name": "no_equal_spacing", "check": "Margins/padding between panels or sections are not uniform (varying rhythm, not all the same value)"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated"}
+      ]
+    },
+    {
+      "id": 7,
+      "name": "chinese-sketchnote-concept",
+      "prompt": "做成视觉笔记\n\n## 改变世界的铁盒子\n\n1956 年之前，全世界的港口都是一个样子：混乱。\n\n一艘货轮靠岸，几百个码头工人蜂拥而上。麻袋、木箱、铁桶——每一件货物都要靠人力从船舱搬出来，再一件件装上卡车或火车。装一艘船要五天。成本占货物价值的一半。\n\n码头工人累死累活，船主等得心急如焚，货主付了天价运费还经常丢东西。三方都不满意，但谁也没办法——货物就是那个形状，搬运只能一件一件来。\n\n有人试过用更大的箱子。把几件货装进一个大箱子，一次吊几个。确实快了一点，但每个港口的箱子尺寸不一样。这个港口的箱子到了那个港口装不上火车。标准不统一，反而更乱。\n\n还有人试过用机械化的传送带和自动起重机。机器确实比人快，但问题还是那个问题——你还是得一件一件地抓，一件一件地放。瓶颈不在速度，在方式。\n\nMalcolm McLean 是个卡车司机出身的运输公司老板。他不是码头的人，他站在码头外面看。\n\n他看到的是：卡车的车厢、火车的平板、轮船的甲板——它们的底面积其实差不多。如果把箱子做成一样的尺寸，箱子从卡车直接吊到火车上，再从火车直接吊到轮船上呢？\n\n不用拆开。不用一件一件搬。箱子本身就是运输单位。\n\n1956 年 4 月 26 日，McLean 的第一艘集装箱船从纽瓦克出发，装了 58 个标准化钢制集装箱。装卸时间是原来的三十分之一。成本降到原来的五十分之一。\n\n这个东西后来被叫做集装箱化。它不是发明了一个新东西，是把\"搬\"这个动作本身消灭了。",
+      "files": [],
+      "assertions": [
+        {"name": "six_layout_molds", "check": "HTML uses at least 4 of the 6 layout molds: feature, note (with paper), archive (with stamp), cross (with mega text), hero, closing"},
+        {"name": "four_font_families", "check": "HTML uses at least 3 of the 4 font families: Serif (Noto Serif SC), Sans (Noto Sans SC), Mono (JetBrains Mono), Hand (Caveat)"},
+        {"name": "narrative_arc_present", "check": "Content follows problem → failure → pivot/insight → naming arc (not just linear article flow)"},
+        {"name": "no_title_spoiler", "check": "The magazine-head h1 title does NOT contain the concept name '集装箱' or 'container' - it should hint at the problem without revealing"},
+        {"name": "no_meta_self_reference", "check": "No meta-self-reference phrases like '你刚才发明了它' / '你重新分娩了它' / '你见证了它的诞生'"},
+        {"name": "decorative_elements", "check": "Uses at least 3 decorative elements: kicker (with num), drop cap, pull quote, stamp (with X), scribble, byline, or mega text"},
+        {"name": "varying_rhythm", "check": "Sections have different padding/margin values (not uniform spacing) - mimicking manga panel rhythm"},
+        {"name": "stamp_element", "check": "Archive section contains a stamp element with ✕ (X mark) indicating failure"},
+        {"name": "closing_mega_name", "check": "Closing section contains a large concept name (e.g., '集装箱化') at >= 130px font-size"},
+        {"name": "output_is_png", "check": "A PNG file was successfully generated"}
+      ]
+    },
+    {
+      "id": 8,
+      "name": "poster-semantic-split",
+      "prompt": "做成海报卡组，用 --design notion\n\n## 番茄工作法的真相\n\n番茄工作法并非万能。它适合执行型任务（写邮件、改 bug），但对创造性工作（设计、写作、架构设计）反而有害。强制中断会打碎你的心流状态。研究人员发现，深度专注需要至少 23 分钟才能进入。\n\n## 多任务处理是骗局\n\n人脑无法真正并行处理复杂任务。你以为是\"同时做两件事\"，实际上是\"在两件事之间快速切换\"。每次切换的成本是 15-25 分钟的认知恢复时间。斯坦福研究发现，经常多任务的人认知控制能力反而更差。\n\n## 睡眠不足的生产力陷阱\n\n少睡一小时 ≠ 多一小时产出。睡眠负债会以非线性方式积累：第一天少睡 1 小时，认知下降 25%；连续三天，下降 50%。NASA 对飞行员的实验显示，26 分钟的小憩能让认知表现提升 34%。\n\n## 完美主义的隐藏成本\n\n追求 80 分到 100 分的最后一跃，往往消耗了总时间的一半以上。这条边际收益递减曲线在几乎所有领域都成立。Facebook 的座右铭\"Done is better than perfect\"不是偷懒，是数学。",
+      "files": [],
+      "assertions": [
+        {"name": "one_section_per_card", "check": "Each output card contains content from only one h2 section. No card should have paragraphs from '番茄工作法' AND '多任务处理' on the same card."},
+        {"name": "card_count_gte_sections", "check": "Number of output cards >= 4 (the number of h2 sections). Each section gets at least one card."},
+        {"name": "no_cross_section_merge", "check": "No card combines content from two distinct h2 sections. Verify by checking that each HTML file contains h2/content from at most one section topic."},
+        {"name": "page_indicator_present", "check": "Cards show page indicator in 'N / M' format since there are multiple cards."},
+        {"name": "body_text_min_36px", "check": "Body text >= 36px in all cards (per taste.md mobile-first standard)."}
+      ]
+    },
+    {
+      "id": 9,
+      "name": "poster-stress-split",
+      "prompt": "做成海报卡组，用 --design stripe\n\n## Prompt 债务\n\n你写的每一个 prompt 都是一笔技术债。今天随手写的指令，明天就成了黑盒。三个月后没人（包括你自己）知道这段代码为什么这么写。\n\n## 上下文窗口的错觉\n\nAI 的上下文窗口在变大，但你的有效注意力没有。128K 的窗口不等于 128K 的理解力。研究表明，当上下文超过一定长度后，模型对中间位置的信息召回率会显著下降——这就是所谓的\u201c迷失在中间\u201d效应。你的架构决策可能恰好在模型注意力最弱的区域。更危险的是，你感觉不到这个衰减。输出看起来依然流畅、自信。但你无法分辨哪些部分是基于完整上下文生成的，哪些是模型在注意力不足时的\u201c合理猜测\u201d。这不是 AI 的问题，是你对 AI 理解能力的不正确预期。\n\n## 复制粘贴架构\n\n从 AI 那里复制代码，和从 Stack Overflow 复制代码，本质上没有区别。区别在于：Stack Overflow 至少还有评论区告诉你这段代码有什么问题。\n\n## 调试别人的代码\n\nAI 生成的代码最难调试，因为你对它没有心智模型。你自己写的代码，你记得为什么用了一个看似奇怪的处理方式。AI 的代码，你不知道哪些决策是深思熟虑的，哪些是随机采样出来的。\n\n## 安全盲区\n\nAI 生成的代码里藏着你看不见的安全漏洞，因为你看不懂的地方你不会去检查。\n\n## 技能萎缩\n\n这是一种温水煮青蛙式的退化。当 AI 替你完成了 80% 的编码工作，剩下的 20% 你也越来越难胜任——因为你失去了那 80% 带来的练习量。诊断复杂 bug 需要对系统全局的理解，这种理解只能从亲手写代码中获得。代码审查能力依赖于你自己写过足够多的烂代码。架构直觉来自于踩过足够多的坑。这些东西 AI 没法教给你，因为它们不是知识，是经验。当你发现自己越来越依赖 AI 来完成基础任务时，萎缩已经开始。\n\n## 依赖脆弱性\n\n你的整个技术栈现在多了一层你无法控制的依赖。模型版本更新可能改变输出行为。API 价格调整可能直接影响你的开发成本。服务中断意味着你连一行代码都写不了。这不是说你不该用 AI，而是你该为这些风险做好准备。\n\n## 审查瓶颈\n\nAI 把代码生成速度提升了 10 倍，但你的审查速度还是 1 倍。瓶颈从\u201c写代码\u201d转移到了\u201c读代码\u201d。",
+      "files": [],
+      "assertions": [
+        {"name": "one_section_per_card", "check": "Each card contains content from only one h2 section. Verify by checking that no HTML file contains h2 titles or body content from two different sections."},
+        {"name": "card_count_gte_sections", "check": "Number of output PNG cards >= 8 (the number of h2 sections). Each section gets at least one card."},
+        {"name": "short_sections_not_merged", "check": "Short sections (like '安全盲区' ~40 chars) are NOT merged with adjacent sections. They get their own card even if they could fit with neighbors."},
+        {"name": "long_sections_split_correctly", "check": "Long sections (like '上下文窗口的错觉' and '技能萎缩') that exceed the visual weight threshold are split WITHIN the section, not by merging with adjacent sections."},
+        {"name": "page_indicator_present", "check": "Cards show page indicator in N / M format."},
+        {"name": "body_text_min_36px", "check": "Body text >= 36px in all cards."}
+      ]
     }
   ]
 }
