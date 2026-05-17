@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 8421;
-const SELECTION_FILE = '/tmp/wjy_mockup_selection.json';
+const SELECTION_FILE = '/tmp/cast_selection.json';
 
 const server = http.createServer((req, res) => {
   // CORS
@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body);
         fs.writeFileSync(SELECTION_FILE, JSON.stringify(data, null, 2));
-        console.log(`[wjy-mockup] Selected: ${data.name} (${data.design})`);
+        console.log(`[cast] Selected: ${data.name} (${data.design})`);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true, design: data.design }));
       } catch (e) {
@@ -62,5 +62,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[wjy-mockup] Picker server running on http://localhost:${PORT}`);
+  console.log(`[cast] Picker server running on http://localhost:${PORT}`);
 });

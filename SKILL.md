@@ -1,11 +1,11 @@
 ---
-name: wjy-mockup
+name: cast
 description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using 30+ brand design systems (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a specific brand visual style to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
 user_invocable: true
 version: "0.1.0"
 ---
 
-# wjy-mockup
+# cast
 
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
 
@@ -129,9 +129,9 @@ version: "0.1.0"
 
 5. 根据内容分析设计画面（密度/结构/锚点），原则同 ljg-card 信息图模式
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
-7. 写入 `/tmp/wjy_mockup_{name}.html`
+7. 写入 `/tmp/cast_{name}.html`
 
-**poster 模式特殊**：每个卡片独立写入，文件名带序号 `/tmp/wjy_mockup_{name}_{N}.html`。
+**poster 模式特殊**：每个卡片独立写入，文件名带序号 `/tmp/cast_{name}_{N}.html`。
 
 **署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
 
@@ -148,7 +148,7 @@ version: "0.1.0"
 ### Step 6: 截图（4K）
 
 ```bash
-node assets/capture.js /tmp/wjy_mockup_{name}.html ~/Downloads/{name}.png 2160 800 fullpage
+node assets/capture.js /tmp/cast_{name}.html ~/Downloads/{name}.png 2160 800 fullpage
 ```
 
 DPR=2，实际渲染 2160px 宽。

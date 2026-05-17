@@ -95,10 +95,10 @@ Read `assets/long_template.html`
 | `{{BODY_HTML}}` | 步骤 3 生成的全部 HTML |
 | `{{SOURCE_LINE}}` | 内容来源（可选）：`<span class="info-source">来源文字</span>`，无来源时空字符串 |
 
-写入：`/tmp/wjy_mockup_long_{name}.html`
+写入：`/tmp/cast_long_{name}.html`
 
 ## 步骤 5：截图
 
 ```bash
-node assets/capture.js /tmp/wjy_mockup_long_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
+node assets/capture.js /tmp/cast_long_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
 ```
