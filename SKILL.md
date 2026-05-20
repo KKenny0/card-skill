@@ -26,7 +26,7 @@ version: "0.1.0"
 
 **必读**：
 1. `references/taste.md` — 品味底线（反 AI 美学 + 纸质印刷感）
-2. `references/design-index.md` — 30+ 套设计系统索引
+2. `references/design-index.md` — 22 套设计系统索引
 
 **按内容类型选读**（Step 1 分析后确定需要哪些）：
 3. `references/mode-infograph.md` — 信息图内容理论（密度/结构/情绪三维分析、90/8/2 色彩规则、布局生成原则）
@@ -62,6 +62,8 @@ version: "0.1.0"
 
 ### Step 2: 匹配候选
 
+**Comic mode 跳过此步**：comic mode 使用固定黑白调色板，设计系统的色彩 token 不生效。直接进入 Step 4，漫画风格由 `references/mode-comic.md` 的 5 种路线（大友克洋/井上雄彦/三浦建太郎/松本大洋/谷口治郎）决定，在 Step 4 渲染时根据内容气质选择。
+
 从 design-index.md 中选择 3-5 个候选设计系统。
 
 **匹配逻辑**：
@@ -72,7 +74,7 @@ version: "0.1.0"
    - 温暖 → editorial-warm / organic-warm / playful
    - 技术 → technical-data / monospace / dark-minimal
 2. **主题关联**：内容领域与品牌领域有交集时加分（如 AI 内容→AI 品牌，金融→fintech）
-3. **密度适配**：稀→留白风格（apple, notion, ollama），密→data-dense 风格（stripe, clickhouse, ibm）
+3. **密度适配**：稀→留白风格（apple, notion），密→data-dense 风格（stripe, ibm）
 4. **视觉多样性**：候选之间应视觉风格明显不同。如果 3 个都是 dark-minimal，换一个 editorial-warm
 
 输出候选列表，每个附一句话匹配理由。

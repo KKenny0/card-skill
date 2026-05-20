@@ -24,9 +24,7 @@ const DESIGNS = {
   // Dark Minimal
   linear:     { accent:'#6872be', canvas:'#0e0d12', ink:'#e2dcd4', inkMuted:'#8a8490', surface1:'#151418', surface2:'#1c1b20', hairline:'#25242a', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'薰衣草暗' },
   clickhouse: { accent:'#e8e060', canvas:'#0e0e0e', ink:'#e0dbd0', inkMuted:'#8a8580', surface1:'#161616', surface2:'#1e1e1e', hairline:'#2a2a2a', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'柠檬数据' },
-  resend:     { accent:'#e0dcd4', canvas:'#0a0a0c', ink:'#e8e2d8', inkMuted:'#888480', surface1:'#121214', surface2:'#1a1a1c', hairline:'#252528', font:'DM Sans,system-ui,sans-serif', fontTitle:'Playfair Display,Georgia,serif', titleWeight:400, note:'编辑单色' },
   composio:   { accent:'#1820a0', canvas:'#0e0e10', ink:'#e0dcd4', inkMuted:'#888480', surface1:'#161618', surface2:'#1e1e20', hairline:'#28282a', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'深蓝开发' },
-  framer:     { accent:'#e0dcd4', canvas:'#0c0c0e', ink:'#e0dcd4', inkMuted:'#8a8688', surface1:'#141416', surface2:'#1c1c1e', hairline:'#262628', font:'DM Sans,system-ui,sans-serif', fontTitle:'DM Sans,system-ui,sans-serif', titleWeight:600, note:'创意画板' },
   hashicorp:  { accent:'#e0dcd4', canvas:'#0a0a0c', ink:'#e0dcd4', inkMuted:'#8a8688', surface1:'#121214', surface2:'#1a1a1c', hairline:'#242426', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'基础设施' },
   vercel:     { accent:'#e0dcd4', canvas:'#0c0c0c', ink:'#e8e2d8', inkMuted:'#8a8580', surface1:'#141414', surface2:'#1c1c1c', hairline:'#282828', font:'DM Sans,system-ui,sans-serif', fontTitle:'DM Sans,system-ui,sans-serif', titleWeight:600, note:'极致黑白' },
   warp:       { accent:'#6872be', canvas:'#0c0c0e', ink:'#e0dcd4', inkMuted:'#8a8488', surface1:'#141416', surface2:'#1c1c1e', hairline:'#262628', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'终端工具' },
@@ -54,8 +52,6 @@ const DESIGNS = {
   // Vibrant (dark)
   spotify:    { accent:'#18a848', canvas:'#101214', ink:'#e0dcd4', inkMuted:'#8a8a84', surface1:'#181a1c', surface2:'#202224', hairline:'#2a2c2e', font:'DM Sans,system-ui,sans-serif', fontTitle:'DM Sans,system-ui,sans-serif', titleWeight:600, note:'音乐绿' },
   nvidia:     { accent:'#68a800', canvas:'#0a0a0c', ink:'#e0dcd4', inkMuted:'#8a8a84', surface1:'#121214', surface2:'#1a1a1c', hairline:'#242426', font:'DM Sans,system-ui,sans-serif', fontTitle:'DM Sans,system-ui,sans-serif', titleWeight:600, note:'GPU 工程' },
-  elevenlabs: { accent:'#c0b8a0', canvas:'#0a0a0c', ink:'#e0dcd4', inkMuted:'#8a8688', surface1:'#121214', surface2:'#1a1a1c', hairline:'#242426', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'AI 语音' },
-  runwayml:   { accent:'#e0dcd4', canvas:'#0a0a0c', ink:'#e0dcd4', inkMuted:'#8a8688', surface1:'#121214', surface2:'#1a1a1c', hairline:'#242426', font:'Inter,system-ui,sans-serif', fontTitle:'Inter,system-ui,sans-serif', titleWeight:600, note:'AI 创意' },
 
   // Brand Bold (dark)
   airtable:   { accent:'#18a8a8', canvas:'#0e1014', ink:'#e0dcd4', inkMuted:'#8a8a88', surface1:'#161820', surface2:'#1e2028', hairline:'#282a30', font:'DM Sans,system-ui,sans-serif', fontTitle:'DM Sans,system-ui,sans-serif', titleWeight:600, note:'结构化工作流' },

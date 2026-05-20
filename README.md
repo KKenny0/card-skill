@@ -24,13 +24,13 @@ Give it an article, a quote, a tweet thread, or a URL. Cast analyzes the content
 
 ## Design systems
 
-26 brand design systems curated from real DESIGN.md files, plus 8 ljg-card content-tone palettes tuned for Chinese text:
+18 brand design systems curated from real DESIGN.md files, plus 8 ljg-card content-tone palettes tuned for Chinese text:
 
-**Dark Minimal** — linear, resend, framer, vercel
-**Dark Cinematic** — spotify, elevenlabs, runwayml
-**Light Minimal** — apple, cal, expo, notion, mintlify, figma
+**Dark Minimal** — linear, vercel
+**Dark Cinematic** — spotify
+**Light Minimal** — apple, expo, notion
 **Light Editorial** — claude, cursor, intercom, replicate, posthog, clay
-**Technical Data** — stripe, ibm, opencode.ai, cohere, sentry, raycast, together.ai
+**Technical Data** — stripe, ibm, opencode.ai, sentry, raycast, together.ai
 **ljg-card tones** — 沉思, 锐利, 温暖, 技术, 科研, 创意, 商业, 默认
 
 Each system contributes color palette, shadow philosophy, border-radius style, and whitespace rhythm. Typography is mode-locked — brand systems don't override fonts.

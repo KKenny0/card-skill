@@ -27,13 +27,10 @@ const CONTENT = {
 const DESIGNS = {
   // Light Minimal
   apple:       { accent:'#0071e3', canvas:'#fbfbfd', ink:'#1d1d1f', inkMuted:'#86868b', surface1:'#f5f5f7', surface2:'#e8e8ed', hairline:'#d2d2d7', font:'DM Sans', fontTitle:'DM Sans', titleWeight:700, note:'极简留白' },
-  cal:         { accent:'#111111', canvas:'#fafafa', ink:'#111111', inkMuted:'#666666', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d8d8d8', font:'DM Sans', fontTitle:'DM Sans', titleWeight:700, note:'黑白极简' },
   expo:        { accent:'#000000', canvas:'#fafafa', ink:'#171717', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'Inter', fontTitle:'Inter', titleWeight:600, note:'开发者文档' },
   notion:      { accent:'#5645d4', canvas:'#fafafa', ink:'#1a1a1a', inkMuted:'#6b6b6b', surface1:'#f0f0f0', surface2:'#e8e8e8', hairline:'#d8d8d8', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'工作区' },
   ollama:      { accent:'#333333', canvas:'#fafafa', ink:'#1a1a1a', inkMuted:'#777777', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'DM Sans', fontTitle:'DM Sans', titleWeight:500, note:'极简终端' },
-  mintlify:    { accent:'#1a1a1a', canvas:'#fafafa', ink:'#1a1a1a', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'Inter', fontTitle:'Inter', titleWeight:600, note:'技术文档' },
   minimax:     { accent:'#1a1a1a', canvas:'#fafafa', ink:'#1a1a1a', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'AI 企业' },
-  figma:       { accent:'#333333', canvas:'#fafafa', ink:'#1a1a1a', inkMuted:'#666666', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d8d8d8', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'设计工具' },
 
   // Light Editorial
   claude:      { accent:'#c47050', canvas:'#f5f0e8', ink:'#2c2418', inkMuted:'#6b6050', surface1:'#ede7db', surface2:'#e4dcd0', hairline:'#d4c9b8', font:'DM Sans', fontTitle:'DM Serif Display', titleWeight:400, note:'暖色人文' },
@@ -51,7 +48,6 @@ const DESIGNS = {
   stripe:      { accent:'#5530e0', canvas:'#f6f9fc', ink:'#0d2540', inkMuted:'#4a5568', surface1:'#eef2f7', surface2:'#e3e8ee', hairline:'#d0d5dd', font:'DM Sans', fontTitle:'DM Sans', titleWeight:500, note:'精密金融' },
   ibm:         { accent:'#0f62fe', canvas:'#f5f5f5', ink:'#161616', inkMuted:'#555555', surface1:'#ebebeb', surface2:'#e0e0e0', hairline:'#c8c8c8', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'企业工程' },
   opencode_ai: { accent:'#201d1d', canvas:'#fdfcfc', ink:'#201d1d', inkMuted:'#6b6868', surface1:'#f2f1f1', surface2:'#e8e6e6', hairline:'#d0cece', font:'SF Mono,Menlo,monospace', fontTitle:'SF Mono,Menlo,monospace', titleWeight:600, note:'等宽终端' },
-  cohere:      { accent:'#28282e', canvas:'#fafafa', ink:'#212121', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'企业AI' },
   mongodb:     { accent:'#00c050', canvas:'#fafafa', ink:'#0a2028', inkMuted:'#556060', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', font:'DM Sans', fontTitle:'DM Sans', titleWeight:600, note:'数据平台' },
 
   // Vibrant (light)

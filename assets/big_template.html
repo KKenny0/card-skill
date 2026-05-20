@@ -179,15 +179,15 @@
     text-align: center;
   }
 
-  /* ── Depth surface behind text ── */
+  /* ── Depth surface behind text (responsive) ── */
   .content::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 820px;
-    height: 680px;
+    width: calc(100% - 80px);
+    height: calc(100% - 160px);
     background: linear-gradient(
       180deg,
       var(--surface-1) 0%,
@@ -205,6 +205,10 @@
     line-height: 1.22;
     letter-spacing: 0.02em;
     color: var(--ink);
+    /* Line breaks are 100% controlled by <br> tags in the content.
+       CSS must NOT add automatic wrapping — it would split mid-phrase.
+       Width safety is enforced by mode-big.md's semantic breaking rules. */
+    white-space: pre-line;
   }
 
   .phrase .accent {
