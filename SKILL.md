@@ -2,7 +2,7 @@
 name: cast
 description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using 30+ brand design systems (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a specific brand visual style to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
 user_invocable: true
-version: "0.1.0"
+version: "0.2.0"
 ---
 
 # cast
@@ -20,7 +20,38 @@ version: "0.1.0"
 
 ## 执行流程
 
-### Step 0: 读取基础
+### Step 0: 渲染路由
+
+判断当前内容能否走 CLI 快速渲染。
+
+**CLI-eligible modes**: big, long, whiteboard, poster
+**AI-only modes**: infograph, comic, sketchnote（需要创意布局，无法 schema 化）
+
+判断逻辑：
+1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 AI 流程（Step 1）
+2. 如果 mode 是 big / long / whiteboard / poster：
+   - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
+   - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
+   - 内容过于复杂（嵌套引用、多栏对比、特殊排版需求、不确定能 fit）→ AI 路径
+
+**CLI 路径**：
+1. 从内容中提取结构化 JSON，符合对应 mode 的 schema
+2. 写入 `/tmp/cast_input.json`
+3. 调用：
+```bash
+node scripts/cast.js --input /tmp/cast_input.json --output ~/Downloads/{name}.png
+```
+4. CLI 成功 → 跳到 Step 7 交付（跳过 Steps 1-6）
+5. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
+
+**JSON schema 结构**（每个 mode 的完整定义见 `schemas/` 目录）：
+
+big: `{ mode, phrase, design?, accent_words?, ghost_char?, attribution? }`
+long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, theme? }`
+whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
+poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
+
+### Step 0.5: 读取基础
 
 以下文件必须在开始前读取：
 

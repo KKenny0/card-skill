@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cast long mode input",
+  "description": "Structured input for long mode CLI rendering. Long mode produces a reading-optimized card (1080px wide, auto height).",
+  "type": "object",
+  "required": ["mode", "title", "body"],
+  "properties": {
+    "mode": { "type": "string", "const": "long" },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to 'claude'.",
+      "default": "claude"
+    },
+    "kicker": {
+      "type": "string",
+      "description": "Top label / category tag. Example: 'Architecture Pattern'",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "description": "Main headline. Use <span class=\"accent-word\">word</span> for accent highlights.",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Subtitle / deck line.",
+      "default": ""
+    },
+    "theme": {
+      "type": "string",
+      "enum": ["light", "dark"],
+      "description": "Color theme. Defaults to 'light'.",
+      "default": "light"
+    },
+    "body": {
+      "type": "array",
+      "description": "Structured body elements. Rendered in order.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "paragraph" },
+              "text": { "type": "string" },
+              "dropcap": { "type": "boolean", "description": "Add dropcap styling to this paragraph", "default": false }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "heading" },
+              "text": { "type": "string" },
+              "level": { "type": "integer", "enum": [2, 3], "default": 2 }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "highlight" },
+              "text": { "type": "string" },
+              "accent": { "type": "boolean", "description": "Use accent color for the text", "default": false }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "blockquote" },
+              "text": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "layer_card" },
+              "label": { "type": "string", "description": "Layer label, e.g. 'LAYER 01'" },
+              "text": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "const": "section_break" }
+            }
+          }
+        ]
+      },
+      "minItems": 1
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional source attribution line.",
+      "default": ""
+    },
+    "logo": { "type": "string", "default": "assets/logo.png" },
+    "brand_name": { "type": "string", "default": "cast" }
+  }
+}

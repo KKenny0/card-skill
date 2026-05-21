@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cast big mode input",
+  "description": "Structured input for big mode CLI rendering. Big mode renders a large-text poster (1080x1440) with optional ghost watermark character.",
+  "type": "object",
+  "required": ["mode", "phrase"],
+  "properties": {
+    "mode": { "type": "string", "const": "big" },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to 'vercel'. See scripts/lib/designs.js for full list.",
+      "default": "vercel"
+    },
+    "phrase": {
+      "type": "string",
+      "description": "Main body text. Use <br> for line breaks and <span class=\"accent\">word</span> to highlight words. Example: '<span class=\"accent\">Agent</span> 不是<br>加了循环'",
+      "minLength": 1
+    },
+    "accent_words": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Words from phrase to wrap in <span class=\"accent\">. Only used when phrase doesn't already contain accent spans. Example: ['Agent']"
+    },
+    "ghost_char": {
+      "type": "string",
+      "description": "Single character used as large low-opacity watermark. Auto-derived from first accent_word or phrase character if not provided.",
+      "default": ""
+    },
+    "attribution": {
+      "type": "string",
+      "description": "Optional attribution line below the phrase. Example: '— Alan Kay'",
+      "default": ""
+    },
+    "logo": {
+      "type": "string",
+      "description": "Path to brand logo image. Default: assets/logo.png",
+      "default": "assets/logo.png"
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Brand name in colophon footer. Default: 'cast'",
+      "default": "cast"
+    }
+  },
+  "examples": [
+    {
+      "mode": "big",
+      "design": "linear",
+      "phrase": "Agent 不是<br>加了循环",
+      "accent_words": ["Agent"],
+      "ghost_char": "A",
+      "attribution": "—— 某人"
+    }
+  ]
+}
