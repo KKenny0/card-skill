@@ -166,6 +166,26 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 **poster 模式特殊**：每个卡片独立写入，文件名带序号 `/tmp/cast_{name}_{N}.html`。
 
+**多卡批次一致性**：当内容需要拆分为多张图（信息图系列、poster 多卡、用户要求「多图」）时，必须遵守以下批次规则：
+
+1. **Token 锁定**：在渲染第一张卡之前，先输出一套共享 CSS 变量表，所有卡片共用。变量表包含：
+   - 色彩：`--bg`, `--green`, `--pink`, `--ink`, `--ink-light`（来自 Step 4 的设计 token 映射）
+   - 字号梯度：标题字号 / 段落标题字号 / 正文字号 / 标注字号（来自 `taste.md` 第 2 节的 mode 规则）
+   - 间距节奏：内容边距、区块间距、colophon 高度
+   - 字体栈：由 mode 决定，全批次统一
+
+2. **Token 锁定输出格式**（写在所有卡片的 HTML 之前）：
+   ```
+   批次 Token：
+   --bg: #faf6f0; --green: #e8dfd2; --pink: #d97757; --ink: #2c2418; --ink-light: #7a6f5f
+   标题: 140px serif | 段落标题: 48px zh-serif | 正文: 36px zh-serif | 标注: 24px mono
+   边距: 60px | 区块间距: 40px | 圆角: 6px
+   ```
+
+3. **每张卡的 `{{CUSTOM_CSS}}` 开头必须先复制 Token 锁定表中的 CSS 变量声明**（`:root { ... }`），然后才写该卡独有的布局 CSS。这确保即使单独打开某张卡的 HTML，视觉效果也完整。
+
+4. **禁止跨卡漂移**：不同卡之间，相同语义层级的元素必须使用相同字号。例如，如果卡 1 的正文是 36px，卡 2 的正文也必须是 36px。只有布局结构（grid、flex、positioning）允许因内容不同而变化。
+
 **署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
 
 ### Step 5: 自检
@@ -176,15 +196,20 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 - [ ] 弹点色符合品牌类型规则？（标准色 ≤2 处，弱 accent ≤3 处视觉突出点）
 - [ ] 正文 ≥36px，标注 ≥24px？
 - [ ] 多卡模式：每张卡只覆盖一个章节/话题？不同主题的内容没有被混在同一张卡上？
+- [ ] **批次一致性（多卡时）**：所有卡片的色彩变量、字号梯度、间距节奏是否严格匹配 Token 锁定表？相同语义层级（正文、标题、标注）的字号是否完全一致？
 - [ ] 告诉别人"AI 做的"会被一眼看穿？
 
 ### Step 6: 截图（4K）
 
+模板 CSS 宽度为 1080px。capture.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
+
 ```bash
-node assets/capture.js /tmp/cast_{name}.html ~/Downloads/{name}.png 2160 800 fullpage
+node assets/capture.js /tmp/cast_{name}.html ~/Downloads/{name}.png 1080 800 fullpage 2
 ```
 
-DPR=2，实际渲染 2160px 宽。
+参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`fullpage` = 截取完整内容高度，`2` = DPR（输出 2160px 宽）。
+
+**多卡批次**：同一批次的所有卡片必须使用完全相同的 capture 命令参数，确保输出宽度和 DPR 一致。
 
 ### Step 7: 交付
 
