@@ -201,13 +201,13 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 ### Step 6: 截图（4K）
 
-模板 CSS 宽度为 1080px。capture.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
+模板 CSS 宽度为 1080px。capture4k.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
 
 ```bash
-node assets/capture.js /tmp/cast_{name}.html ~/Downloads/{name}.png 1080 800 fullpage 2
+node assets/capture4k.js /tmp/cast_{name}.html ~/Downloads/{name}.png 1080 800 2 fullpage
 ```
 
-参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`fullpage` = 截取完整内容高度，`2` = DPR（输出 2160px 宽）。
+参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`2` = DPR（输出 2160px 宽），`fullpage` = 截取完整内容高度。
 
 **多卡批次**：同一批次的所有卡片必须使用完全相同的 capture 命令参数，确保输出宽度和 DPR 一致。
 

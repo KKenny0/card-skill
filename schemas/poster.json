@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cast poster mode input",
+  "description": "Structured input for poster mode CLI rendering. Poster mode produces a series of branded cards (1080x1440 each) with title card, body cards, and colophon card.",
+  "type": "object",
+  "required": ["mode", "title", "cards"],
+  "properties": {
+    "mode": { "type": "string", "const": "poster" },
+    "title": {
+      "type": "string",
+      "description": "Series title shown on first card header and subsequent card running titles.",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional subtitle shown below title on first card.",
+      "default": ""
+    },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to 'stripe'. See scripts/lib/designs.js for full list.",
+      "default": "stripe"
+    },
+    "cards": {
+      "type": "array",
+      "description": "Array of cards. First card gets title block, last card gets colophon.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["body"],
+        "properties": {
+          "body": {
+            "type": "array",
+            "description": "Typed body elements for this card.",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider"]
+                }
+              },
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": { "const": "paragraph" },
+                    "text": { "type": "string", "description": "Paragraph text." }
+                  },
+                  "required": ["type", "text"]
+                },
+                {
+                  "properties": {
+                    "type": { "const": "heading" },
+                    "text": { "type": "string", "description": "Heading text." }
+                  },
+                  "required": ["type", "text"]
+                },
+                {
+                  "properties": {
+                    "type": { "const": "highlight" },
+                    "text": { "type": "string", "description": "Highlighted quote text." }
+                  },
+                  "required": ["type", "text"]
+                },
+                {
+                  "properties": {
+                    "type": { "const": "items" },
+                    "entries": {
+                      "type": "array",
+                      "description": "Label-text pairs.",
+                      "items": {
+                        "type": "object",
+                        "required": ["label", "text"],
+                        "properties": {
+                          "label": { "type": "string" },
+                          "text": { "type": "string" }
+                        }
+                      }
+                    }
+                  },
+                  "required": ["type", "entries"]
+                },
+                {
+                  "properties": {
+                    "type": { "const": "data_row" },
+                    "key": { "type": "string", "description": "Data label." },
+                    "value": { "type": "string", "description": "Data value." }
+                  },
+                  "required": ["type", "key", "value"]
+                },
+                {
+                  "properties": {
+                    "type": { "const": "divider" }
+                  },
+                  "required": ["type"]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "logo": {
+      "type": "string",
+      "description": "Path to brand logo image. Default: assets/logo.png",
+      "default": "assets/logo.png"
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Brand name in colophon footer. Default: 'cast'",
+      "default": "cast"
+    }
+  },
+  "examples": [
+    {
+      "mode": "poster",
+      "design": "stripe",
+      "title": "AI Agent 架构三层模型",
+      "subtitle": "从基础设施到认知内核",
+      "cards": [
+        {
+          "body": [
+            { "type": "paragraph", "text": "每一个 AI Agent 系统都可以拆成三层。" },
+            { "type": "heading", "text": "基础设施层" },
+            { "type": "items", "entries": [
+              { "label": "模型", "text": "LLM 推理引擎" },
+              { "label": "工具", "text": "外部 API 调用" }
+            ]},
+            { "type": "divider" }
+          ]
+        },
+        {
+          "body": [
+            { "type": "heading", "text": "编排层" },
+            { "type": "highlight", "text": "好的编排让 Agent 在有限步数内收敛。" },
+            { "type": "data_row", "key": "典型步数", "value": "3-5 步" }
+          ]
+        }
+      ]
+    }
+  ]
+}

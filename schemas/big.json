@@ -26,6 +26,12 @@
       "description": "Single character used as large low-opacity watermark. Auto-derived from first accent_word or phrase character if not provided.",
       "default": ""
     },
+    "font_size": {
+      "type": "number",
+      "description": "Override auto-calculated font size (px). Auto-calc uses ≤10 chars→220px, 11-20→190px, 21+→160px.",
+      "minimum": 100,
+      "maximum": 300
+    },
     "attribution": {
       "type": "string",
       "description": "Optional attribution line below the phrase. Example: '— Alan Kay'",

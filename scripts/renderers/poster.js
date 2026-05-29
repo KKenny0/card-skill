@@ -25,7 +25,7 @@ function renderCardBody(body) {
         return `<div class="highlight"><p>${escapeHtml(el.text)}</p></div>`;
       case 'items': {
         if (!Array.isArray(el.entries)) return '';
-        return el.entries.map(e => `
+        return el.entries.filter(e => e.label && e.text).map(e => `
           <div class="item">
             <div class="label">${escapeHtml(e.label)}</div>
             <p>${escapeHtml(e.text)}</p>

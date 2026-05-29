@@ -39,7 +39,7 @@ Tags: dark, cinematic, music | 适合: 音乐媒体, 内容平台, 暗面编辑
 white canvas, restrained, clean
 
 ### apple
-Surface: light | Accent: #0066cc | Canvas: #ffffff | Ink: #1d1d1f
+Surface: light | Accent: #0071e3 | Canvas: #fbfbfd | Ink: #1d1d1f
 Tags: minimal, photography-first, premium | 适合: 消费电子, 产品展示, 高端品牌
 
 ### expo
@@ -56,7 +56,7 @@ Tags: minimal, workspace, illustration | 适合: 协作工具, 工作区, 知识
 warm canvas, serif, editorial warmth
 
 ### claude
-Surface: light | Accent: #cc785c | Canvas: #faf9f5 | Ink: #141413
+Surface: light | Accent: #c47050 | Canvas: #f5f0e8 | Ink: #2c2418
 Tags: editorial, warm, serif | 适合: AI 产品, 编辑内容, 人文思考
 
 ### cursor

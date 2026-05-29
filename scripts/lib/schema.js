@@ -6,13 +6,14 @@
 const SCHEMAS = {
   big: {
     required: ['mode', 'phrase'],
-    optional: ['design', 'accent_words', 'ghost_char', 'attribution', 'logo', 'brand_name'],
+    optional: ['design', 'accent_words', 'ghost_char', 'font_size', 'attribution', 'logo', 'brand_name'],
     types: {
       mode: 'string',
       phrase: 'string',
       design: 'string',
       accent_words: 'array',
       ghost_char: 'string',
+      font_size: 'number',
       attribution: 'string',
       logo: 'string',
       brand_name: 'string',
@@ -124,6 +125,11 @@ function validate(input) {
         card.body.forEach((el, j) => {
           if (!el.type) errors.push(`cards[${i}].body[${j}]: missing "type"`);
           else if (!POSTER_BODY_TYPES.has(el.type)) errors.push(`cards[${i}].body[${j}]: unknown type "${el.type}". Allowed: ${[...POSTER_BODY_TYPES].join(', ')}`);
+          if (el.type === 'items' && Array.isArray(el.entries)) {
+            el.entries.forEach((e, k) => {
+              if (!e.label || !e.text) errors.push(`cards[${i}].body[${j}].entries[${k}]: items entries require "label" and "text"`);
+            });
+          }
         });
       }
     });
