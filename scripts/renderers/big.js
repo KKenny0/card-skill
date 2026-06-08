@@ -9,6 +9,7 @@ const { escapePhrase, escapeHtml } = require('../lib/escape');
 const { cssOverrides, getDesign } = require('../lib/designs');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/big_template.html');
+const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
 /**
  * Calculate font size from phrase character count.
@@ -78,6 +79,10 @@ function render(input, outputHtmlPath) {
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
 
+  // Set theme class based on design surface
+  const theme = design.surface === 'dark' ? 'dark' : 'light';
+  template = template.replace('class="dark"', `class="${theme}"`);
+
   // Inject design tokens
   const overrides = cssOverrides(input.design || 'vercel');
   template = template.replace(/(:root\s*\{[^}]*\})/s, (match) => {
@@ -97,6 +102,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{ATTRIBUTION}}', attribution);
   template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
+  template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

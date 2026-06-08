@@ -99,6 +99,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{SOURCE_LINE}}', input.source ? `<span class="source-line">${escapeHtml(input.source)}</span>` : '');
   template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
+  template = template.replaceAll('{{FONT_BASE}}', path.resolve(__dirname, '../../assets/fonts').replace(/\\/g, '/'));
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

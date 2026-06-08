@@ -1,6 +1,7 @@
 <!--
   ═══════════════════════════════════════════════════════════
   Whiteboard (白板) Template — Brand-Agnostic
+  Theme: class="dark" (default) or class="light" on <html>
   ═══════════════════════════════════════════════════════════
 
   PLACEHOLDERS
@@ -24,7 +25,7 @@
   ═══════════════════════════════════════════════════════════
 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1080">
@@ -33,7 +34,7 @@
   /* ─── Font-face ─── */
   @font-face {
     font-family: 'XiangcuiDengcusong';
-    src: url('file:///Users/kennywu/Documents/3-VibeProject/skills/cast/assets/fonts/XiangcuiDengcusong.ttf') format('truetype');
+    src: url('file://{{FONT_BASE}}/XiangcuiDengcusong.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
@@ -49,6 +50,17 @@
     --ink:        #e2dfd9;
     --ink-muted:  #8a8f98;
     --hairline:   #23252a;
+  }
+
+  /* ─── Light theme visual adjustments ─── */
+  html.light .whiteboard {
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 60%, color-mix(in srgb, var(--accent) 5%, transparent) 0%, transparent 60%),
+      var(--bg);
+  }
+  html.light .title-wave svg {
+    opacity: 0.4;
   }
 
   /* ─── Reset ─── */

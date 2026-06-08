@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1080">
@@ -9,6 +9,9 @@
   ╔══════════════════════════════════════════════════════════════════╗
   ║  BIG MODE TEMPLATE (大字报)                                     ║
   ║  Brand-agnostic — override CSS variables to theme               ║
+  ║  Theme: set class="dark" or class="light" on <html>            ║
+  ║  Dark designs → class="dark" (default)                          ║
+  ║  Light designs → class="light" (softer grain, adjusted ghost)  ║
   ╠══════════════════════════════════════════════════════════════════╣
   ║                                                                  ║
   ║  PLACEHOLDERS                                                    ║
@@ -67,7 +70,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=Permanent+Marker&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-  /* ── Design Tokens (dark default — override on :root to theme) ── */
+  /* ── Design Tokens (dark default — renderer overrides on :root, swaps class for light) ── */
   :root {
     --bg:         #0a0a0e;
     --accent:     #7176c4;
@@ -78,10 +81,18 @@
     --radius:     12px;
   }
 
+  /* ── Light theme visual adjustments ── */
+  html.light .card::after {
+    opacity: 0.15;
+  }
+  html.light .ghost {
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
   /* ── Font Face: XiangcuiDengcusong (local) ── */
   @font-face {
     font-family: 'XiangcuiDengcusong';
-    src: url('file:///Users/kennywu/Documents/3-VibeProject/skills/cast/assets/fonts/XiangcuiDengcusong.ttf') format('truetype');
+    src: url('file://{{FONT_BASE}}/XiangcuiDengcusong.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }

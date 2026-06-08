@@ -9,6 +9,7 @@ const { escapeHtml } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/poster_template.html');
+const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
 /**
  * Convert structured body elements into HTML for poster_template.
@@ -86,12 +87,20 @@ function render(input, outputDir) {
     let html = template;
     html = html.replaceAll('{{BG_COLOR}}', design.canvas);
     html = html.replaceAll('{{ACCENT_COLOR}}', design.accent);
+
+    // Inject remaining design tokens (not covered by Mustache placeholders)
+    html = html.replace(/(--ink):\s*[^;]+;/g, `$1: ${design.ink};`);
+    html = html.replace(/(--ink-muted):\s*[^;]+;/g, `$1: ${design.inkMuted};`);
+    html = html.replace(/(--hairline):\s*[^;]+;/g, `$1: ${design.hairline};`);
+    html = html.replace(/(--surface-1):\s*[^;]+;/g, `$1: ${design.surface1};`);
+    html = html.replace(/(--surface-2):\s*[^;]+;/g, `$1: ${design.surface2};`);
     html = html.replaceAll('{{HEADER_BLOCK}}', headerBlock);
     html = html.replaceAll('{{TITLE_BLOCK}}', titleBlock);
     html = html.replaceAll('{{BODY_HTML}}', Array.isArray(card.body) ? renderCardBody(card.body) : '');
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophonBlock);
     html = html.replaceAll('{{LOGO}}', 'file://' + logoPath);
     html = html.replaceAll('{{BRAND_NAME}}', brandName);
+    html = html.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
     html = html.replaceAll('{{PAGE_INFO}}', ''); // documented in comment but not used in body
 
     const htmlFileName = `cast_poster_${Date.now()}_${i + 1}.html`;

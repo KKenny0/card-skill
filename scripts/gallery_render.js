@@ -30,6 +30,7 @@ const ASSETS = path.join(ROOT, 'assets');
 const CAPTURE = path.join(ASSETS, 'capture4k.js');
 const OUTPUT_DIR = path.join(ROOT, 'gallery', 'output');
 const LOGO_PATH = path.join(ASSETS, 'logo.png');
+const FONT_DIR = path.join(ASSETS, 'fonts');
 
 // ═══════════════════════════════════════════════════════════
 // Design Systems Catalog
@@ -355,6 +356,7 @@ function fillTemplate(mode, designName) {
   const d = DESIGNS[designName];
   const c = CONTENT[mode];
   let html = fs.readFileSync(path.join(ASSETS, `${mode}_template.html`), 'utf-8');
+  html = html.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
   const logoPath = `file://${LOGO_PATH}`;
   const displayName = designName.replace('ljg_', 'ljg-');
 
@@ -487,9 +489,24 @@ function fillTemplate(mode, designName) {
       html = replaceCSSVar(html, '--surface-1', d.surface1);
       html = replaceCSSVar(html, '--surface-2', d.surface2);
       html = replaceCSSVar(html, '--accent-1', d.accent);
-      // Use accent-2/3 as variations of the design accent
-      html = replaceCSSVar(html, '--accent-2', shiftHue(d.accent, 120));
-      html = replaceCSSVar(html, '--accent-3', shiftHue(d.accent, 240));
+      // Generate accent-2/3 from design accent
+      // For achromatic accents (white, black, grays), hue rotation is meaningless — use fixed triad
+      const [ah, as, al] = rgbToHsl(
+        parseInt(d.accent.slice(1, 3), 16),
+        parseInt(d.accent.slice(3, 5), 16),
+        parseInt(d.accent.slice(5, 7), 16)
+      );
+      if (as < 0.10) {
+        // Achromatic — use warm triad (blue/amber/soft amber)
+        html = replaceCSSVar(html, '--accent-2', '#3D5A80');
+        html = replaceCSSVar(html, '--accent-3', '#BB8A2B');
+        html = replaceCSSVar(html, '--accent-3-soft', '#D7A85A');
+      } else {
+        html = replaceCSSVar(html, '--accent-2', shiftHue(d.accent, 120));
+        const accent3 = shiftHue(d.accent, 240);
+        html = replaceCSSVar(html, '--accent-3', accent3);
+        html = replaceCSSVar(html, '--accent-3-soft', softAccent(accent3));
+      }
       html = replaceCSSVar(html, '--ink', d.ink);
       html = replaceCSSVar(html, '--ink-muted', d.inkMuted);
       html = replaceCSSVar(html, '--ink-strong', d.ink);
@@ -522,6 +539,16 @@ function shiftHue(hex, degrees) {
   const [h, s, l] = rgbToHsl(r, g, b);
   const h2 = (h + degrees / 360) % 1;
   const [r2, g2, b2] = hslToRgb(h2, s, l);
+  return `#${r2.toString(16).padStart(2,'0')}${g2.toString(16).padStart(2,'0')}${b2.toString(16).padStart(2,'0')}`;
+}
+
+// Generate a softer (lighter, less saturated) version of a color for accent-3-soft
+function softAccent(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const [r2, g2, b2] = hslToRgb(h, s * 0.6, Math.min(l + 0.15, 0.75));
   return `#${r2.toString(16).padStart(2,'0')}${g2.toString(16).padStart(2,'0')}${b2.toString(16).padStart(2,'0')}`;
 }
 

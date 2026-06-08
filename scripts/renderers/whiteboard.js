@@ -96,6 +96,10 @@ function render(input, outputHtmlPath) {
   const templateFile = path.resolve(__dirname, '../../assets/whiteboard_template.html');
   let template = fs.readFileSync(templateFile, 'utf-8');
 
+  // Set theme class based on design surface
+  const theme = design.surface === 'dark' ? 'dark' : 'light';
+  template = template.replace('class="dark"', `class="${theme}"`);
+
   // Inject design tokens
   template = template.replace(/(:root\s*\{[^}]*\})/s, (match) => {
     return match
@@ -118,6 +122,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{STEPS_HTML}}', renderSteps(input.steps));
   template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
+  template = template.replaceAll('{{FONT_BASE}}', path.resolve(__dirname, '../../assets/fonts').replace(/\\/g, '/'));
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 
