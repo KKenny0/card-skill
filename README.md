@@ -78,6 +78,7 @@ cast/
 ## Dependencies
 
 - [Playwright](https://playwright.dev/) — headless Chromium for PNG capture (`npx playwright install chromium`)
+- **Fonts** — place `XiangcuiDengcusong.ttf` in `assets/fonts/`. This typeface is required for CJK serif rendering; Playwright falls back to system fonts when missing.
 
 ## Credits
 

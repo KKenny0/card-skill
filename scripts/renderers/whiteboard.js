@@ -9,6 +9,8 @@ const path = require('path');
 const { escapeHtml } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
+const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
+
 const CHAIN_ARROW_SVG = `<div class="chain-arrow"><svg viewBox="0 0 36 20" fill="none"><path d="M2 10 L28 10" stroke="var(--ink-muted)" stroke-width="2" stroke-linecap="round"/><path d="M24 5 L30 10 L24 15" stroke="var(--ink-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
 
 /**
@@ -122,7 +124,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{STEPS_HTML}}', renderSteps(input.steps));
   template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
-  template = template.replaceAll('{{FONT_BASE}}', path.resolve(__dirname, '../../assets/fonts').replace(/\\/g, '/'));
+  template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

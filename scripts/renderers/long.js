@@ -9,6 +9,8 @@ const path = require('path');
 const { escapeHtml } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
+const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
+
 /**
  * Convert a structured body element array into HTML for long_template.
  * Supported types: paragraph, heading, highlight, blockquote, layer_card, section_break
@@ -99,7 +101,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{SOURCE_LINE}}', input.source ? `<span class="source-line">${escapeHtml(input.source)}</span>` : '');
   template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
-  template = template.replaceAll('{{FONT_BASE}}', path.resolve(__dirname, '../../assets/fonts').replace(/\\/g, '/'));
+  template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 
