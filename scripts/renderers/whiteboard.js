@@ -11,7 +11,6 @@ const { getDesign } = require('../lib/designs');
 
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
-const CHAIN_ARROW_SVG = `<div class="chain-arrow"><svg viewBox="0 0 36 20" fill="none"><path d="M2 10 L28 10" stroke="var(--ink-muted)" stroke-width="2" stroke-linecap="round"/><path d="M24 5 L30 10 L24 15" stroke="var(--ink-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
 
 /**
  * Convert structured steps into HTML for whiteboard_template.
@@ -23,13 +22,13 @@ function renderSteps(steps) {
 
     switch (step.type) {
       case 'chain': {
-        const nodes = step.nodes.map(node => {
-          let cls = 'chain-node';
-          if (node.highlight) cls += ' highlight';
-          if (node.muted) cls += ' muted';
-          return `<span class="${cls}">${escapeHtml(node.text)}</span>`;
-        }).join(CHAIN_ARROW_SVG);
-        return `${num}<div class="chain">${nodes}</div>`;
+        const parts = step.nodes.map(node => {
+          const text = escapeHtml(node.text);
+          if (node.highlight) return `<span class="highlight">${text}</span>`;
+          if (node.muted) return `<span class="muted">${text}</span>`;
+          return text;
+        }).join(' ');
+        return `${num}<div class="chain"><div class="chain-node">${parts}</div></div>`;
       }
       case 'annotation': {
         return `${num}<div class="annotation">${escapeHtml(step.text).replace(/\*\*(.*?)\*\*/g, '<span class="em">$1</span>')}</div>`;
