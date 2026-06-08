@@ -192,11 +192,10 @@
   /* ── Labeled items ─────────────────────────────────────────────── */
   .item {
     padding: 28px 0;
-    border-bottom: 1px solid var(--hairline);
   }
 
-  .item:last-child {
-    border-bottom: none;
+  .item + .item {
+    border-top: 1px solid var(--hairline);
   }
 
   .item .label {
@@ -227,11 +226,10 @@
     justify-content: space-between;
     align-items: baseline;
     padding: 20px 0;
-    border-bottom: 1px solid var(--hairline);
   }
 
-  .data-row:last-child {
-    border-bottom: none;
+  .data-row + .data-row {
+    border-top: 1px solid var(--hairline);
   }
 
   .data-row .key {

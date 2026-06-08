@@ -50,7 +50,7 @@ function renderSteps(steps) {
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
-          .replace(/&lt;span\s+class=&quot;accent-word&quot;&gt;(.*?)&lt;\/span&gt;/g, '<span class="accent-word">$1</span>');
+          .replace(/&lt;span\s+class="accent-word"&gt;(.*?)&lt;\/span&gt;/g, '<span class="accent-word">$1</span>');
         return `
           <div class="insight-box">
             <div class="insight-icon">
