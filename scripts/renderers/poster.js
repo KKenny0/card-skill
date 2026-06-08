@@ -53,6 +53,11 @@ function render(input, outputDir) {
   const design = getDesign(input.design || 'stripe');
   if (!design) throw new Error(`Design not found: ${input.design}`);
 
+  // Poster template has no dark theme — reject dark-surface designs
+  if (design.surface === 'dark') {
+    throw new Error(`Poster mode requires a light-surface design. "${input.design}" is dark. Try one of: apple, expo, notion, claude, cursor, stripe, ibm, etc.`);
+  }
+
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
   const brandName = escapeHtml(input.brand_name || 'cast');
