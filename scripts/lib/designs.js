@@ -1,5 +1,5 @@
 /**
- * Design token registry for cast CLI.
+ * Design token registry for card-skill CLI.
  * Extracted from references/design-index.md + gallery_render.js DESIGNS catalog.
  *
  * Each design provides CSS-variable-ready tokens:

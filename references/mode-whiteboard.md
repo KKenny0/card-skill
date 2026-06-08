@@ -376,7 +376,7 @@ Read `assets/whiteboard_template.html`
 | `{{CONTENT_HTML}}` | 全部内容 HTML |
 | `{{SOURCE_LINE}}` | 内容来源（可选）：`<span class="info-source">来源文字</span>`，无来源时空字符串 |
 
-写入：`/tmp/cast_whiteboard_{name}.html`
+写入：`/tmp/card_whiteboard_{name}.html`
 
 ## 步骤 5：自检
 
@@ -395,5 +395,5 @@ Read `assets/whiteboard_template.html`
 ## 步骤 6：截图
 
 ```bash
-node assets/capture.js /tmp/cast_whiteboard_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
+node assets/capture.js /tmp/card_whiteboard_{name}.html ~/Downloads/{name}.png 1080 800 fullpage
 ```

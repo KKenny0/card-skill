@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Batch dark-surface cover renderer for cast
+ * Batch dark-surface cover renderer for card-skill
  * Strategy: 印在深色卡纸上的印刷品 — 暖调底色、暖白墨色、不加纹理、不发光
  */
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const OUTPUT_DIR = '/tmp/cast_covers_dark';
+const OUTPUT_DIR = '/tmp/card_covers_dark';
 const ASSETS = path.resolve(__dirname, '..', 'assets');
 const CAPTURE = path.join(ASSETS, 'capture4k.js');
 

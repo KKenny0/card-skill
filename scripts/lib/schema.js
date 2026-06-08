@@ -1,5 +1,5 @@
 /**
- * Schema validation for cast CLI.
+ * Schema validation for card-skill CLI.
  * Each schema defines required fields, optional fields, and type checks.
  */
 

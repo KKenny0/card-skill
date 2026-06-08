@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gallery renderer for cast
+ * Gallery renderer for card-skill
  * Renders all design-system × mode combinations, then generates a static gallery page.
  *
  * Usage:
@@ -104,7 +104,7 @@ const CONTENT = {
   // ── Infograph ──
   infograph: {
     custom_css: '',
-    source_line: '<span class="info-source">2026 · cast gallery sample</span>',
+    source_line: '<span class="info-source">2026 · card gallery sample</span>',
     content_html: `
   <div style="padding: 72px 64px 0;">
 
@@ -646,7 +646,7 @@ function generateGalleryPage(results) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>cast gallery</title>
+<title>card gallery</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #f5f5f5; color: #1a1a1a; }
@@ -683,7 +683,7 @@ function generateGalleryPage(results) {
 <body>
 
 <div class="header">
-  <h1>cast gallery — design system × mode matrix</h1>
+  <h1>card gallery — design system × mode matrix</h1>
   <div class="tabs">${tabs}</div>
 </div>
 

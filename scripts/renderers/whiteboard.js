@@ -1,5 +1,5 @@
 /**
- * Whiteboard mode renderer for cast CLI.
+ * Whiteboard mode renderer for card-skill CLI.
  * Fills whiteboard_template.html with structured input.
  * Converts typed step elements into template-supported HTML.
  */
@@ -115,7 +115,7 @@ function render(input, outputHtmlPath) {
   });
 
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'cast');
+  const brandName = escapeHtml(input.brand_name || 'card');
   const titleHtml = applyAccentWords(input.title, input.accent_words);
 
   // Fill placeholders

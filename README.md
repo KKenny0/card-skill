@@ -1,6 +1,6 @@
-<p align="center"><img src="assets/logo.png" alt="cast" width="120"></p>
+<p align="center"><img src="assets/logo.png" alt="card-skill" width="120"></p>
 
-# cast
+# card-skill
 
 Content in, PNG out. Mold decides the shape.
 
@@ -8,7 +8,7 @@ A Claude Code skill that renders text into designed images — infographics, pos
 
 ## What it does
 
-Give it an article, a quote, a tweet thread, or a URL. Cast analyzes the content's structure, density, and emotional tone, then renders it as a high-resolution PNG (4K width, DPR 2) that looks like printed matter — not a web screenshot.
+Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content's structure, density, and emotional tone, then renders it as a high-resolution PNG (4K width, DPR 2) that looks like printed matter — not a web screenshot.
 
 ## Seven modes
 
@@ -59,7 +59,7 @@ Output lands in `~/Downloads/`.
 ## Project structure
 
 ```
-cast/
+card-skill/
 ├── SKILL.md                    # Skill definition and execution flow
 ├── assets/
 │   ├── {mode}_template.html    # HTML templates (7 modes)
@@ -88,7 +88,7 @@ cast/
 Built on two projects:
 
 - **[awesome-design-md](https://github.com/VoltAgent/awesome-design-md)** by VoltAgent — curated DESIGN.md files from popular brand design systems, used as the visual reference library for color palettes, shadow philosophy, border radius, and whitespace rhythm.
-- **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the casting metaphor, typography rules, content preprocessing pipeline, and taste guidelines.
+- **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, typography rules, content preprocessing pipeline, and taste guidelines.
 
 ## License
 

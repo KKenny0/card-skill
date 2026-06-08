@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Batch cover renderer for cast
+ * Batch cover renderer for card-skill
  * Generates cover HTML for all light-surface design systems, then captures via capture4k.js
  *
  * Usage: node scripts/batch_render_covers.js [--dry-run]
@@ -10,7 +10,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const DRY_RUN = process.argv.includes('--dry-run');
-const OUTPUT_DIR = '/tmp/cast_covers';
+const OUTPUT_DIR = '/tmp/card_covers';
 const ASSETS = path.resolve(__dirname, '..', 'assets');
 const CAPTURE = path.join(ASSETS, 'capture4k.js');
 

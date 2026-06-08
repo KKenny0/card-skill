@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "cast poster mode input",
+  "title": "card-skill poster mode input",
   "description": "Structured input for poster mode CLI rendering. Poster mode produces a series of cards (1080x1440 each) from structured content.",
   "type": "object",
   "required": ["mode", "title", "cards"],
@@ -53,8 +53,8 @@
     },
     "brand_name": {
       "type": "string",
-      "description": "Brand name in colophon footer. Default: 'cast'",
-      "default": "cast"
+      "description": "Brand name in colophon footer. Default: 'card'",
+      "default": "card"
     }
   },
   "examples": [

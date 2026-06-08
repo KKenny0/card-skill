@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "cast long mode input",
+  "title": "card-skill long mode input",
   "description": "Structured input for long mode CLI rendering. Long mode produces a reading-optimized card (1080px wide, auto height).",
   "type": "object",
   "required": ["mode", "title", "body"],
@@ -98,6 +98,6 @@
       "default": ""
     },
     "logo": { "type": "string", "default": "assets/logo.png" },
-    "brand_name": { "type": "string", "default": "cast" }
+    "brand_name": { "type": "string", "default": "card" }
   }
 }

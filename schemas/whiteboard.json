@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "cast whiteboard mode input",
+  "title": "card-skill whiteboard mode input",
   "description": "Structured input for whiteboard mode CLI rendering. Whiteboard mode produces a reasoning chain card (1080px wide, auto height).",
   "type": "object",
   "required": ["mode", "title", "steps"],
@@ -89,6 +89,6 @@
       "minItems": 1
     },
     "logo": { "type": "string", "default": "assets/logo.png" },
-    "brand_name": { "type": "string", "default": "cast" }
+    "brand_name": { "type": "string", "default": "card" }
   }
 }

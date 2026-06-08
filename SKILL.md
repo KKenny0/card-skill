@@ -1,11 +1,11 @@
 ---
-name: cast
+name: card-skill
 description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using 18 brand design systems (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) + 8 content tones (26 total), and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a specific brand visual style to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
 user_invocable: true
 version: "0.2.0"
 ---
 
-# cast
+# card-skill
 
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
 
@@ -36,10 +36,10 @@ version: "0.2.0"
 
 **CLI 路径**：
 1. 从内容中提取结构化 JSON，符合对应 mode 的 schema
-2. 写入临时文件 `cast_input.json`
+2. 写入临时文件 `card_input.json`
 3. 调用：
 ```bash
-node scripts/cast.js --input cast_input.json --output ~/Downloads/{name}.png
+node scripts/card.js --input card_input.json --output ~/Downloads/{name}.png
 ```
 4. CLI 成功 → 跳到 Step 7 交付（跳过 Steps 1-6）
 5. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
@@ -162,9 +162,9 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 5. 根据内容分析设计画面（密度/结构/锚点），原则同 ljg-card 信息图模式
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
-7. 写入临时文件 `cast_{name}.html`
+7. 写入临时文件 `card_{name}.html`
 
-**poster 模式特殊**：每个卡片独立写入，文件名带序号 `cast_{name}_{N}.html`。
+**poster 模式特殊**：每个卡片独立写入，文件名带序号 `card_{name}_{N}.html`。
 
 **多卡批次一致性**：当内容需要拆分为多张图（信息图系列、poster 多卡、用户要求「多图」）时，必须遵守以下批次规则：
 

@@ -1,5 +1,5 @@
 /**
- * Long mode renderer for cast CLI.
+ * Long mode renderer for card-skill CLI.
  * Fills long_template.html with structured input.
  * Converts typed body elements into template-supported HTML.
  */
@@ -91,7 +91,7 @@ function render(input, outputHtmlPath) {
   }
 
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'cast');
+  const brandName = escapeHtml(input.brand_name || 'card');
 
   // Fill placeholders
   template = template.replaceAll('{{KICKER}}', escapeHtml(input.kicker || ''));

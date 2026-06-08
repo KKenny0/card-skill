@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * cast CLI — Structured rendering pipeline.
+ * card CLI — Structured rendering pipeline.
  * Accepts a JSON input file or stdin, validates against mode schema,
  * fills the corresponding template, and captures PNG via Playwright.
  *
  * Usage:
- *   node scripts/cast.js --input cast_input.json --output ~/Downloads/out.png
- *   echo '{"mode":"big","phrase":"hello"}' | node scripts/cast.js --stdin --output ~/Downloads/out.png
- *   node scripts/cast.js --list-designs
+ *   node scripts/card.js --input card_input.json --output ~/Downloads/out.png
+ *   echo '{"mode":"big","phrase":"hello"}' | node scripts/card.js --stdin --output ~/Downloads/out.png
+ *   node scripts/card.js --list-designs
  *
  * CLI-eligible modes: big, long, whiteboard, poster
  * AI-only modes (not handled here): infograph, comic, sketchnote
@@ -33,17 +33,17 @@ function getArg(flag) {
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
-cast CLI — Structured rendering pipeline
+card CLI — Structured rendering pipeline
 
 Usage:
-  node scripts/cast.js --input <json> --output <png>
-  echo '<json>' | node scripts/cast.js --stdin --output <png>
-  node scripts/cast.js --list-designs
+  node scripts/card.js --input <json> --output <png>
+  echo '<json>' | node scripts/card.js --stdin --output <png>
+  node scripts/card.js --list-designs
 
 Options:
   --input <path>     Read JSON input from file
   --stdin            Read JSON input from stdin
-  --output <path>    Output PNG path (default: ~/Downloads/cast_{mode}_{ts}.png)
+  --output <path>    Output PNG path (default: ~/Downloads/card_{mode}_{ts}.png)
   --dpr <number>     Device pixel ratio (default: 2)
   --list-designs     List all available design systems
   --help             Show this help
@@ -110,7 +110,7 @@ if (!result.valid) {
 const DPR = parseFloat(getArg('--dpr')) || 2;
 const outputArg = getArg('--output');
 const ts = Date.now();
-const defaultOutputName = `cast_${input.mode}_${ts}.png`;
+const defaultOutputName = `card_${input.mode}_${ts}.png`;
 const outputPath = outputArg
   ? path.resolve(outputArg)
   : path.join(require('os').homedir(), 'Downloads', defaultOutputName);
@@ -152,7 +152,7 @@ try {
 
     console.log(pngPaths.join('\n'));
   } else {
-    const htmlFileName = `cast_${input.mode}_${ts}.html`;
+    const htmlFileName = `card_${input.mode}_${ts}.html`;
     const htmlPath = path.join(TMP_DIR, htmlFileName);
     const out = renderer.render(input, htmlPath);
 

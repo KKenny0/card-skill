@@ -1,5 +1,5 @@
 /**
- * Big mode renderer for cast CLI.
+ * Big mode renderer for card-skill CLI.
  * Fills big_template.html with structured input.
  */
 
@@ -75,7 +75,7 @@ function render(input, outputHtmlPath) {
   const attribution = input.attribution ? escapeHtml(input.attribution) : '';
 
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'cast');
+  const brandName = escapeHtml(input.brand_name || 'card');
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
 

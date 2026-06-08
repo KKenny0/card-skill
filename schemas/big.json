@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "cast big mode input",
+  "title": "card-skill big mode input",
   "description": "Structured input for big mode CLI rendering. Big mode renders a large-text poster (1080x1440) with optional ghost watermark character.",
   "type": "object",
   "required": ["mode", "phrase"],
@@ -44,8 +44,8 @@
     },
     "brand_name": {
       "type": "string",
-      "description": "Brand name in colophon footer. Default: 'cast'",
-      "default": "cast"
+      "description": "Brand name in colophon footer. Default: 'card'",
+      "default": "card"
     }
   },
   "examples": [

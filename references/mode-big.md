@@ -165,7 +165,7 @@ LLM
 | `{{SOURCE_LINE}}` | 来源线 HTML 或空 |
 | `{{CUSTOM_CSS}}` | 额外自定义 CSS（一般留空，模板已足够） |
 
-写入：`/tmp/cast_big_{name}.html`
+写入：`/tmp/card_big_{name}.html`
 
 ## 步骤 4：自检
 
@@ -184,7 +184,7 @@ LLM
 
 ```bash
 node assets/capture.js \
-  /tmp/cast_big_{name}.html \
+  /tmp/card_big_{name}.html \
   ~/Downloads/{name}.png \
   1080 1440
 ```

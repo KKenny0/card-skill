@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * cast Assertion Checker
+ * card-skill Assertion Checker
  *
  * Runs automated assertions from evals.json against HTML/PNG outputs.
  * Uses Playwright to extract computed styles from rendered HTML.
@@ -9,8 +9,8 @@
  * Usage:
  *   node evals/check-assertions.mjs --eval 1 --html /tmp/eval1.html --png /tmp/eval1.png
  *   node evals/check-assertions.mjs --eval 4 --html-dir /tmp/eval4/ --png-dir ./workspace/eval-4/with_skill/outputs/
- *   node evals/check-assertions.mjs --eval 1-9 --workspace ./cast-workspace/iteration-5/
- *   node evals/check-assertions.mjs --all --workspace ./cast-workspace/iteration-5/
+ *   node evals/check-assertions.mjs --eval 1-9 --workspace ./card-workspace/iteration-5/
+ *   node evals/check-assertions.mjs --all --workspace ./card-workspace/iteration-5/
  */
 
 import { chromium } from 'playwright';
@@ -540,7 +540,7 @@ function findEvalFiles(evalId, workspace, config) {
   // HTML from /tmp (where agents write HTML files)
   const tmpDir = '/tmp';
   if (fs.existsSync(tmpDir)) {
-    const htmlPattern = new RegExp(`^cast_eval${evalId}_${config}.*\\.html$`);
+    const htmlPattern = new RegExp(`^card_eval${evalId}_${config}.*\\.html$`);
     for (const entry of fs.readdirSync(tmpDir)) {
       if (entry.match(htmlPattern)) {
         htmlFiles.push(path.join(tmpDir, entry));

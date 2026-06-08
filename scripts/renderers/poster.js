@@ -1,5 +1,5 @@
 /**
- * Poster mode renderer for cast CLI.
+ * Poster mode renderer for card-skill CLI.
  * Fills poster_template.html for each card. Produces N HTML files for N cards.
  */
 
@@ -60,7 +60,7 @@ function render(input, outputDir) {
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'cast');
+  const brandName = escapeHtml(input.brand_name || 'card');
   const totalCards = input.cards.length;
 
   const results = [];
@@ -108,7 +108,7 @@ function render(input, outputDir) {
     html = html.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
     html = html.replaceAll('{{PAGE_INFO}}', ''); // documented in comment but not used in body
 
-    const htmlFileName = `cast_poster_${Date.now()}_${i + 1}.html`;
+    const htmlFileName = `card_poster_${Date.now()}_${i + 1}.html`;
     const htmlPath = path.join(outputDir, htmlFileName);
     fs.writeFileSync(htmlPath, html, 'utf-8');
 
