@@ -9,8 +9,6 @@ const path = require('path');
 const { escapeHtml } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
-const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/long_template.html');
-
 /**
  * Convert a structured body element array into HTML for long_template.
  * Supported types: paragraph, heading, highlight, blockquote, layer_card, section_break

@@ -1,29 +1,29 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "cast poster mode input",
-  "description": "Structured input for poster mode CLI rendering. Poster mode produces a series of branded cards (1080x1440 each) with title card, body cards, and colophon card.",
+  "description": "Structured input for poster mode CLI rendering. Poster mode produces a series of cards (1080x1440 each) from structured content.",
   "type": "object",
   "required": ["mode", "title", "cards"],
   "properties": {
     "mode": { "type": "string", "const": "poster" },
-    "title": {
-      "type": "string",
-      "description": "Series title shown on first card header and subsequent card running titles.",
-      "minLength": 1
-    },
-    "subtitle": {
-      "type": "string",
-      "description": "Optional subtitle shown below title on first card.",
-      "default": ""
-    },
     "design": {
       "type": "string",
       "description": "Design system name. Defaults to 'stripe'. See scripts/lib/designs.js for full list.",
       "default": "stripe"
     },
+    "title": {
+      "type": "string",
+      "description": "Overall title for the poster series, shown on the first card header.",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional subtitle shown below the title on the first card.",
+      "default": ""
+    },
     "cards": {
       "type": "array",
-      "description": "Array of cards. First card gets title block, last card gets colophon.",
+      "description": "Array of card objects. Each card gets its own HTML file and PNG output.",
       "minItems": 1,
       "items": {
         "type": "object",
@@ -31,7 +31,7 @@
         "properties": {
           "body": {
             "type": "array",
-            "description": "Typed body elements for this card.",
+            "description": "Array of body elements for this card.",
             "items": {
               "type": "object",
               "required": ["type"],
@@ -40,62 +40,7 @@
                   "type": "string",
                   "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider"]
                 }
-              },
-              "oneOf": [
-                {
-                  "properties": {
-                    "type": { "const": "paragraph" },
-                    "text": { "type": "string", "description": "Paragraph text." }
-                  },
-                  "required": ["type", "text"]
-                },
-                {
-                  "properties": {
-                    "type": { "const": "heading" },
-                    "text": { "type": "string", "description": "Heading text." }
-                  },
-                  "required": ["type", "text"]
-                },
-                {
-                  "properties": {
-                    "type": { "const": "highlight" },
-                    "text": { "type": "string", "description": "Highlighted quote text." }
-                  },
-                  "required": ["type", "text"]
-                },
-                {
-                  "properties": {
-                    "type": { "const": "items" },
-                    "entries": {
-                      "type": "array",
-                      "description": "Label-text pairs.",
-                      "items": {
-                        "type": "object",
-                        "required": ["label", "text"],
-                        "properties": {
-                          "label": { "type": "string" },
-                          "text": { "type": "string" }
-                        }
-                      }
-                    }
-                  },
-                  "required": ["type", "entries"]
-                },
-                {
-                  "properties": {
-                    "type": { "const": "data_row" },
-                    "key": { "type": "string", "description": "Data label." },
-                    "value": { "type": "string", "description": "Data value." }
-                  },
-                  "required": ["type", "key", "value"]
-                },
-                {
-                  "properties": {
-                    "type": { "const": "divider" }
-                  },
-                  "required": ["type"]
-                }
-              ]
+              }
             }
           }
         }
@@ -116,25 +61,18 @@
     {
       "mode": "poster",
       "design": "stripe",
-      "title": "AI Agent 架构三层模型",
-      "subtitle": "从基础设施到认知内核",
+      "title": "从零到一：创业第一年的 10 条教训",
       "cards": [
         {
           "body": [
-            { "type": "paragraph", "text": "每一个 AI Agent 系统都可以拆成三层。" },
-            { "type": "heading", "text": "基础设施层" },
-            { "type": "items", "entries": [
-              { "label": "模型", "text": "LLM 推理引擎" },
-              { "label": "工具", "text": "外部 API 调用" }
-            ]},
-            { "type": "divider" }
+            { "type": "heading", "text": "不要等产品完美才上线" },
+            { "type": "paragraph", "text": "MVP 的 M 不是 Minimum，是 Mother——够用就行。" }
           ]
         },
         {
           "body": [
-            { "type": "heading", "text": "编排层" },
-            { "type": "highlight", "text": "好的编排让 Agent 在有限步数内收敛。" },
-            { "type": "data_row", "key": "典型步数", "value": "3-5 步" }
+            { "type": "heading", "text": "找到第一个付费客户" },
+            { "type": "paragraph", "text": "付费是最好的产品验证。" }
           ]
         }
       ]

@@ -56,8 +56,8 @@ const DESIGNS = {
 };
 
 function getDesign(name) {
-  // Accept both underscore and hyphen forms
-  const key = name.replace(/-/g, '_');
+  // Accept underscore, hyphen, and dot forms (e.g. "together.ai" → "together_ai")
+  const key = name.replace(/[.\-]/g, '_');
   return DESIGNS[key] || null;
 }
 

@@ -15,11 +15,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const CAPTURE_SCRIPT = path.join(ROOT, 'assets', 'capture4k.js');
-const TMP_DIR = '/tmp';
+const TMP_DIR = os.tmpdir();
 
 // ── Args ──
 

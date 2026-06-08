@@ -1,5 +1,8 @@
 {
+  "scripts": {
+    "test": "node evals/check-assertions.mjs --help"
+  },
   "dependencies": {
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   }
 }

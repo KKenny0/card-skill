@@ -1,6 +1,6 @@
 ---
 name: cast
-description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using 30+ brand design systems (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a specific brand visual style to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
+description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using 18 brand design systems (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) + 8 content tones (26 total), and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a specific brand visual style to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
 user_invocable: true
 version: "0.2.0"
 ---
@@ -36,10 +36,10 @@ version: "0.2.0"
 
 **CLI 路径**：
 1. 从内容中提取结构化 JSON，符合对应 mode 的 schema
-2. 写入 `/tmp/cast_input.json`
+2. 写入临时文件 `cast_input.json`
 3. 调用：
 ```bash
-node scripts/cast.js --input /tmp/cast_input.json --output ~/Downloads/{name}.png
+node scripts/cast.js --input cast_input.json --output ~/Downloads/{name}.png
 ```
 4. CLI 成功 → 跳到 Step 7 交付（跳过 Steps 1-6）
 5. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
@@ -57,7 +57,7 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 **必读**：
 1. `references/taste.md` — 品味底线（反 AI 美学 + 纸质印刷感）
-2. `references/design-index.md` — 22 套设计系统索引
+2. `references/design-index.md` — 18 套品牌设计系统 + 8 种内容色调索引（26 总计）
 
 **按内容类型选读**（Step 1 分析后确定需要哪些）：
 3. `references/mode-infograph.md` — 信息图内容理论（密度/结构/情绪三维分析、90/8/2 色彩规则、布局生成原则）
@@ -162,9 +162,9 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 5. 根据内容分析设计画面（密度/结构/锚点），原则同 ljg-card 信息图模式
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
-7. 写入 `/tmp/cast_{name}.html`
+7. 写入临时文件 `cast_{name}.html`
 
-**poster 模式特殊**：每个卡片独立写入，文件名带序号 `/tmp/cast_{name}_{N}.html`。
+**poster 模式特殊**：每个卡片独立写入，文件名带序号 `cast_{name}_{N}.html`。
 
 **多卡批次一致性**：当内容需要拆分为多张图（信息图系列、poster 多卡、用户要求「多图」）时，必须遵守以下批次规则：
 
@@ -202,11 +202,13 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 ### Step 6: 截图（4K）
 
 模板 CSS 宽度为 1080px。capture4k.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
+模板 CSS 宽度为 1080px。capture4k.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
 
 ```bash
-node assets/capture4k.js /tmp/cast_{name}.html ~/Downloads/{name}.png 1080 800 2 fullpage
+node assets/capture4k.js <html_path> <png_path> 1080 800 2 fullpage
 ```
 
+参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`2` = DPR（输出 2160px 宽），`fullpage` = 截取完整内容高度。
 参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`2` = DPR（输出 2160px 宽），`fullpage` = 截取完整内容高度。
 
 **多卡批次**：同一批次的所有卡片必须使用完全相同的 capture 命令参数，确保输出宽度和 DPR 一致。
@@ -226,3 +228,12 @@ node assets/capture4k.js /tmp/cast_{name}.html ~/Downloads/{name}.png 1080 800 2
 用户通过 `--design` 指定设计系统时，跳过 Step 3 直接进入 Step 4。
 
 可用名称见 `references/design-index.md` 的目录名列。
+
+## 开发者工具（非 AI 流程使用）
+
+| 脚本 | 用途 |
+|------|------|
+| `scripts/gallery_render.js` | 渲染所有 design×mode 组合，生成静态展示页 |
+| `scripts/batch_render_covers.js` | 批量生成亮色封面截图 |
+| `scripts/batch_render_covers_dark.js` | 批量生成暗色封面截图 |
+| `scripts/picker_server.js` | 本地 HTTP 服务器，配合 `assets/candidate_picker.html` 提供候选选择 UI |
