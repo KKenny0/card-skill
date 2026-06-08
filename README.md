@@ -113,36 +113,50 @@ Built on two projects:
 
 ## Gallery
 
+Same text, seven modes — from the philosophical essay *Tools and Forgetting*.
+
 <details>
-<summary>Click to expand — one example per mode</summary>
+<summary>Click to expand</summary>
 
-### infograph — structured data, comparisons, layered ideas
-
-<img src="assets/gallery/infograph_apple.jpg" width="400" alt="infograph mode, apple design system">
-
-### big — single statement, maximal contrast
-
-<img src="assets/gallery/big_spotify.jpg" width="400" alt="big mode, spotify design system">
-
-### long — article-length reading
-
-<img src="assets/gallery/long_vercel.jpg" width="400" alt="long mode, vercel design system">
-
-### poster — multi-card series
-
-<img src="assets/gallery/poster_stripe.jpg" width="400" alt="poster mode, stripe design system">
-
-### sketchnote — warm narrative
-
-<img src="assets/gallery/sketchnote_clay.jpg" width="400" alt="sketchnote mode, clay design system">
-
-### whiteboard — logical reasoning
-
-<img src="assets/gallery/whiteboard_ljg_chensi.jpg" width="400" alt="whiteboard mode, ljg chensi design system">
-
-### comic — narrative with conflict
-
-<img src="assets/gallery/comic_linear.jpg" width="400" alt="comic mode, linear design system">
+<table>
+<tr>
+<td width="50%">
+<img src="assets/gallery/infograph.jpg" width="400" alt="infograph — structured data, layered ideas"><br>
+<b>infograph</b> · structured data, comparisons, layered ideas
+</td>
+<td width="50%">
+<img src="assets/gallery/big.jpg" width="400" alt="big — single statement, maximal contrast"><br>
+<b>big</b> · single statement, maximal contrast
+</td>
+</tr>
+<tr>
+<td>
+<img src="assets/gallery/long.jpg" width="400" alt="long — article-length reading"><br>
+<b>long</b> · article-length reading
+</td>
+<td>
+<img src="assets/gallery/poster.jpg" width="400" alt="poster — multi-card series"><br>
+<b>poster</b> · multi-card series
+</td>
+</tr>
+<tr>
+<td>
+<img src="assets/gallery/sketchnote.jpg" width="400" alt="sketchnote — warm narrative"><br>
+<b>sketchnote</b> · warm narrative
+</td>
+<td>
+<img src="assets/gallery/whiteboard.jpg" width="400" alt="whiteboard — logical reasoning"><br>
+<b>whiteboard</b> · logical reasoning
+</td>
+</tr>
+<tr>
+<td>
+<img src="assets/gallery/comic.jpg" width="400" alt="comic — narrative with conflict"><br>
+<b>comic</b> · narrative with conflict
+</td>
+<td></td>
+</tr>
+</table>
 
 </details>
 
