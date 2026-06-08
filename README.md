@@ -111,6 +111,41 @@ Built on two projects:
 - **[awesome-design-md](https://github.com/VoltAgent/awesome-design-md)** by VoltAgent — curated DESIGN.md files from popular brand design systems, used as the visual reference library for color palettes, shadow philosophy, border radius, and whitespace rhythm.
 - **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, typography rules, content preprocessing pipeline, and taste guidelines.
 
+## Gallery
+
+<details>
+<summary>Click to expand — one example per mode</summary>
+
+### infograph — structured data, comparisons, layered ideas
+
+<img src="assets/gallery/infograph_apple.jpg" width="400" alt="infograph mode, apple design system">
+
+### big — single statement, maximal contrast
+
+<img src="assets/gallery/big_spotify.jpg" width="400" alt="big mode, spotify design system">
+
+### long — article-length reading
+
+<img src="assets/gallery/long_vercel.jpg" width="400" alt="long mode, vercel design system">
+
+### poster — multi-card series
+
+<img src="assets/gallery/poster_stripe.jpg" width="400" alt="poster mode, stripe design system">
+
+### sketchnote — warm narrative
+
+<img src="assets/gallery/sketchnote_clay.jpg" width="400" alt="sketchnote mode, clay design system">
+
+### whiteboard — logical reasoning
+
+<img src="assets/gallery/whiteboard_ljg_chensi.jpg" width="400" alt="whiteboard mode, ljg chensi design system">
+
+### comic — narrative with conflict
+
+<img src="assets/gallery/comic_linear.jpg" width="400" alt="comic mode, linear design system">
+
+</details>
+
 ## License
 
 Private skill. Not distributed.
