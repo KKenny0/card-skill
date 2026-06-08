@@ -6,6 +6,27 @@ Content in, PNG out. Mold decides the shape.
 
 A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, and long-form reading cards — through 30+ brand design systems and 8 content-tone palettes.
 
+## Usage
+
+**Claude Code**
+
+```bash
+npx skills add KKenny0/card-skill -a claude-code -g -y
+```
+
+**Generic agents** (Codex, OpenCode, Pi, and other tools that read from `~/.agents/`)
+
+```bash
+npx skills add KKenny0/card-skill -a '*' -g -y
+```
+
+The skill auto-triggers from natural requests, no slash command needed. Optimized for Chinese and English.
+
+Example prompts:
+
+- English: `make this into an infographic` / `render this as a poster` / `turn this article into a visual card` / `make a whiteboard for this argument`
+- 中文: `把这段内容做成信息图` / `做成海报` / `渲染成卡片` / `做个白板推演`
+
 ## What it does
 
 Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content's structure, density, and emotional tone, then renders it as a high-resolution PNG (4K width, DPR 2) that looks like printed matter — not a web screenshot.
