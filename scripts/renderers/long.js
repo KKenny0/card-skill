@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { escapeHtml } = require('../lib/escape');
+const { escapeHtml, escapePhrase } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
@@ -95,7 +95,7 @@ function render(input, outputHtmlPath) {
 
   // Fill placeholders
   template = template.replaceAll('{{KICKER}}', escapeHtml(input.kicker || ''));
-  template = template.replaceAll('{{TITLE}}', escapeHtml(input.title || ''));
+  template = template.replaceAll('{{TITLE}}', escapePhrase(input.title || ''));
   template = template.replaceAll('{{SUBTITLE}}', escapeHtml(input.subtitle || ''));
   template = template.replaceAll('{{BODY_HTML}}', renderBody(input.body));
   template = template.replaceAll('{{SOURCE_LINE}}', input.source ? `<span class="source-line">${escapeHtml(input.source)}</span>` : '');

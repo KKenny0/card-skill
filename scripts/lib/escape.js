@@ -22,10 +22,10 @@ function escapeHtml(str) {
 function escapePhrase(text) {
   if (!text) return '';
   // Split on allowed tags, escape the text segments between them
-  const parts = text.split(/(<br\s*\/?>|<span\s+class=["']accent["']>|<\/span>)/i);
+  const parts = text.split(/(<br\s*\/?>|<span\s+class=["']accent[-\w]*["']>|<\/span>)/i);
   return parts.map((part, i) => {
     if (/^<br\s*\/?>$/i.test(part)) return '<br>';
-    if (/^<span\s+class=["']accent["']>$/i.test(part)) return '<span class="accent">';
+    if (/^<span\s+class=["']accent[-\w]*["']>$/i.test(part)) return part;
     if (/^<\/span>$/i.test(part)) return '</span>';
     return escapeHtml(part);
   }).join('');
