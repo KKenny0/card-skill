@@ -16,10 +16,11 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const CAPTURE_SCRIPT = path.join(ROOT, 'assets', 'capture4k.js');
+const CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-output.mjs');
 const TMP_DIR = os.tmpdir();
 
 // ── Args ──
@@ -82,9 +83,7 @@ if (inputFile) {
   }
 } else if (useStdin) {
   try {
-    const chunks = [];
-    fs.readFileSync('/dev/stdin').toString().split('\n').forEach(line => chunks.push(line));
-    input = JSON.parse(chunks.join('\n'));
+    input = JSON.parse(fs.readFileSync(0, 'utf-8'));
   } catch (e) {
     console.error(`Error reading stdin: ${e.message}`);
     process.exit(1);
@@ -128,6 +127,67 @@ if (!renderer) {
   process.exit(1);
 }
 
+function runCapture(out, pngPath) {
+  const args = [
+    CAPTURE_SCRIPT,
+    out.htmlPath,
+    pngPath,
+    String(out.captureWidth),
+    String(out.captureHeight),
+    String(DPR),
+  ];
+  if (out.fullpage) args.push('fullpage');
+  execFileSync(process.execPath, args, { stdio: 'pipe' });
+}
+
+function runOutputCheck(out, pngPath, options = {}) {
+  const args = [
+    CHECK_SCRIPT,
+    '--html', out.htmlPath,
+    '--width', String(out.captureWidth),
+    '--height', String(out.captureHeight),
+    '--dpr', String(DPR),
+    '--json',
+  ];
+
+  if (out.fullpage) args.push('--fullpage');
+  if (options.fix) args.push('--fix');
+  if (options.skipPng) {
+    args.push('--skip-png');
+  } else {
+    args.push('--png', pngPath);
+  }
+
+  const result = spawnSync(process.execPath, args, { encoding: 'utf-8' });
+  let report = null;
+  try {
+    report = result.stdout ? JSON.parse(result.stdout) : null;
+  } catch {
+    // Keep the original output in the error below.
+  }
+
+  if (result.status !== 0 || !report || !report.pass) {
+    const details = report?.issues?.map(item => `  - ${item.code}: ${item.message}`).join('\n')
+      || result.stderr
+      || result.stdout
+      || 'unknown output-check failure';
+    throw new Error(`Output check failed:\n${details}`);
+  }
+
+  return report;
+}
+
+function captureWithOutputCheck(out, pngPath) {
+  runOutputCheck(out, pngPath, { fix: true, skipPng: true });
+  runCapture(out, pngPath);
+
+  const report = runOutputCheck(out, pngPath, { fix: true });
+  if (report.fixed) {
+    runCapture(out, pngPath);
+    runOutputCheck(out, pngPath);
+  }
+}
+
 try {
   // poster mode returns array; others return single object
   if (input.mode === 'poster') {
@@ -142,10 +202,7 @@ try {
         ? outputPath
         : path.join(path.dirname(outputPath), pngName);
 
-      const height = out.captureHeight;
-      const fullpageFlag = out.fullpage ? 'fullpage' : '';
-      const cmd = `node "${CAPTURE_SCRIPT}" "${out.htmlPath}" "${pngPath}" ${out.captureWidth} ${height} ${DPR} ${fullpageFlag}`;
-      execSync(cmd, { stdio: 'pipe' });
+      captureWithOutputCheck(out, pngPath);
       pngPaths.push(pngPath);
       console.error(`  Card ${i + 1}/${outputs.length}: ${pngPath}`);
     });
@@ -156,9 +213,7 @@ try {
     const htmlPath = path.join(TMP_DIR, htmlFileName);
     const out = renderer.render(input, htmlPath);
 
-    const fullpageFlag = out.fullpage ? 'fullpage' : '';
-    const cmd = `node "${CAPTURE_SCRIPT}" "${out.htmlPath}" "${outputPath}" ${out.captureWidth} ${out.captureHeight} ${DPR} ${fullpageFlag}`;
-    execSync(cmd, { stdio: 'pipe' });
+    captureWithOutputCheck(out, outputPath);
 
     console.log(outputPath);
   }

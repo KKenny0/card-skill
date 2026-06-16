@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "check-output": "node scripts/check-output.mjs --help",
     "test": "node evals/check-assertions.mjs --help"
   },
   "dependencies": {

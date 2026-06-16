@@ -72,8 +72,9 @@ Each system contributes color palette, shadow philosophy, border-radius style, a
 3. **Match** — Pick 3-5 candidate design systems based on mood × theme × density
 4. **Confirm** — Present candidates in terminal; user picks one or asks for a new batch
 5. **Render** — Fill the mode's HTML template with mapped design tokens + content
-6. **Self-check** — Verify element ratios, font sizes, accent limits, no AI tells
+6. **Output check** — Catch missing placeholders, overflow, crop risk, broken images, and unreadable body text
 7. **Capture** — Screenshot via Playwright at 4K width
+8. **Post-capture check** — Verify the generated PNG and rerun after safe fixes when needed
 
 Output lands in `~/Downloads/`.
 
@@ -82,6 +83,8 @@ Output lands in `~/Downloads/`.
 ```
 card-skill/
 ├── SKILL.md                    # Skill definition and execution flow
+├── scripts/
+│   └── check-output.mjs        # Lightweight preflight/post-capture checker
 ├── assets/
 │   ├── {mode}_template.html    # HTML templates (7 modes)
 │   ├── capture.js              # Playwright screenshot script

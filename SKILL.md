@@ -188,7 +188,24 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 
 **署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
 
-### Step 5: 自检
+### Step 5: 出厂检查
+
+生成 HTML 后先运行低风险修复 + 预检：
+
+```bash
+node scripts/check-output.mjs --html <html_path> --width 1080 --height 800 --dpr 2 --fullpage --fix --skip-png
+```
+
+固定画布模式（big / poster）不要加 `--fullpage`，并使用该模式的截图高度（通常 1440）。
+
+预检会自动修复：
+- `{{LOGO}}` / `{{AVATAR}}` / `{{PHOTO}}` / `{{FONT_BASE}}` 这类基础路径占位符
+- 横向溢出保护
+- 图片基础缩放保护
+
+预检失败必须先修 HTML/CSS，不能继续截图。
+
+预检通过后，保留人工审美自检：
 
 - [ ] 视觉形式从内容生长出来？换内容这布局还说得出吗？
 - [ ] 设计系统的品牌语言在画面中可感知（不只是换了色板，排版节奏也匹配）？
@@ -213,7 +230,28 @@ node assets/capture4k.js <html_path> <png_path> 1080 800 2 fullpage
 
 **多卡批次**：同一批次的所有卡片必须使用完全相同的 capture 命令参数，确保输出宽度和 DPR 一致。
 
-### Step 7: 交付
+### Step 7: 截图后复查
+
+截图后必须运行：
+
+```bash
+node scripts/check-output.mjs --html <html_path> --png <png_path> --width 1080 --height 800 --dpr 2 --fullpage --fix
+```
+
+如果脚本应用了安全修复，重新截图，再用不带 `--fix` 的命令复查一次。
+
+复查会拦截：
+- PNG 未生成、为空、宽高不符合截图参数
+- HTML 仍有未替换占位符
+- 页面横向溢出
+- 固定画布内容被裁切
+- 可见元素跑出截图范围
+- 图片加载失败
+- 正文字号低于 36px
+
+只有复查通过才能交付。
+
+### Step 8: 交付
 
 报告文件路径。
 
