@@ -4,7 +4,7 @@
 
 Content in, PNG out. Mold decides the shape.
 
-A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, and long-form reading cards — through 30+ brand design systems and 8 content-tone palettes.
+A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, and long-form reading cards — through one quiet paper system with 18 brand inflections and 8 content-tone palettes.
 
 ## Usage
 
@@ -45,7 +45,7 @@ Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content
 
 ## Design systems
 
-18 brand design systems curated from real DESIGN.md files, plus 8 ljg-card content-tone palettes tuned for Chinese text:
+card-skill uses one shared quiet-paper backbone: warm paper, restrained ink, small-radius surfaces, hairline dividers, and very little shadow. The 18 brand systems are now inflections inside that backbone, not separate visual worlds. Each brand keeps a recognizable mood while obeying the same layout discipline.
 
 **Dark Minimal** — linear, vercel
 **Dark Cinematic** — spotify
@@ -54,7 +54,7 @@ Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content
 **Technical Data** — stripe, ibm, opencode.ai, sentry, raycast, together.ai
 **ljg-card tones** — 沉思, 锐利, 温暖, 技术, 科研, 创意, 商业, 默认
 
-Each system contributes color palette, shadow philosophy, border-radius style, and whitespace rhythm. Typography is mode-locked — brand systems don't override fonts.
+Each system contributes a muted accent, surface temperature, and rhythm hint. Typography, spacing discipline, card treatment, and paper material remain mode-locked, so output feels like one mature system rather than a theme picker.
 
 ## Parameters
 
@@ -69,7 +69,7 @@ Each system contributes color palette, shadow philosophy, border-radius style, a
 
 1. **Ingest** — URL (via WebFetch), pasted text, or file path
 2. **Analyze** — Extract title, subtitle, density, structure, emotional tone
-3. **Match** — Pick 3-5 candidate design systems based on mood × theme × density
+3. **Match** — Start from the quiet-paper default, then pick 3-5 restrained brand inflections based on mood × theme × density
 4. **Confirm** — Present candidates in terminal; user picks one or asks for a new batch
 5. **Render** — Fill the mode's HTML template with mapped design tokens + content
 6. **Output check** — Catch missing placeholders, overflow, crop risk, broken images, and unreadable body text
@@ -93,7 +93,7 @@ card-skill/
 │   └── logo.png                # Colophon logo
 ├── references/
 │   ├── taste.md                # Anti-AI aesthetic rules, paper/print baseline
-│   ├── design-index.md         # All design systems + CSS variables
+│   ├── design-index.md         # Quiet-paper brand inflections + CSS variables
 │   ├── designs/{name}.md       # Per-brand compact design files
 │   └── mode-{name}.md          # Per-mode content theory and layout rules
 └── evals/                      # Assertion-based evaluation harness
@@ -109,10 +109,11 @@ card-skill/
 
 ## Credits
 
-Built on two projects:
+Built on three projects:
 
 - **[awesome-design-md](https://github.com/VoltAgent/awesome-design-md)** by VoltAgent — curated DESIGN.md files from popular brand design systems, used as the visual reference library for color palettes, shadow philosophy, border radius, and whitespace rhythm.
-- **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, typography rules, content preprocessing pipeline, and taste guidelines.
+- **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, content preprocessing pipeline, and early taste guidelines.
+- **[Kami](https://github.com/tw93/kami)** by tw93 — the document design system that informed the quiet-paper constraint language: warm surfaces, ink restraint, and stable page rhythm.
 
 ## Gallery
 
@@ -124,37 +125,37 @@ Same text, seven modes — from the philosophical essay *Tools and Forgetting*.
 <table>
 <tr>
 <td width="50%">
-<img src="assets/gallery/infograph.jpg" width="400" alt="infograph — structured data, layered ideas"><br>
+<img src="assets/gallery/infograph.png" width="400" alt="infograph — structured data, layered ideas"><br>
 <b>infograph</b> · structured data, comparisons, layered ideas
 </td>
 <td width="50%">
-<img src="assets/gallery/big.jpg" width="400" alt="big — single statement, maximal contrast"><br>
+<img src="assets/gallery/big.png" width="400" alt="big — single statement, maximal contrast"><br>
 <b>big</b> · single statement, maximal contrast
 </td>
 </tr>
 <tr>
 <td>
-<img src="assets/gallery/long.jpg" width="400" alt="long — article-length reading"><br>
+<img src="assets/gallery/long.png" width="400" alt="long — article-length reading"><br>
 <b>long</b> · article-length reading
 </td>
 <td>
-<img src="assets/gallery/poster.jpg" width="400" alt="poster — multi-card series"><br>
+<img src="assets/gallery/poster.png" width="400" alt="poster — multi-card series"><br>
 <b>poster</b> · multi-card series
 </td>
 </tr>
 <tr>
 <td>
-<img src="assets/gallery/sketchnote.jpg" width="400" alt="sketchnote — warm narrative"><br>
+<img src="assets/gallery/sketchnote.png" width="400" alt="sketchnote — warm narrative"><br>
 <b>sketchnote</b> · warm narrative
 </td>
 <td>
-<img src="assets/gallery/whiteboard.jpg" width="400" alt="whiteboard — logical reasoning"><br>
+<img src="assets/gallery/whiteboard.png" width="400" alt="whiteboard — logical reasoning"><br>
 <b>whiteboard</b> · logical reasoning
 </td>
 </tr>
 <tr>
 <td>
-<img src="assets/gallery/comic.jpg" width="400" alt="comic — narrative with conflict"><br>
+<img src="assets/gallery/comic.png" width="400" alt="comic — narrative with conflict"><br>
 <b>comic</b> · narrative with conflict
 </td>
 <td></td>

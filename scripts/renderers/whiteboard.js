@@ -110,7 +110,8 @@ function render(input, outputHtmlPath) {
       .replace(/--accent:.*?;/, `--accent: ${design.accent};`)
       .replace(/--ink:.*?;/, `--ink: ${design.ink};`)
       .replace(/--ink-muted:.*?;/, `--ink-muted: ${design.inkMuted};`)
-      .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`);
+      .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`)
+      .replace(/--radius:.*?;/, `--radius: ${design.radius};`);
   });
 
   const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));

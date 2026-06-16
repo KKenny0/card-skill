@@ -1,6 +1,8 @@
 /**
  * Design token registry for card-skill CLI.
- * Extracted from references/design-index.md + gallery_render.js DESIGNS catalog.
+ * Extracted from references/design-index.md.
+ * The catalog is intentionally converged into one quiet-paper system:
+ * brand names are inflections, not separate visual worlds.
  *
  * Each design provides CSS-variable-ready tokens:
  *   canvas   → --bg
@@ -16,44 +18,44 @@
 
 const DESIGNS = {
   // ── Dark Minimal ──
-  linear:       { surface:'dark', canvas:'#010102', accent:'#5e6ad2', ink:'#f7f8f8', inkMuted:'#8b8f98', surface1:'#0a0a10', surface2:'#14141c', hairline:'#23252a', radius:'12px' },
-  vercel:       { surface:'dark', canvas:'#000000', accent:'#ffffff', ink:'#ededed', inkMuted:'#888888', surface1:'#0a0a0a', surface2:'#171717', hairline:'#222222', radius:'8px' },
+  linear:       { surface:'dark', canvas:'#151413', accent:'#7b84b8', ink:'#e8e2da', inkMuted:'#aaa297', surface1:'#1d1b18', surface2:'#26231f', hairline:'#353129', radius:'8px' },
+  vercel:       { surface:'dark', canvas:'#141413', accent:'#d8d2c8', ink:'#e8e2da', inkMuted:'#aaa297', surface1:'#1b1a17', surface2:'#24221e', hairline:'#343029', radius:'6px' },
 
   // ── Dark Cinematic ──
-  spotify:      { surface:'dark', canvas:'#121212', accent:'#1db954', ink:'#ffffff', inkMuted:'#b3b3b3', surface1:'#1a1a1a', surface2:'#282828', hairline:'#333333', radius:'12px' },
+  spotify:      { surface:'dark', canvas:'#171613', accent:'#4f7a5f', ink:'#e8e2da', inkMuted:'#a8a094', surface1:'#201e1a', surface2:'#2a2721', hairline:'#39342c', radius:'8px' },
 
   // ── Light Minimal ──
-  apple:        { surface:'light', canvas:'#fbfbfd', accent:'#0071e3', ink:'#1d1d1f', inkMuted:'#86868b', surface1:'#f5f5f7', surface2:'#e8e8ed', hairline:'#d2d2d7', radius:'16px' },
-  expo:         { surface:'light', canvas:'#fafafa', accent:'#000000', ink:'#171717', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', radius:'8px' },
-  notion:       { surface:'light', canvas:'#fafafa', accent:'#5645d4', ink:'#1a1a1a', inkMuted:'#6b6b6b', surface1:'#f0f0f0', surface2:'#e8e8e8', hairline:'#d8d8d8', radius:'6px' },
+  apple:        { surface:'light', canvas:'#f6f4ee', accent:'#356b96', ink:'#1f1d19', inkMuted:'#6f695f', surface1:'#fbfaf6', surface2:'#ece8dc', hairline:'#dfd9cc', radius:'8px' },
+  expo:         { surface:'light', canvas:'#f7f5ef', accent:'#30302e', ink:'#1f1d19', inkMuted:'#6d675d', surface1:'#fbfaf6', surface2:'#ece8dc', hairline:'#dfd9cc', radius:'6px' },
+  notion:       { surface:'light', canvas:'#f6f3ec', accent:'#6f6095', ink:'#211e19', inkMuted:'#71695e', surface1:'#fbfaf6', surface2:'#ebe5d8', hairline:'#ded6c8', radius:'6px' },
 
   // ── Light Editorial ──
-  claude:       { surface:'light', canvas:'#f5f0e8', accent:'#c47050', ink:'#2c2418', inkMuted:'#6b6050', surface1:'#ede7db', surface2:'#e4dcd0', hairline:'#d4c9b8', radius:'8px' },
-  cursor:       { surface:'light', canvas:'#f7f7f4', accent:'#e04a00', ink:'#26251e', inkMuted:'#6b6860', surface1:'#efefe8', surface2:'#e6e6dc', hairline:'#d0cfc4', radius:'8px' },
-  intercom:     { surface:'light', canvas:'#f5f1ec', accent:'#111111', ink:'#222222', inkMuted:'#6b6055', surface1:'#ede8e0', surface2:'#e3ddd2', hairline:'#d0c8ba', radius:'24px' },
-  replicate:    { surface:'light', canvas:'#f9f7f3', accent:'#d42504', ink:'#282020', inkMuted:'#6b5f5f', surface1:'#f0ece5', surface2:'#e6e0d5', hairline:'#d4ccc0', radius:'8px' },
-  posthog:      { surface:'light', canvas:'#eeefe9', accent:'#e09500', ink:'#28251d', inkMuted:'#6b6555', surface1:'#e4e5dc', surface2:'#daded0', hairline:'#c8c8b8', radius:'8px' },
-  clay:         { surface:'light', canvas:'#fffaf0', accent:'#0a0a0a', ink:'#1a1a1a', inkMuted:'#6b6050', surface1:'#f5efe5', surface2:'#ebe4d5', hairline:'#d8d0c0', radius:'16px' },
+  claude:       { surface:'light', canvas:'#f5f0e8', accent:'#9b6048', ink:'#2c2418', inkMuted:'#6b6050', surface1:'#fbfaf6', surface2:'#e9e1d4', hairline:'#d8cdbc', radius:'8px' },
+  cursor:       { surface:'light', canvas:'#f6f3ec', accent:'#a55332', ink:'#26251e', inkMuted:'#6b655b', surface1:'#fbfaf6', surface2:'#ebe4d8', hairline:'#d8d1c4', radius:'8px' },
+  intercom:     { surface:'light', canvas:'#f5f1ec', accent:'#3a332d', ink:'#201c17', inkMuted:'#6b6055', surface1:'#fbfaf6', surface2:'#e8e0d4', hairline:'#d8cec0', radius:'8px' },
+  replicate:    { surface:'light', canvas:'#f7f4ed', accent:'#a04735', ink:'#24201b', inkMuted:'#6b5f55', surface1:'#fbfaf6', surface2:'#ebe3d6', hairline:'#d9d0c2', radius:'8px' },
+  posthog:      { surface:'light', canvas:'#f2f0e7', accent:'#9a6d28', ink:'#23251d', inkMuted:'#6b6555', surface1:'#fbfaf6', surface2:'#e7e2d2', hairline:'#d5cfbd', radius:'8px' },
+  clay:         { surface:'light', canvas:'#f8f3e7', accent:'#5a4f40', ink:'#211d18', inkMuted:'#6b6050', surface1:'#fbfaf6', surface2:'#ece2d1', hairline:'#d9cfbc', radius:'8px' },
 
   // ── Technical Data (light) ──
-  stripe:       { surface:'light', canvas:'#f6f9fc', accent:'#5530e0', ink:'#0d2540', inkMuted:'#4a5568', surface1:'#eef2f7', surface2:'#e3e8ee', hairline:'#d0d5dd', radius:'6px' },
-  ibm:          { surface:'light', canvas:'#f5f5f5', accent:'#0f62fe', ink:'#161616', inkMuted:'#555555', surface1:'#ebebeb', surface2:'#e0e0e0', hairline:'#c8c8c8', radius:'0px' },
-  opencode:     { surface:'light', canvas:'#fdfcfc', accent:'#201d1d', ink:'#201d1d', inkMuted:'#6b6860', surface1:'#f4f3f0', surface2:'#eae8e4', hairline:'#d0cec8', radius:'6px' },
+  stripe:       { surface:'light', canvas:'#f6f4ee', accent:'#314d73', ink:'#172434', inkMuted:'#59645e', surface1:'#fbfaf6', surface2:'#e8e3d6', hairline:'#d8d1c2', radius:'6px' },
+  ibm:          { surface:'light', canvas:'#f5f3ed', accent:'#315f8f', ink:'#1f1d19', inkMuted:'#5f625c', surface1:'#fbfaf6', surface2:'#e7e2d6', hairline:'#d7d0c2', radius:'4px' },
+  opencode:     { surface:'light', canvas:'#f7f4ee', accent:'#34302c', ink:'#24201c', inkMuted:'#6b665e', surface1:'#fbfaf6', surface2:'#ebe5d9', hairline:'#d9d1c4', radius:'6px' },
 
   // ── Technical Data (dark) ──
-  sentry:       { surface:'dark', canvas:'#000000', accent:'#362d59', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#0a0a0c', surface2:'#141418', hairline:'#222228', radius:'8px' },
-  raycast:      { surface:'dark', canvas:'#0a0a0a', accent:'#ff6363', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#111114', surface2:'#1a1a1e', hairline:'#24242a', radius:'12px' },
-  together_ai:  { surface:'dark', canvas:'#000000', accent:'#3b82f6', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#0a0a0c', surface2:'#141418', hairline:'#222228', radius:'8px' },
+  sentry:       { surface:'dark', canvas:'#151413', accent:'#5d526d', ink:'#e8e2da', inkMuted:'#aaa297', surface1:'#1d1b18', surface2:'#26231f', hairline:'#353129', radius:'8px' },
+  raycast:      { surface:'dark', canvas:'#161514', accent:'#a15a52', ink:'#e8e2da', inkMuted:'#aaa297', surface1:'#1f1d19', surface2:'#292620', hairline:'#38332c', radius:'8px' },
+  together_ai:  { surface:'dark', canvas:'#151413', accent:'#3f638f', ink:'#e8e2da', inkMuted:'#aaa297', surface1:'#1d1b18', surface2:'#26231f', hairline:'#353129', radius:'8px' },
 
   // ── ljg-card tones ──
-  ljg_chensi:   { surface:'light', canvas:'#F5F2ED', accent:'#8B5E3C', ink:'#2D2926', inkMuted:'#6b6055', surface1:'#ece8e0', surface2:'#e2ddd2', hairline:'#d0c8b8', radius:'6px' },
-  ljg_ruili:    { surface:'light', canvas:'#EDEDF0', accent:'#C82820', ink:'#2D2926', inkMuted:'#555555', surface1:'#e4e4e8', surface2:'#d8d8dc', hairline:'#c8c8cc', radius:'6px' },
-  ljg_wennuan:  { surface:'light', canvas:'#F7F4EF', accent:'#B07040', ink:'#2D2926', inkMuted:'#6b6050', surface1:'#eee8df', surface2:'#e3dcd0', hairline:'#d0c8b8', radius:'8px' },
-  ljg_jishu:    { surface:'light', canvas:'#F0F3F7', accent:'#1A8360', ink:'#2D2926', inkMuted:'#505860', surface1:'#e5e8ee', surface2:'#d8dce5', hairline:'#c0c5d0', radius:'6px' },
-  ljg_keyan:    { surface:'light', canvas:'#F2F6F4', accent:'#C08040', ink:'#2D2926', inkMuted:'#506055', surface1:'#e8ece8', surface2:'#dce2dc', hairline:'#c5cdc5', radius:'6px' },
-  ljg_chuangyi: { surface:'light', canvas:'#F6F3F2', accent:'#A03828', ink:'#2D2926', inkMuted:'#6b5850', surface1:'#ede8e5', surface2:'#e2dcd5', hairline:'#d0c8c0', radius:'8px' },
-  ljg_shangye:  { surface:'light', canvas:'#F4F3F0', accent:'#2A6048', ink:'#2D2926', inkMuted:'#555550', surface1:'#eae8e2', surface2:'#dddad2', hairline:'#c8c5b8', radius:'4px' },
-  ljg_moren:    { surface:'light', canvas:'#F2F2F2', accent:'#D01858', ink:'#2D2926', inkMuted:'#555555', surface1:'#e8e8e8', surface2:'#dddcdc', hairline:'#c8c8c8', radius:'6px' },
+  ljg_chensi:   { surface:'light', canvas:'#f5f2ed', accent:'#7a5b43', ink:'#2d2926', inkMuted:'#6b6055', surface1:'#fbfaf6', surface2:'#e8e1d5', hairline:'#d8cdbc', radius:'6px' },
+  ljg_ruili:    { surface:'light', canvas:'#f0eeea', accent:'#9b4a3e', ink:'#2d2926', inkMuted:'#625b55', surface1:'#fbfaf6', surface2:'#e5dfd4', hairline:'#d5cdc1', radius:'6px' },
+  ljg_wennuan:  { surface:'light', canvas:'#f7f4ef', accent:'#9d6d4d', ink:'#2d2926', inkMuted:'#6b6050', surface1:'#fbfaf6', surface2:'#eae2d6', hairline:'#d8cdbc', radius:'8px' },
+  ljg_jishu:    { surface:'light', canvas:'#f1f3ef', accent:'#4f7b68', ink:'#2d2926', inkMuted:'#586158', surface1:'#fbfaf6', surface2:'#e4e6dc', hairline:'#d3d6ca', radius:'6px' },
+  ljg_keyan:    { surface:'light', canvas:'#f3f4ee', accent:'#9a7148', ink:'#2d2926', inkMuted:'#5e6258', surface1:'#fbfaf6', surface2:'#e5e6da', hairline:'#d4d6c9', radius:'6px' },
+  ljg_chuangyi: { surface:'light', canvas:'#f6f3ef', accent:'#8f5144', ink:'#2d2926', inkMuted:'#6b5850', surface1:'#fbfaf6', surface2:'#e8e0d8', hairline:'#d8ccc4', radius:'8px' },
+  ljg_shangye:  { surface:'light', canvas:'#f4f3ee', accent:'#4e6b58', ink:'#2d2926', inkMuted:'#5b5d55', surface1:'#fbfaf6', surface2:'#e5e3d8', hairline:'#d5d1c5', radius:'4px' },
+  ljg_moren:    { surface:'light', canvas:'#f3f1ec', accent:'#8b5b68', ink:'#2d2926', inkMuted:'#625d58', surface1:'#fbfaf6', surface2:'#e5e0d5', hairline:'#d5cec2', radius:'6px' },
 };
 
 function getDesign(name) {

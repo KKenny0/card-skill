@@ -91,7 +91,8 @@ function render(input, outputHtmlPath) {
                .replace(/--ink:.*?;/, `--ink: ${design.ink};`)
                .replace(/--ink-muted:.*?;/, `--ink-muted: ${design.inkMuted};`)
                .replace(/--surface-1:.*?;/, `--surface-1: ${design.surface1};`)
-               .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`);
+               .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`)
+               .replace(/--radius:.*?;/, `--radius: ${design.radius};`);
   });
 
   // Fill placeholders (replaceAll because each placeholder appears in both

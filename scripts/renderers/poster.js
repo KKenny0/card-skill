@@ -99,6 +99,7 @@ function render(input, outputDir) {
     html = html.replace(/(--hairline):\s*[^;]+;/g, `$1: ${design.hairline};`);
     html = html.replace(/(--surface-1):\s*[^;]+;/g, `$1: ${design.surface1};`);
     html = html.replace(/(--surface-2):\s*[^;]+;/g, `$1: ${design.surface2};`);
+    html = html.replace(/(--radius):\s*[^;]+;/g, `$1: ${design.radius};`);
     html = html.replaceAll('{{HEADER_BLOCK}}', headerBlock);
     html = html.replaceAll('{{TITLE_BLOCK}}', titleBlock);
     html = html.replaceAll('{{BODY_HTML}}', Array.isArray(card.body) ? renderCardBody(card.body) : '');

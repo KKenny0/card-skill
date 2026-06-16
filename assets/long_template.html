@@ -65,32 +65,36 @@
 
   /* ── CSS Variables — Light Theme (default) ───────────────── */
   :root {
-    --bg:          #faf6f0;
-    --surface-1:   #f2ebe0;
-    --surface-2:   #e8dfd2;
-    --accent:      #d97757;
+    --bg:          #f5f0e8;
+    --surface-1:   #fbfaf6;
+    --surface-2:   #e9e1d4;
+    --accent:      #9b6048;
     --ink:         #2c2418;
-    --ink-muted:   #7a6f5f;
-    --hairline:    #d4c9b8;
+    --ink-muted:   #6b6050;
+    --hairline:    #d8cdbc;
     --radius:      6px;
+    --paper-shadow: rgba(44, 36, 24, 0.055);
   }
 
   /* ── CSS Variables — Dark Theme ──────────────────────────── */
   html.dark {
-    --bg:          #0a0a0e;
-    --surface-1:   #141419;
-    --surface-2:   #1c1c24;
-    --accent:      #d97757;
-    --ink:         #e2dfd9;
-    --ink-muted:   #8a8580;
-    --hairline:    #2a2a32;
+    --bg:          #151413;
+    --surface-1:   #1d1b18;
+    --surface-2:   #26231f;
+    --accent:      #a88868;
+    --ink:         #e8e2da;
+    --ink-muted:   #aaa297;
+    --hairline:    #353129;
+    --paper-shadow: rgba(0, 0, 0, 0.14);
   }
 
   /* ── Body ────────────────────────────────────────────────── */
   body {
     width: 1080px;
     margin: 0 auto;
-    background-color: var(--bg);
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(255, 248, 232, 0.38), transparent 58%),
+      var(--bg);
     color: var(--ink);
     font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
     font-size: 36px;
@@ -98,6 +102,12 @@
     -webkit-font-smoothing: antialiased;
     position: relative;
     overflow-x: hidden;
+  }
+
+  html.dark body {
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(232, 226, 218, 0.055), transparent 54%),
+      var(--bg);
   }
 
   /* ── SVG Grain Overlay (light theme only) ────────────────── */
@@ -110,7 +120,7 @@
     height: 100%;
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.35;
+    opacity: 0.16;
     filter: url(#grain);
   }
 
@@ -121,7 +131,7 @@
 
   /* ── Layout ──────────────────────────────────────────────── */
   .page {
-    padding: 100px 70px 80px 70px;
+    padding: 108px 76px 84px 76px;
   }
 
   /* ── Header / Title Area ─────────────────────────────────── */
@@ -133,20 +143,32 @@
 
   .header .kicker {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 20px;
-    letter-spacing: 0.12em;
+    font-size: 24px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-muted);
     margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header .kicker::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0.82;
   }
 
   .header h1 {
     font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
-    font-size: 62px;
-    line-height: 1.2;
+    font-size: 60px;
+    line-height: 1.18;
     color: var(--ink);
     font-weight: normal;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     margin-bottom: 20px;
   }
 
@@ -156,7 +178,7 @@
 
   .header .subtitle {
     font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
-    font-size: 30px;
+    font-size: 36px;
     color: var(--ink-muted);
     font-weight: 400;
     line-height: 1.5;
@@ -168,7 +190,7 @@
   }
 
   .body-content p {
-    margin-bottom: 36px;
+    margin-bottom: 34px;
     text-align: justify;
     hanging-punctuation: first;
   }
@@ -177,7 +199,7 @@
   .body-content p.dropcap::first-letter,
   .body-content > p:first-child.dropcap::first-letter {
     font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
-    font-size: 108px;
+    font-size: 104px;
     float: left;
     line-height: 0.78;
     margin-right: 14px;
@@ -188,17 +210,19 @@
   /* ── Headings inside body ────────────────────────────────── */
   .body-content h2 {
     font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
-    font-size: 44px;
+    font-size: 42px;
     font-weight: normal;
     line-height: 1.3;
     color: var(--ink);
+    border-left: 3px solid var(--accent);
+    padding-left: 18px;
     margin: 56px 0 28px 0;
   }
 
   .body-content h3 {
     font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
     font-size: 36px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.4;
     color: var(--ink);
     margin: 44px 0 20px 0;
@@ -207,14 +231,15 @@
   /* ── Highlight — golden-sentence with border accent ──────── */
   .highlight {
     font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
-    font-size: 38px;
+    font-size: 37px;
     line-height: 1.6;
     color: var(--ink);
-    text-align: center;
-    padding: 40px 24px;
+    text-align: left;
+    padding: 34px 0 34px 28px;
     margin: 48px 0;
     border-top: 1px solid var(--hairline);
     border-bottom: 1px solid var(--hairline);
+    border-left: 3px solid var(--accent);
     position: relative;
   }
 
@@ -225,11 +250,7 @@
   .highlight::before {
     content: '';
     display: block;
-    width: 40px;
-    height: 3px;
-    background-color: var(--ink-muted);
-    margin: 0 auto 20px auto;
-    border-radius: 2px;
+    display: none;
   }
 
   .highlight.accent-highlight::before {
@@ -241,15 +262,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 12px;
     margin: 56px 0;
     color: var(--hairline);
   }
 
   .section-break .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 28px;
+    height: 1px;
+    border-radius: 1px;
     background-color: var(--hairline);
   }
 
@@ -257,23 +278,24 @@
   .layer-card {
     background-color: var(--surface-1);
     border-radius: var(--radius);
-    padding: 36px 40px;
+    padding: 34px 38px;
     margin: 36px 0;
-    border-left: 3px solid var(--hairline);
+    border: 1px solid var(--hairline);
+    box-shadow: 0 10px 28px var(--paper-shadow);
   }
 
   .layer-card .layer-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
-    letter-spacing: 0.08em;
+    font-size: 24px;
+    letter-spacing: 0.06em;
     color: var(--ink-muted);
     text-transform: uppercase;
     margin-bottom: 12px;
   }
 
   .layer-card .layer-text {
-    font-size: 34px;
-    line-height: 1.75;
+    font-size: 36px;
+    line-height: 1.68;
     color: var(--ink);
     text-align: justify;
   }
@@ -281,13 +303,13 @@
   /* ── Blockquote ──────────────────────────────────────────── */
   blockquote {
     margin: 48px 0;
-    padding: 32px 40px;
-    border-left: 3px solid var(--ink-muted);
+    padding: 30px 36px;
+    border-left: 3px solid var(--accent);
     background-color: var(--surface-1);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    font-style: italic;
+    border-radius: var(--radius);
+    font-style: normal;
     color: var(--ink-muted);
-    font-size: 34px;
+    font-size: 36px;
     line-height: 1.7;
   }
 
@@ -298,9 +320,9 @@
   /* ── Source Attribution ──────────────────────────────────── */
   .source-line {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
+    font-size: 24px;
     color: var(--ink-muted);
-    opacity: 0.7;
+    opacity: 0.72;
     margin-top: 24px;
     text-align: right;
   }
@@ -322,21 +344,21 @@
   }
 
   .colophon .brand img {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: var(--radius);
   }
 
   .colophon .brand .name {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 20px;
+    font-size: 24px;
     color: var(--ink-muted);
     letter-spacing: 0.04em;
   }
 
   .colophon .meta {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
+    font-size: 24px;
     color: var(--ink-muted);
     opacity: 0.7;
   }
@@ -376,7 +398,7 @@
       <img src="{{LOGO}}" alt="logo">
       <span class="name">{{BRAND_NAME}}</span>
     </div>
-    <div class="meta">{{BRAND_NAME}} / Long Mode</div>
+    <div class="meta">Long</div>
   </footer>
 
 </div>

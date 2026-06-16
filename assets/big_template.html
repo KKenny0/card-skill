@@ -50,17 +50,17 @@
   ║  CSS VARIABLE OVERRIDES                                         ║
   ║  ──────────────────────────────────────────────────────────────  ║
   ║  Override these on :root to change the color scheme:             ║
-  ║    --bg          Canvas / card background (default: #0a0a0e)     ║
-  ║    --accent      Highlight / accent color (default: #7176c4)     ║
-  ║    --ink         Main text color (default: #e2dfd9)              ║
-  ║    --ink-muted   Secondary / muted text (default: #8a8f98)       ║
-  ║    --surface-1   Card / surface overlay (default: #111215)       ║
-  ║    --hairline    Divider / border color (default: #23252a)       ║
+  ║    --bg          Canvas / card background (default: #151413)     ║
+  ║    --accent      Highlight / accent color (default: #7b84b8)     ║
+  ║    --ink         Main text color (default: #e8e2da)              ║
+  ║    --ink-muted   Secondary / muted text (default: #aaa297)       ║
+  ║    --surface-1   Card / surface overlay (default: #1d1b18)       ║
+  ║    --hairline    Divider / border color (default: #353129)       ║
   ║                                                                  ║
   ║  LIGHT THEME EXAMPLE:                                            ║
-  ║    --bg: #faf6f0; --accent: #d97757; --ink: #2c2418;            ║
-  ║    --ink-muted: #7a6f5f; --surface-1: #f2ebe0;                  ║
-  ║    --hairline: #d4c9b8;                                          ║
+  ║    --bg: #f5f0e8; --accent: #9b6048; --ink: #2c2418;            ║
+  ║    --ink-muted: #6b6050; --surface-1: #fbfaf6;                  ║
+  ║    --hairline: #d8cdbc;                                          ║
   ╚══════════════════════════════════════════════════════════════════╝
 -->
 
@@ -72,18 +72,18 @@
 <style>
   /* ── Design Tokens (dark default — renderer overrides on :root, swaps class for light) ── */
   :root {
-    --bg:         #0a0a0e;
-    --accent:     #7176c4;
-    --ink:        #e2dfd9;
-    --ink-muted:  #8a8f98;
-    --surface-1:  #111215;
-    --hairline:   #23252a;
-    --radius:     12px;
+    --bg:         #151413;
+    --accent:     #7b84b8;
+    --ink:        #e8e2da;
+    --ink-muted:  #aaa297;
+    --surface-1:  #1d1b18;
+    --hairline:   #353129;
+    --radius:     8px;
   }
 
   /* ── Light theme visual adjustments ── */
   html.light .card::after {
-    opacity: 0.15;
+    opacity: 0.08;
   }
   html.light .ghost {
     -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 10%, transparent);
@@ -125,6 +125,18 @@
     border-radius: var(--radius);
   }
 
+  html.light .card {
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(255, 248, 232, 0.32), transparent 58%),
+      var(--bg);
+  }
+
+  html.dark .card {
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(232, 226, 218, 0.055), transparent 54%),
+      var(--bg);
+  }
+
   /* ── SVG Filters (hidden) ── */
   .svg-filters {
     position: absolute;
@@ -132,7 +144,7 @@
     height: 0;
   }
 
-  /* ── Atmosphere: subtle radial glow ── */
+  /* ── Quiet paper atmosphere ── */
   .card::before {
     content: '';
     position: absolute;
@@ -140,7 +152,7 @@
     background:
       radial-gradient(
         ellipse 70% 50% at 50% 45%,
-        color-mix(in srgb, var(--accent) 4%, transparent) 0%,
+        color-mix(in srgb, var(--accent) 2%, transparent) 0%,
         transparent 100%
       );
     pointer-events: none;
@@ -153,7 +165,7 @@
     position: absolute;
     inset: 0;
     filter: url(#paper-grain);
-    opacity: 0.30;
+    opacity: 0.12;
     pointer-events: none;
     z-index: 0;
   }
@@ -170,7 +182,7 @@
     line-height: 1;
     letter-spacing: -0.04em;
     color: transparent;
-    -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 6%, transparent);
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 8%, transparent);
     paint-order: stroke fill;
     pointer-events: none;
     z-index: 1;
@@ -199,14 +211,11 @@
     transform: translate(-50%, -50%);
     width: calc(100% - 80px);
     height: calc(100% - 160px);
-    background: linear-gradient(
-      180deg,
-      var(--surface-1) 0%,
-      var(--bg) 100%
-    );
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
     border-radius: var(--radius);
     z-index: -1;
-    opacity: 0.7;
+    opacity: 0.52;
   }
 
   /* ── Main Phrase (大字报) ── */
@@ -273,7 +282,7 @@
 
   .colophon span {
     font-family: 'JetBrains Mono', 'DM Sans', monospace;
-    font-size: 13px;
+    font-size: 24px;
     font-weight: 400;
     letter-spacing: 0.06em;
     color: var(--ink-muted);

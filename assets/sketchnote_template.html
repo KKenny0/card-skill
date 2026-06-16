@@ -11,15 +11,15 @@
     {{SOURCE_LINE}}   — Source attribution (optional, e.g. journal / paper reference)
 
   CSS Variables (override in CUSTOM_CSS or inline):
-    --bg          : Canvas background           (default #FAF7EF warm cream)
-    --surface-1   : Card / paper surface         (default #F5F1E5)
-    --surface-2   : Secondary surface / note     (default #FFFBF1 sticky-note)
-    --accent-1    : Primary accent — red         (default #B23A2C)
-    --accent-2    : Secondary accent — blue      (default #3D5A80)
-    --accent-3    : Tertiary accent — amber      (default #BB8A2B)
-    --ink         : Main text color              (default #1F1F1F)
-    --ink-muted   : Secondary / muted text       (default #6B6B6B)
-    --hairline    : Border / rule color          (default rgba(15,15,15,0.16))
+    --bg          : Quiet Paper canvas           (default #f5f0e8)
+    --surface-1   : Warm grouping surface        (default #ebe3d6)
+    --surface-2   : Secondary quiet surface      (default #f8f4eb)
+    --accent-1    : Muted ink accent             (default #9b6048)
+    --accent-2    : Same-family accent           (default #7b6d61)
+    --accent-3    : Soft rule accent             (default #b39470)
+    --ink         : Main text color              (default #2c2418)
+    --ink-muted   : Secondary / muted text       (default #6b6050)
+    --hairline    : Border / rule color          (default #d8cdbc)
 
   Layout classes (per spec):
     .page            — Main 1080px container
@@ -59,19 +59,19 @@
 
   /* ── CSS Variables ── */
   :root {
-    /* Colors — brand-agnostic defaults (override per card) */
-    --bg:          #FAF7EF;
-    --surface-1:   #F5F1E5;
-    --surface-2:   #FFFBF1;
-    --accent-1:    #B23A2C;   /* red — errors, annotations, emphasis */
-    --accent-2:    #3D5A80;   /* blue — insight, hero visuals */
-    --accent-3:    #BB8A2B;   /* amber — turning point, highlight */
-    --accent-3-soft: #D7A85A; /* amber soft — highlight background */
-    --ink:         #1F1F1F;
-    --ink-muted:   #6B6B6B;
-    --ink-strong:  #0F0F0F;
-    --ink-fade:    #9A958C;
-    --hairline:    rgba(15,15,15,0.16);
+    /* Colors — quiet paper defaults (override per card) */
+    --bg:          #f5f0e8;
+    --surface-1:   #ebe3d6;
+    --surface-2:   #f8f4eb;
+    --accent-1:    #9b6048;
+    --accent-2:    #7b6d61;
+    --accent-3:    #b39470;
+    --accent-3-soft: #e9ddc9;
+    --ink:         #2c2418;
+    --ink-muted:   #6b6050;
+    --ink-strong:  #2c2418;
+    --ink-fade:    #9a9186;
+    --hairline:    #d8cdbc;
 
     /* Font families */
     --serif:  'DM Serif Display', 'XiangcuiDengcusong', 'Songti SC', Georgia, serif;
@@ -82,12 +82,19 @@
 
   /* ── Reset ── */
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1080px; background: var(--bg); }
+  html, body {
+    width: 1080px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(44, 36, 24, 0.035), transparent 42%),
+      var(--bg);
+  }
 
   /* ── Page Container ── */
   .page {
     width: 1080px;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(44, 36, 24, 0.025), transparent 46%),
+      var(--bg);
     position: relative;
     overflow: hidden;
   }
@@ -97,7 +104,7 @@
     position: absolute;
     inset: 0;
     filter: url(#noise);
-    opacity: 0.04;
+    opacity: 0.025;
     pointer-events: none;
     z-index: 100;
   }
@@ -105,7 +112,7 @@
   /* ── Magazine Head (Masthead) ── */
   .magazine-head {
     padding: 44px 64px 30px;
-    border-bottom: 2px solid var(--ink-strong);
+    border-bottom: 1px solid var(--hairline);
     position: relative;
   }
   .magazine-head::after {
@@ -113,13 +120,13 @@
     position: absolute;
     left: 64px; right: 64px; bottom: -8px;
     height: 1px;
-    background: var(--ink-strong);
+    background: var(--accent-1);
   }
   .magazine-head .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font: 600 12px/1 var(--mono);
+    font: 600 36px/1.1 var(--mono);
     color: var(--ink-muted);
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -135,13 +142,13 @@
     letter-spacing: 0.18em;
   }
   .magazine-head h1 {
-    font: 900 110px/0.92 var(--serif);
+    font: 900 110px/0.98 var(--serif);
     color: var(--ink-strong);
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
     margin-bottom: 24px;
   }
   .magazine-head .deck {
-    font: italic 400 26px/1.45 var(--serif);
+    font: 400 36px/1.35 var(--serif);
     color: var(--ink-muted);
     max-width: 820px;
     border-left: 3px solid var(--ink-strong);
@@ -150,7 +157,7 @@
 
   /* ── Shared Components ── */
   .kicker {
-    font: 600 13px/1 var(--mono);
+    font: 600 24px/1.1 var(--mono);
     color: var(--ink-muted);
     text-transform: uppercase;
     letter-spacing: 0.22em;
@@ -159,7 +166,7 @@
     gap: 12px;
   }
   .kicker .num {
-    background: var(--ink-strong);
+    background: var(--accent-1);
     color: var(--bg);
     padding: 5px 10px 4px;
     font-weight: 700;
@@ -174,19 +181,19 @@
   .head-serif {
     font: 700 56px/1.05 var(--serif);
     margin: 12px 0 16px;
-    letter-spacing: -0.018em;
+    letter-spacing: 0;
     color: var(--ink-strong);
   }
   .head-sans {
     font: 900 40px/1.12 var(--sans);
     margin: 10px 0 12px;
-    letter-spacing: -0.012em;
+    letter-spacing: 0;
     color: var(--ink-strong);
   }
 
-  .body-serif p { font: 400 22px/1.6 var(--serif); color: var(--ink); }
+  .body-serif p { font: 400 36px/1.45 var(--serif); color: var(--ink); }
   .body-serif p + p { margin-top: 8px; }
-  .body-sans p { font: 400 21px/1.6 var(--sans); color: var(--ink); }
+  .body-sans p { font: 400 36px/1.45 var(--sans); color: var(--ink); }
   .body-sans p + p { margin-top: 6px; }
   .body em { font-style: normal; font-weight: 700; color: var(--ink-strong); }
 
@@ -205,7 +212,7 @@
   }
 
   mark {
-    background: rgba(255,242,0,0.45);
+    background: var(--accent-3-soft);
     color: inherit;
     padding: 4px 8px;
   }
@@ -226,7 +233,7 @@
     align-items: start;
   }
   .note-card.feature .lead {
-    font: italic 400 22px/1.45 var(--serif);
+    font: 400 36px/1.35 var(--serif);
     margin-bottom: 16px;
     padding: 0 0 0 18px;
     border-left: 2px solid var(--accent-1);
@@ -257,7 +264,7 @@
     height: auto;
   }
   .note-card.note .sidekick .formula {
-    font: 600 22px/1.4 var(--hand);
+    font: 600 36px/1.3 var(--hand);
     color: var(--ink);
     padding: 8px 14px;
     border-left: 2px dashed var(--ink-fade);
@@ -269,14 +276,14 @@
     font-weight: 700;
   }
   .note-card.note .sidekick .arrow {
-    font: 600 26px/1.1 var(--hand);
+    font: 600 36px/1.1 var(--hand);
     color: var(--accent-1);
     transform: rotate(6deg);
     align-self: flex-end;
     margin-right: -4px;
   }
   .note-card.note .sidekick .doodle-caption {
-    font: italic 400 14px/1.4 var(--serif);
+    font: 400 24px/1.4 var(--serif);
     color: var(--ink-muted);
     margin-top: 4px;
   }
@@ -286,8 +293,8 @@
     padding: 22px 26px 22px 28px;
     background: var(--surface-2);
     border: 1px solid rgba(120,110,80,0.32);
-    border-left: 4px solid var(--accent-1);
-    box-shadow: 5px 9px 22px -12px rgba(0,0,0,0.22);
+    border-left: 2px solid var(--accent-1);
+    box-shadow: none;
     position: relative;
     transform: rotate(0.5deg);
     transform-origin: top right;
@@ -307,19 +314,19 @@
   .note-card.note .paper .scribble {
     position: absolute;
     right: -8px; top: 28px;
-    font: 600 24px/1.15 var(--hand);
+    font: 600 30px/1.15 var(--hand);
     color: var(--accent-1);
     transform: rotate(6deg);
     background: var(--surface-2);
     padding: 6px 12px 4px;
-    border: 1px dashed var(--accent-1);
+    border: 1px solid var(--hairline);
     white-space: nowrap;
   }
   .note-card.note .paper .footnote {
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px dashed rgba(120,110,80,0.4);
-    font: 500 13px/1.4 var(--mono);
+    font: 500 24px/1.35 var(--mono);
     color: var(--ink-muted);
     display: flex;
     gap: 8px;
@@ -343,7 +350,7 @@
     background: var(--ink-strong);
     color: var(--bg);
     padding: 22px 16px;
-    font: 700 12px/1.4 var(--mono);
+    font: 700 24px/1.3 var(--mono);
     letter-spacing: 0.16em;
     text-transform: uppercase;
     text-align: center;
@@ -358,7 +365,7 @@
   }
   .note-card.archive .stamp .x {
     font: 700 56px/1 var(--serif);
-    color: #C85042;
+    color: var(--accent-1);
   }
   .note-card.archive .body-area {
     padding: 22px 28px 24px;
@@ -367,7 +374,7 @@
     margin-top: 12px;
     padding-top: 10px;
     border-top: 1px dashed var(--hairline);
-    font: italic 600 19px/1.4 var(--serif);
+    font: 600 30px/1.35 var(--serif);
     color: var(--accent-1);
   }
 
@@ -381,7 +388,7 @@
   .note-card.cross .mega {
     font: 900 180px/0.88 var(--serif);
     color: var(--ink-strong);
-    letter-spacing: -0.045em;
+    letter-spacing: 0;
   }
   .note-card.cross .mega .em {
     background: linear-gradient(180deg, transparent 60%, var(--accent-3-soft, #D7A85A) 60%, var(--accent-3-soft, #D7A85A) 90%, transparent 90%);
@@ -400,7 +407,7 @@
     padding-top: 16px;
   }
   .note-card.cross .right .caption {
-    font: italic 400 16px/1.45 var(--serif);
+    font: 400 24px/1.4 var(--serif);
     color: var(--ink-muted);
     margin-top: 10px;
     padding-left: 10px;
@@ -410,7 +417,7 @@
   /* ── Hero (Station 5: Insight) ── */
   .note-card.hero {
     padding: 52px 64px 48px;
-    border-top: 4px solid var(--accent-2);
+    border-top: 1px solid var(--hairline);
     margin-top: 32px;
     position: relative;
   }
@@ -421,18 +428,18 @@
     align-items: start;
   }
   .note-card.hero .visual .caption {
-    font: italic 400 16px/1.45 var(--serif);
+    font: 400 24px/1.4 var(--serif);
     color: var(--ink-muted);
     margin-top: 10px;
     padding-left: 12px;
     border-left: 2px solid var(--accent-2);
   }
   .note-card.hero .pull-quote {
-    font: italic 700 36px/1.22 var(--serif);
+    font: 700 42px/1.22 var(--serif);
     color: var(--accent-2);
     margin: 12px 0 18px;
     padding: 6px 0 6px 22px;
-    border-left: 4px solid var(--accent-2);
+    border-left: 2px solid var(--accent-2);
     position: relative;
   }
   .note-card.hero .pull-quote::before {
@@ -448,19 +455,19 @@
   .note-card.closing {
     padding: 60px 64px 64px;
     background: var(--surface-1);
-    border-top: 6px double var(--ink-strong);
+    border-top: 1px solid var(--hairline);
     margin-top: 32px;
     text-align: center;
   }
   .note-card.closing .approach {
-    font: italic 400 24px/1.45 var(--serif);
+    font: 400 36px/1.35 var(--serif);
     color: var(--ink-muted);
     margin-bottom: 24px;
   }
   .note-card.closing .mega-name {
     font: 900 144px/0.95 var(--serif);
     color: var(--ink-strong);
-    letter-spacing: -0.028em;
+    letter-spacing: 0;
     margin-bottom: 14px;
   }
   .note-card.closing .en-name {
@@ -495,13 +502,13 @@
     font-weight: 400;
   }
   .note-card.closing .closing-body {
-    font: 400 22px/1.7 var(--serif);
+    font: 400 36px/1.45 var(--serif);
     max-width: 760px;
     margin: 0 auto 22px;
     text-align: left;
   }
   .note-card.closing .epilogue {
-    font: italic 500 26px/1.45 var(--serif);
+    font: 500 36px/1.35 var(--serif);
     color: var(--ink-strong);
     margin-top: 18px;
   }
@@ -515,14 +522,14 @@
   .problem-block {
     padding: 28px 32px;
     background: var(--surface-1);
-    border-left: 4px solid var(--accent-1);
+    border-left: 2px solid var(--accent-1);
     margin: 20px 0;
   }
 
   .failure-block {
     padding: 24px 28px;
     background: var(--surface-2);
-    border: 1px dashed var(--accent-1);
+    border: 1px solid var(--hairline);
     margin: 20px 0;
     position: relative;
   }
@@ -530,7 +537,7 @@
   .insight-block {
     padding: 28px 32px;
     background: var(--surface-1);
-    border-left: 4px solid var(--accent-2);
+    border-left: 2px solid var(--accent-2);
     margin: 20px 0;
   }
 
@@ -545,7 +552,7 @@
   /* ── Utility Classes ── */
   .note-label {
     display: inline-block;
-    font: 600 11px/1 var(--mono);
+    font: 600 24px/1.1 var(--mono);
     letter-spacing: 0.2em;
     text-transform: uppercase;
     padding: 4px 12px;
@@ -597,7 +604,7 @@
     color: var(--ink-muted);
   }
   .colophon .info-source {
-    font: 400 22px/1 var(--mono);
+    font: 400 24px/1 var(--mono);
     color: var(--ink-muted);
   }
 

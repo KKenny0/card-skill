@@ -6,8 +6,8 @@
   Comic mode produces ONE HTML FILE PER CARD.  A multi-page manga is
   a set of separate 1080x1440 HTML files that share this template.
 
-  Strict black/white/gray palette. No color. Power comes from ink
-  density, contrast, panel rhythm, and halftone patterns.
+  Quiet Paper monochrome palette. No decorative color. Power comes
+  from warm ink, panel rhythm, quiet paper texture, and restraint.
 
   Placeholders (replaced before rendering):
   ─────────────────────────────────────────────────────────────────────
@@ -36,11 +36,11 @@
 
   CSS variable overrides (in {{CUSTOM_CSS}} or on :root):
   ─────────────────────────────────────────────────────────────────────
-  --ink          Black or near-black (#000000 or #1a1a1a)
-  --paper        White or near-white (#ffffff or #fafafa)
-  --gray-light   Light gray (#e0e0e0)
-  --gray-mid     Medium gray (#888888)
-  --gray-dark    Dark gray (#333333)
+  --ink          Warm off-black (#1f1d19)
+  --paper        Warm paper (#f6f3ec)
+  --gray-light   Quiet divider (#ded6ca)
+  --gray-mid     Muted ink (#8a8176)
+  --gray-dark    Secondary ink (#4c4740)
   ══════════════════════════════════════════════════════════════════════
 -->
 <!DOCTYPE html>
@@ -50,10 +50,10 @@
 <meta name="viewport" content="width=1080">
 <title>card-skill — Comic Mode</title>
 
-<!-- Google Fonts: Permanent Marker (hand-drawn), DM Sans (narration) -->
+<!-- Google Fonts: DM Sans (narration) + Noto Serif SC fallback -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Permanent+Marker&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
   /* ── Font Face: XiangcuiDengcusong (local) ── */
@@ -64,16 +64,25 @@
     font-style: normal;
   }
 
-  /* ── Design Tokens (strict black/white/gray) ── */
+  @font-face {
+    font-family: 'XiangcuiDazijiti';
+    src: url('file://{{FONT_BASE}}/香萃打字机体 W40.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  /* ── Design Tokens (quiet paper monochrome) ── */
   :root {
-    --ink:        #000000;
-    --paper:      #ffffff;
-    --gray-light: #e0e0e0;
-    --gray-mid:   #888888;
-    --gray-dark:  #333333;
+    --ink:        #1f1d19;
+    --paper:      #f6f3ec;
+    --panel:      #fbfaf6;
+    --gray-light: #ded6ca;
+    --gray-mid:   #8a8176;
+    --gray-dark:  #4c4740;
+    --hairline:   #d7cec1;
 
     /* type system */
-    --marker:    'Permanent Marker', cursive;
+    --marker:    'XiangcuiDazijiti', 'Noto Serif SC', serif;
     --sans:      'DM Sans', -apple-system, system-ui, sans-serif;
     --zh-serif:  'XiangcuiDengcusong', 'Noto Serif SC', Georgia, serif;
     --serif:     'Noto Serif SC', Georgia, serif;
@@ -90,7 +99,9 @@
   html, body {
     width: 1080px;
     height: 1440px;
-    background: var(--paper);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(31, 29, 25, 0.035), transparent 42%),
+      var(--paper);
   }
 
   body {
@@ -106,7 +117,9 @@
   .card {
     width: 1080px;
     height: 1440px;
-    background: var(--paper);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(31, 29, 25, 0.025), transparent 46%),
+      var(--paper);
     position: relative;
     overflow: hidden;
     padding: 60px 48px;
@@ -120,19 +133,19 @@
     align-items: center;
     justify-content: space-between;
     padding-bottom: 16px;
-    border-bottom: 3px solid var(--ink);
+    border-bottom: 1px solid var(--hairline);
     margin-bottom: 24px;
     flex-shrink: 0;
   }
 
   .running-title {
-    font: 700 22px/1 var(--marker);
+    font: 500 24px/1 var(--mono);
     color: var(--ink);
     letter-spacing: 0.02em;
   }
 
   .page-indicator {
-    font: 700 20px/1 var(--marker);
+    font: 500 22px/1 var(--mono);
     color: var(--gray-mid);
     letter-spacing: 0.04em;
   }
@@ -149,19 +162,19 @@
   }
 
   .title-area h1 {
-    font-family: var(--zh-serif);
+    font-family: var(--marker);
     font-size: 108px;
     font-weight: 900;
     line-height: 1.15;
     color: var(--ink);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     margin-bottom: 20px;
   }
 
   .title-area .subtitle {
     font: 500 36px/1.5 var(--sans);
     color: var(--gray-dark);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     max-width: 800px;
   }
 
@@ -169,8 +182,8 @@
     display: inline-block;
     margin-top: 28px;
     padding: 10px 28px;
-    border: 3px solid var(--ink);
-    font: 700 24px/1 var(--marker);
+    border: 1px solid var(--hairline);
+    font: 500 24px/1 var(--mono);
     color: var(--ink);
     letter-spacing: 0.04em;
   }
@@ -186,8 +199,8 @@
   }
 
   .panel {
-    border: 3px solid var(--ink);
-    background: var(--paper);
+    border: 1px solid var(--hairline);
+    background: var(--panel);
     position: relative;
     overflow: hidden;
     padding: 28px 32px;
@@ -199,8 +212,8 @@
   /* Full-width panel spanning entire row */
   .panel-large {
     grid-column: 1 / -1;
-    border: 3px solid var(--ink);
-    background: var(--paper);
+    border: 1px solid var(--hairline);
+    background: var(--panel);
     position: relative;
     overflow: hidden;
     padding: 36px 48px;
@@ -211,8 +224,8 @@
 
   /* Half-width panel (two-column) */
   .panel-half {
-    border: 3px solid var(--ink);
-    background: var(--paper);
+    border: 1px solid var(--hairline);
+    background: var(--panel);
     position: relative;
     overflow: hidden;
     padding: 24px 28px;
@@ -247,14 +260,14 @@
     font-weight: 900;
     line-height: 1.2;
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     margin-bottom: 16px;
   }
 
   .panel p {
     font: 400 32px/1.7 var(--sans);
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   .panel-large h2 {
@@ -263,14 +276,14 @@
     font-weight: 900;
     line-height: 1.15;
     color: var(--ink);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     margin-bottom: 20px;
   }
 
   .panel-large p {
-    font: 400 34px/1.7 var(--sans);
+    font: 400 36px/1.65 var(--sans);
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   .panel-half h2 {
@@ -279,14 +292,14 @@
     font-weight: 900;
     line-height: 1.2;
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     margin-bottom: 12px;
   }
 
   .panel-half p {
     font: 400 28px/1.65 var(--sans);
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -294,8 +307,8 @@
      ══════════════════════════════════════════════════════════════════ */
   .speech-bubble {
     background: var(--paper);
-    border: 2.5px solid var(--ink);
-    border-radius: 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
     padding: 16px 22px;
     position: relative;
     font: 700 30px/1.4 var(--sans);
@@ -313,7 +326,7 @@
     width: 0;
     height: 0;
     border: 8px solid transparent;
-    border-top-color: var(--ink);
+    border-top-color: var(--hairline);
   }
 
   /* Right-aligned tail variant */
@@ -327,8 +340,8 @@
      ══════════════════════════════════════════════════════════════════ */
   .thought-bubble {
     background: var(--paper);
-    border: 2.5px solid var(--ink);
-    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
     padding: 18px 24px;
     position: relative;
     font: 500 28px/1.4 var(--sans);
@@ -346,7 +359,7 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--ink);
+    background: var(--gray-mid);
     border: none;
   }
 
@@ -358,7 +371,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--ink);
+    background: var(--gray-mid);
     border: none;
     z-index: 1;
   }
@@ -392,10 +405,10 @@
     position: absolute;
     top: 12px;
     left: 12px;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--gray-light);
+    color: var(--ink);
     padding: 10px 18px;
-    font: 500 22px/1.4 var(--sans);
+    font: 500 36px/1.3 var(--sans);
     letter-spacing: 0.02em;
     max-width: 70%;
     z-index: 5;
@@ -487,9 +500,9 @@
     font: 900 80px/1 var(--marker);
     color: var(--ink);
     transform: rotate(-8deg) skewX(-5deg);
-    letter-spacing: -3px;
-    text-shadow: 3px 3px 0 var(--gray-light);
-    -webkit-text-stroke: 1px var(--ink);
+    letter-spacing: 0;
+    text-shadow: none;
+    -webkit-text-stroke: 0;
     position: relative;
     z-index: 4;
     display: inline-block;
@@ -525,8 +538,8 @@
     background: linear-gradient(
       135deg,
       var(--ink) 0%,
-      rgba(26,26,26,0.6) 20%,
-      rgba(26,26,26,0.15) 50%,
+      rgba(31,29,25,0.34) 20%,
+      rgba(31,29,25,0.10) 50%,
       transparent 70%
     );
     pointer-events: none;
@@ -572,7 +585,7 @@
     color: var(--paper);
     padding: 20px 32px;
     font: 900 48px/1.2 var(--zh-serif);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -594,7 +607,7 @@
   .colophon {
     margin-top: auto;
     padding-top: 20px;
-    border-top: 3px solid var(--ink);
+    border-top: 1px solid var(--hairline);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -609,12 +622,12 @@
 
   .colophon .brand-mark .stripe-bar {
     width: 36px;
-    height: 4px;
+    height: 1px;
     background: var(--ink);
   }
 
   .colophon .brand-mark span {
-    font: 700 18px/1 var(--marker);
+    font: 500 24px/1 var(--mono);
     color: var(--ink);
     letter-spacing: 0.06em;
   }
@@ -639,18 +652,18 @@
   <defs>
     <!-- Screentone: halftone dot pattern -->
     <pattern id="screentone-dots" x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse">
-      <circle cx="2.5" cy="2.5" r="0.8" fill="#000000"/>
+      <circle cx="2.5" cy="2.5" r="0.8" fill="#1f1d19"/>
     </pattern>
 
     <!-- Screentone: coarse halftone for heavier shading -->
     <pattern id="screentone-coarse" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="4" cy="4" r="1.5" fill="#000000"/>
+      <circle cx="4" cy="4" r="1.5" fill="#1f1d19"/>
     </pattern>
 
     <!-- Focus lines: radial burst -->
     <pattern id="focus-lines-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="20" y2="0" stroke="#000000" stroke-width="0.3" opacity="0.15"/>
-      <line x1="10" y1="0" x2="10" y2="20" stroke="#000000" stroke-width="0.2" opacity="0.10"/>
+      <line x1="0" y1="0" x2="20" y2="0" stroke="#1f1d19" stroke-width="0.3" opacity="0.15"/>
+      <line x1="10" y1="0" x2="10" y2="20" stroke="#1f1d19" stroke-width="0.2" opacity="0.10"/>
     </pattern>
 
     <!-- Ink grain filter: simulates rough paper texture -->
@@ -666,7 +679,7 @@
       <feComponentTransfer in="lum" result="threshold">
         <feFuncA type="discrete" tableValues="0 0 0 0 0 0 0 0 1 1"/>
       </feComponentTransfer>
-      <feFlood flood-color="#000000" result="color"/>
+      <feFlood flood-color="#1f1d19" result="color"/>
       <feComposite in="color" in2="threshold" operator="in"/>
     </filter>
 

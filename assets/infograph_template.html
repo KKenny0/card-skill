@@ -17,13 +17,18 @@
   }
 
   :root {
-    --bg: #F2F2F2;
-    --green: #B8D8BE;
-    --pink: #E91E63;
-    --yellow: #FFF200;
-    --ink: #2D2926;
-    --ink-light: #5C5350;
-    --white: #FFFFFF;
+    --bg: #f5f0e8;
+    --green: #e9e1d4;
+    --pink: #9b6048;
+    --accent: #9b6048;
+    --yellow: #efe6d8;
+    --ink: #2c2418;
+    --ink-light: #6b6050;
+    --white: #fbfaf6;
+    --surface-1: #fbfaf6;
+    --surface-2: #e9e1d4;
+    --hairline: #d8cdbc;
+    --radius: 6px;
     --serif: 'DM Serif Display', Georgia, serif;
     --sans: 'DM Sans', -apple-system, system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
@@ -31,11 +36,17 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1080px; background: var(--bg); }
+  html, body {
+    width: 1080px;
+    background:
+      radial-gradient(ellipse at 28% 16%, rgba(255, 248, 232, 0.34), transparent 58%),
+      var(--bg);
+    color: var(--ink);
+  }
 
   .page {
     width: 1080px;
-    background: var(--bg);
+    background: transparent;
     position: relative;
   }
 
@@ -43,19 +54,24 @@
     position: absolute;
     inset: 0;
     filter: url(#noise);
-    opacity: 0.04;
+    opacity: 0.018;
     pointer-events: none;
     z-index: 100;
   }
 
-  mark { background: rgba(255,242,0,0.45); color: inherit; padding: 4px 8px; }
+  mark {
+    background: var(--yellow);
+    color: inherit;
+    padding: 3px 7px;
+    border-radius: 3px;
+  }
 
   .colophon {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 28px 60px 36px;
-    border-top: 1px solid rgba(45,41,38,0.08);
+    border-top: 1px solid var(--hairline);
   }
 
   .colophon .who {
@@ -79,7 +95,7 @@
   }
 
   .colophon .info-source {
-    font: 400 22px/1 var(--mono);
+    font: 400 24px/1 var(--mono);
     color: var(--ink-light);
   }
 
@@ -99,7 +115,7 @@
   <div class="colophon">
     <div class="who">
       <img src="{{LOGO}}" alt="">
-      <span>李继刚</span>
+      <span>card</span>
     </div>
     {{SOURCE_LINE}}
   </div>

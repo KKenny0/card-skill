@@ -71,7 +71,8 @@ function render(input, outputHtmlPath) {
         .replace(/--accent:.*?;/g, `--accent: ${design.accent};`)
         .replace(/--ink:.*?;/g, `--ink: ${design.ink};`)
         .replace(/--ink-muted:.*?;/g, `--ink-muted: ${design.inkMuted};`)
-        .replace(/--hairline:.*?;/g, `--hairline: ${design.hairline};`);
+        .replace(/--hairline:.*?;/g, `--hairline: ${design.hairline};`)
+        .replace(/--radius:.*?;/g, `--radius: ${design.radius};`);
     }
     return match;
   });
@@ -86,7 +87,8 @@ function render(input, outputHtmlPath) {
         .replace(/--accent:.*?;/, `--accent: ${design.accent};`)
         .replace(/--ink:.*?;/, `--ink: ${design.ink};`)
         .replace(/--ink-muted:.*?;/, `--ink-muted: ${design.inkMuted};`)
-        .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`);
+        .replace(/--hairline:.*?;/, `--hairline: ${design.hairline};`)
+        .replace(/--radius:.*?;/, `--radius: ${design.radius};`);
     });
   }
 

@@ -36,46 +36,50 @@ const FONT_DIR = path.join(ASSETS, 'fonts');
 // Design Systems Catalog
 // ═══════════════════════════════════════════════════════════
 
-const DESIGNS = {
-  // ── Dark Minimal ──
-  linear:       { surface:'dark', canvas:'#010102', accent:'#5e6ad2', ink:'#f7f8f8', inkMuted:'#8b8f98', surface1:'#0a0a10', surface2:'#14141c', hairline:'#23252a', category:'Dark Minimal', note:'精密暗色' },
-  vercel:       { surface:'dark', canvas:'#000000', accent:'#ffffff', ink:'#ededed', inkMuted:'#888888', surface1:'#0a0a0a', surface2:'#171717', hairline:'#222222', category:'Dark Minimal', note:'极简部署' },
+const { DESIGNS: TOKEN_DESIGNS } = require('./lib/designs');
 
-  // ── Dark Cinematic ──
-  spotify:      { surface:'dark', canvas:'#121212', accent:'#1db954', ink:'#ffffff', inkMuted:'#b3b3b3', surface1:'#1a1a1a', surface2:'#282828', hairline:'#333333', category:'Dark Cinematic', note:'绿标音乐' },
-
-  // ── Light Minimal ──
-  apple:        { surface:'light', canvas:'#fbfbfd', accent:'#0071e3', ink:'#1d1d1f', inkMuted:'#86868b', surface1:'#f5f5f7', surface2:'#e8e8ed', hairline:'#d2d2d7', category:'Light Minimal', note:'极简留白' },
-  expo:         { surface:'light', canvas:'#fafafa', accent:'#000000', ink:'#171717', inkMuted:'#555555', surface1:'#f0f0f0', surface2:'#e5e5e5', hairline:'#d0d0d0', category:'Light Minimal', note:'开发者文档' },
-  notion:       { surface:'light', canvas:'#fafafa', accent:'#5645d4', ink:'#1a1a1a', inkMuted:'#6b6b6b', surface1:'#f0f0f0', surface2:'#e8e8e8', hairline:'#d8d8d8', category:'Light Minimal', note:'工作区' },
-
-  // ── Light Editorial ──
-  claude:       { surface:'light', canvas:'#f5f0e8', accent:'#c47050', ink:'#2c2418', inkMuted:'#6b6050', surface1:'#ede7db', surface2:'#e4dcd0', hairline:'#d4c9b8', category:'Light Editorial', note:'暖色人文' },
-  cursor:       { surface:'light', canvas:'#f7f7f4', accent:'#e04a00', ink:'#26251e', inkMuted:'#6b6860', surface1:'#efefe8', surface2:'#e6e6dc', hairline:'#d0cfc4', category:'Light Editorial', note:'编辑暖调' },
-  intercom:     { surface:'light', canvas:'#f5f1ec', accent:'#111111', ink:'#222222', inkMuted:'#6b6055', surface1:'#ede8e0', surface2:'#e3ddd2', hairline:'#d0c8ba', category:'Light Editorial', note:'奶油温暖' },
-  replicate:    { surface:'light', canvas:'#f9f7f3', accent:'#d42504', ink:'#282020', inkMuted:'#6b5f5f', surface1:'#f0ece5', surface2:'#e6e0d5', hairline:'#d4ccc0', category:'Light Editorial', note:'暖色开发' },
-  posthog:      { surface:'light', canvas:'#eeefe9', accent:'#e09500', ink:'#28251d', inkMuted:'#6b6555', surface1:'#e4e5dc', surface2:'#daded0', hairline:'#c8c8b8', category:'Light Editorial', note:'活泼分析' },
-  clay:         { surface:'light', canvas:'#fffaf0', accent:'#0a0a0a', ink:'#1a1a1a', inkMuted:'#6b6050', surface1:'#f5efe5', surface2:'#ebe4d5', hairline:'#d8d0c0', category:'Light Editorial', note:'有机数据' },
-
-  // ── Technical Data (light) ──
-  stripe:       { surface:'light', canvas:'#f6f9fc', accent:'#5530e0', ink:'#0d2540', inkMuted:'#4a5568', surface1:'#eef2f7', surface2:'#e3e8ee', hairline:'#d0d5dd', category:'Technical Data', note:'精密金融' },
-  ibm:          { surface:'light', canvas:'#f5f5f5', accent:'#0f62fe', ink:'#161616', inkMuted:'#555555', surface1:'#ebebeb', surface2:'#e0e0e0', hairline:'#c8c8c8', category:'Technical Data', note:'企业工程' },
-
-  // ── Technical Data (dark) ──
-  sentry:       { surface:'dark', canvas:'#000000', accent:'#362d59', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#0a0a0c', surface2:'#141418', hairline:'#222228', category:'Technical Data', note:'错误监控' },
-  raycast:      { surface:'dark', canvas:'#0a0a0a', accent:'#ff6363', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#111114', surface2:'#1a1a1e', hairline:'#24242a', category:'Technical Data', note:'快捷启动' },
-  together_ai:  { surface:'dark', canvas:'#000000', accent:'#3b82f6', ink:'#ffffff', inkMuted:'#8a8f98', surface1:'#0a0a0c', surface2:'#141418', hairline:'#222228', category:'Technical Data', note:'AI 推理' },
-
-  // ── ljg-card tones ──
-  ljg_chensi:   { surface:'light', canvas:'#F5F2ED', accent:'#8B5E3C', ink:'#2D2926', inkMuted:'#6b6055', surface1:'#ece8e0', surface2:'#e2ddd2', hairline:'#d0c8b8', category:'ljg-card', note:'沉思' },
-  ljg_ruili:    { surface:'light', canvas:'#EDEDF0', accent:'#C82820', ink:'#2D2926', inkMuted:'#555555', surface1:'#e4e4e8', surface2:'#d8d8dc', hairline:'#c8c8cc', category:'ljg-card', note:'锐利' },
-  ljg_wennuan:  { surface:'light', canvas:'#F7F4EF', accent:'#B07040', ink:'#2D2926', inkMuted:'#6b6050', surface1:'#eee8df', surface2:'#e3dcd0', hairline:'#d0c8b8', category:'ljg-card', note:'温暖' },
-  ljg_jishu:    { surface:'light', canvas:'#F0F3F7', accent:'#1A8360', ink:'#2D2926', inkMuted:'#505860', surface1:'#e5e8ee', surface2:'#d8dce5', hairline:'#c0c5d0', category:'ljg-card', note:'技术' },
-  ljg_keyan:    { surface:'light', canvas:'#F2F6F4', accent:'#C08040', ink:'#2D2926', inkMuted:'#506055', surface1:'#e8ece8', surface2:'#dce2dc', hairline:'#c5cdc5', category:'ljg-card', note:'科研' },
-  ljg_chuangyi: { surface:'light', canvas:'#F6F3F2', accent:'#A03828', ink:'#2D2926', inkMuted:'#6b5850', surface1:'#ede8e5', surface2:'#e2dcd5', hairline:'#d0c8c0', category:'ljg-card', note:'创意' },
-  ljg_shangye:  { surface:'light', canvas:'#F4F3F0', accent:'#2A6048', ink:'#2D2926', inkMuted:'#555550', surface1:'#eae8e2', surface2:'#dddad2', hairline:'#c8c5b8', category:'ljg-card', note:'商业' },
-  ljg_moren:    { surface:'light', canvas:'#F2F2F2', accent:'#D01858', ink:'#2D2926', inkMuted:'#555555', surface1:'#e8e8e8', surface2:'#dddcdc', hairline:'#c8c8c8', category:'ljg-card', note:'默认' },
+const DESIGN_META = {
+  linear: ['Dark Minimal', '精密暗色'],
+  vercel: ['Dark Minimal', '极简部署'],
+  spotify: ['Dark Cinematic', '暗色媒体'],
+  apple: ['Light Minimal', '产品留白'],
+  expo: ['Light Minimal', '开发者文档'],
+  notion: ['Light Minimal', '工作区'],
+  claude: ['Light Editorial', '暖色人文'],
+  cursor: ['Light Editorial', '编辑暖调'],
+  intercom: ['Light Editorial', '通讯温暖'],
+  replicate: ['Light Editorial', '研究展示'],
+  posthog: ['Light Editorial', '分析工具'],
+  clay: ['Light Editorial', '有机数据'],
+  stripe: ['Technical Data', '精密金融'],
+  ibm: ['Technical Data', '企业工程'],
+  opencode: ['Technical Data', '等宽终端'],
+  sentry: ['Technical Data', '错误监控'],
+  raycast: ['Technical Data', '效率工具'],
+  together_ai: ['Technical Data', 'AI 推理'],
+  ljg_chensi: ['ljg-card', '沉思'],
+  ljg_ruili: ['ljg-card', '锐利'],
+  ljg_wennuan: ['ljg-card', '温暖'],
+  ljg_jishu: ['ljg-card', '技术'],
+  ljg_keyan: ['ljg-card', '科研'],
+  ljg_chuangyi: ['ljg-card', '创意'],
+  ljg_shangye: ['ljg-card', '商业'],
+  ljg_moren: ['ljg-card', '默认'],
 };
+
+const DESIGNS = Object.fromEntries(Object.entries(TOKEN_DESIGNS).map(([name, design]) => {
+  const [category, note] = DESIGN_META[name] || ['Quiet Paper', name];
+  const isEditorial = category === 'Light Editorial' || name.startsWith('ljg_');
+  const isMono = name === 'opencode';
+  return [name, {
+    ...design,
+    category,
+    note,
+    font: isMono ? 'JetBrains Mono, monospace' : 'DM Sans',
+    fontTitle: isMono ? 'JetBrains Mono, monospace' : (isEditorial ? 'DM Serif Display' : 'DM Sans'),
+    titleWeight: isEditorial ? 400 : 600,
+  }];
+}));
 
 // ═══════════════════════════════════════════════════════════
 // Mode compatibility
@@ -89,7 +93,7 @@ const LIGHT_ONLY = new Set(['infograph', 'poster', 'sketchnote']);
 function isCompatible(mode, designName) {
   const d = DESIGNS[designName];
   if (!d) return false;
-  // Comic is B/W, all designs compatible
+  // Comic uses a fixed quiet monochrome palette, all designs compatible
   if (mode === 'comic') return true;
   // Light-only modes skip dark designs
   if (LIGHT_ONLY.has(mode) && d.surface === 'dark') return false;
@@ -110,25 +114,25 @@ const CONTENT = {
 
     <div style="font: 500 13px/1 'JetBrains Mono', monospace; letter-spacing: 0.5px; text-transform: uppercase; color: var(--pink); margin-bottom: 32px;">系统设计 · System Design</div>
 
-    <div style="font: 400 64px/1.15 'XiangcuiDengcusong', serif; color: var(--ink); margin-bottom: 20px; letter-spacing: -0.02em;">AI Agent<br>架构的三层模型</div>
+    <div style="font: 400 64px/1.15 'XiangcuiDengcusong', serif; color: var(--ink); margin-bottom: 20px; letter-spacing: 0;">AI Agent<br>架构的三层模型</div>
 
-    <div style="font: 400 28px/1.6 'DM Sans', sans-serif; color: var(--ink-light); max-width: 720px; margin-bottom: 56px;">从 LLM 到自主决策，中间隔着的不是一行代码</div>
+    <div style="font: 400 36px/1.45 'DM Sans', sans-serif; color: var(--ink-light); max-width: 820px; margin-bottom: 56px;">从 LLM 到自主决策，中间隔着的不是一行代码</div>
 
     <div style="display: flex; gap: 20px; margin-bottom: 48px;">
       <div style="flex:1; background: var(--green); border-radius: 8px; padding: 28px 24px;">
-        <div style="font: 600 14px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 01</div>
+        <div style="font: 600 24px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 01</div>
         <div style="font: 400 36px/1.3 'XiangcuiDengcusong', serif; color: var(--ink); margin-bottom: 8px;">基础层</div>
-        <div style="font: 400 22px/1.5 'DM Sans', sans-serif; color: var(--ink-light);">LLM + Context Window<br>200k token 上下文</div>
+        <div style="font: 400 36px/1.35 'DM Sans', sans-serif; color: var(--ink-light);">LLM + Context<br>200k token</div>
       </div>
       <div style="flex:1; background: var(--green); border-radius: 8px; padding: 28px 24px;">
-        <div style="font: 600 14px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 02</div>
+        <div style="font: 600 24px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 02</div>
         <div style="font: 400 36px/1.3 'XiangcuiDengcusong', serif; color: var(--ink); margin-bottom: 8px;">会话层</div>
-        <div style="font: 400 22px/1.5 'DM Sans', sans-serif; color: var(--ink-light);">Rolling Summary<br>滚动摘要 + 持久记忆</div>
+        <div style="font: 400 36px/1.35 'DM Sans', sans-serif; color: var(--ink-light);">Rolling Summary<br>持久记忆</div>
       </div>
       <div style="flex:1; background: var(--green); border-radius: 8px; padding: 28px 24px;">
-        <div style="font: 600 14px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 03</div>
+        <div style="font: 600 24px/1 'JetBrains Mono', monospace; color: var(--ink-light); margin-bottom: 12px; letter-spacing: 1px;">LAYER 03</div>
         <div style="font: 400 36px/1.3 'XiangcuiDengcusong', serif; color: var(--ink); margin-bottom: 8px;">行动层</div>
-        <div style="font: 400 22px/1.5 'DM Sans', sans-serif; color: var(--ink-light);">Tool Use + Planning<br>工具调用与任务规划</div>
+        <div style="font: 400 36px/1.35 'DM Sans', sans-serif; color: var(--ink-light);">Tool Use<br>Planning</div>
       </div>
     </div>
 
@@ -139,15 +143,15 @@ const CONTENT = {
     <div style="display: flex; gap: 40px; padding: 0 0 40px;">
       <div style="flex:1;">
         <div style="font: 600 56px/1 'JetBrains Mono', monospace; color: var(--pink); margin-bottom: 8px;">47.2%</div>
-        <div style="font: 400 22px/1.4 'DM Sans', sans-serif; color: var(--ink-light);">Agent 任务中 LLM 调用占总成本</div>
+        <div style="font: 400 36px/1.25 'DM Sans', sans-serif; color: var(--ink-light);">LLM 调用成本占比</div>
       </div>
       <div style="flex:1;">
         <div style="font: 600 56px/1 'JetBrains Mono', monospace; color: var(--pink); margin-bottom: 8px;">3.8x</div>
-        <div style="font: 400 22px/1.4 'DM Sans', sans-serif; color: var(--ink-light);">有记忆的 Agent 效率提升倍数</div>
+        <div style="font: 400 36px/1.25 'DM Sans', sans-serif; color: var(--ink-light);">记忆带来的效率提升</div>
       </div>
       <div style="flex:1;">
         <div style="font: 600 56px/1 'JetBrains Mono', monospace; color: var(--pink); margin-bottom: 8px;">12ms</div>
-        <div style="font: 400 22px/1.4 'DM Sans', sans-serif; color: var(--ink-light);">工具调用的平均延迟阈值</div>
+        <div style="font: 400 36px/1.25 'DM Sans', sans-serif; color: var(--ink-light);">工具调用延迟阈值</div>
       </div>
     </div>
 
@@ -262,7 +266,7 @@ const CONTENT = {
   // ── Poster (title card only) ──
   poster: {
     title: '设计系统的<br>隐形规则',
-    subtitle: '从颜色到留白，30 个品牌设计系统背后的共同逻辑',
+    subtitle: '从颜色到留白，18 个品牌气质与 8 种内容色调背后的共同逻辑',
     topic_tag: 'Design Systems × 2026',
     body_html: `
       <h2>01 · 色彩的 90/8/2 法则</h2>
@@ -299,9 +303,9 @@ const CONTENT = {
     <div class="top-bar">
       <div class="left">
         <span class="badge">SKETCHNOTE</span>
-        <span>Vol. 01</span>
+        <span>01</span>
       </div>
-      <span>2026 · Personal Notes</span>
+      <span>2026</span>
     </div>
     <h1>从失败中<br>学到的</h1>
     <div class="deck">三件关于设计的事——来自一个写了十年 CSS 的人</div>
@@ -460,7 +464,7 @@ function fillTemplate(mode, designName) {
       break;
     }
     case 'comic': {
-      // Comic is B/W — minimal design system influence
+      // Comic is quiet monochrome — minimal design system influence
       html = html.replaceAll('{{HEADER_BLOCK}}', '');
       html = html.replaceAll('{{TITLE_BLOCK}}', `
     <div class="title-area">
@@ -489,24 +493,12 @@ function fillTemplate(mode, designName) {
       html = replaceCSSVar(html, '--surface-1', d.surface1);
       html = replaceCSSVar(html, '--surface-2', d.surface2);
       html = replaceCSSVar(html, '--accent-1', d.accent);
-      // Generate accent-2/3 from design accent
-      // For achromatic accents (white, black, grays), hue rotation is meaningless — use fixed triad
-      const [ah, as, al] = rgbToHsl(
-        parseInt(d.accent.slice(1, 3), 16),
-        parseInt(d.accent.slice(3, 5), 16),
-        parseInt(d.accent.slice(5, 7), 16)
-      );
-      if (as < 0.10) {
-        // Achromatic — use warm triad (blue/amber/soft amber)
-        html = replaceCSSVar(html, '--accent-2', '#3D5A80');
-        html = replaceCSSVar(html, '--accent-3', '#BB8A2B');
-        html = replaceCSSVar(html, '--accent-3-soft', '#D7A85A');
-      } else {
-        html = replaceCSSVar(html, '--accent-2', shiftHue(d.accent, 120));
-        const accent3 = shiftHue(d.accent, 240);
-        html = replaceCSSVar(html, '--accent-3', accent3);
-        html = replaceCSSVar(html, '--accent-3-soft', softAccent(accent3));
-      }
+      // Edge mode acceptance: keep sketchnote in the same quiet-paper
+      // accent family instead of generating a decorative triad.
+      html = replaceCSSVar(html, '--accent-2', mixHex(d.accent, d.inkMuted, 0.48));
+      const accent3 = mixHex(d.accent, d.surface1, 0.36);
+      html = replaceCSSVar(html, '--accent-3', accent3);
+      html = replaceCSSVar(html, '--accent-3-soft', softAccent(accent3));
       html = replaceCSSVar(html, '--ink', d.ink);
       html = replaceCSSVar(html, '--ink-muted', d.inkMuted);
       html = replaceCSSVar(html, '--ink-strong', d.ink);
@@ -528,6 +520,26 @@ function replaceCSSVar(html, varName, value) {
   // Replace in :root { --var: ... } blocks
   const regex = new RegExp(`(--${varName.replace('--', '')}):\\s*[^;]+;`, 'g');
   return html.replace(regex, `$1: ${value};`);
+}
+
+function mixHex(hexA, hexB, amount = 0.5) {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  const mix = (x, y) => Math.round(x * (1 - amount) + y * amount);
+  return rgbToHex(mix(a.r, b.r), mix(a.g, b.g), mix(a.b, b.b));
+}
+
+function hexToRgb(hex) {
+  const clean = hex.replace('#', '');
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
 // Simple hue shift for generating accent-2/accent-3 from a single accent color
@@ -630,7 +642,7 @@ function generateGalleryPage(results) {
         </div>`;
     }).join('\n');
     const note = m === 'comic'
-      ? '<p class="section-note">Comic mode uses a fixed black/white palette — design system colors have no effect. Only 1 example rendered.</p>'
+      ? '<p class="section-note">Comic mode uses a fixed quiet monochrome palette. Brand color is intentionally suppressed, only 1 example rendered.</p>'
       : '';
     return `<div class="section${m === MODES[0] ? ' active' : ''}" id="section-${m}">
       <div class="section-header">
@@ -649,33 +661,33 @@ function generateGalleryPage(results) {
 <title>card gallery</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #f5f5f5; color: #1a1a1a; }
-  .header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 24px 32px; position: sticky; top: 0; z-index: 100; }
+  body { font-family: 'DM Sans', -apple-system, 'Helvetica Neue', sans-serif; background: #f5f0e8; color: #2c2418; }
+  .header { background: rgba(245,240,232,0.96); border-bottom: 1px solid #d8cdbc; padding: 24px 32px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px); }
   .header h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
   .tabs { display: flex; gap: 6px; overflow-x: auto; }
-  .tab { padding: 8px 18px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; white-space: nowrap; }
-  .tab:hover { background: #f0f0f0; }
-  .tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .tab { padding: 8px 18px; border: 1px solid #d8cdbc; border-radius: 6px; background: #fbfaf6; color: #6b6050; cursor: pointer; font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .tab:hover { background: #f8f4eb; }
+  .tab.active { background: #2c2418; color: #f5f0e8; border-color: #2c2418; }
   .main { padding: 24px 32px; }
   .section { display: none; }
   .section.active { display: block; }
   .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
   .section-header h2 { font-size: 28px; font-weight: 700; }
-  .count { font-size: 14px; color: #888; }
-  .section-note { font-size: 13px; color: #888; margin-bottom: 16px; padding: 8px 12px; background: #fff; border: 1px dashed #d0d0d0; border-radius: 6px; }
+  .count { font-size: 14px; color: #8a8176; }
+  .section-note { font-size: 13px; color: #6b6050; margin-bottom: 16px; padding: 8px 12px; background: #fbfaf6; border: 1px solid #d8cdbc; border-radius: 6px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
-  .card { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; }
-  .card-img { position: relative; background: #fafafa; }
+  .card { background: #fbfaf6; border-radius: 8px; overflow: hidden; border: 1px solid #d8cdbc; }
+  .card-img { position: relative; background: #f8f4eb; }
   .card-img img { width: 100%; height: auto; display: block; }
   .placeholder { height: 200px; display: flex; align-items: center; justify-content: center; color: #aaa; }
   .error-badge { position: absolute; top: 8px; right: 8px; background: #e53e3e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
   .card-info { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
   .card-name { font-size: 14px; font-weight: 600; flex: 1; }
-  .card-category { font-size: 12px; color: #888; }
+  .card-category { font-size: 12px; color: #8a8176; }
   .color-dots { display: flex; gap: 4px; }
-  .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+  .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(44,36,24,0.16); }
   /* Lightbox */
-  .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox { display: none; position: fixed; inset: 0; background: rgba(31,29,25,0.88); z-index: 1000; align-items: center; justify-content: center; cursor: zoom-out; }
   .lightbox.open { display: flex; }
   .lightbox img { max-width: 95vw; max-height: 95vh; object-fit: contain; }
 </style>
@@ -683,7 +695,7 @@ function generateGalleryPage(results) {
 <body>
 
 <div class="header">
-  <h1>card gallery — design system × mode matrix</h1>
+  <h1>card gallery, quiet-paper mode matrix</h1>
   <div class="tabs">${tabs}</div>
 </div>
 
@@ -739,7 +751,7 @@ let totalOk = 0, totalFail = 0;
 
 for (const mode of modesToRender) {
   results[mode] = [];
-  // Comic uses fixed B/W palette — design systems have no visual effect.
+  // Comic uses fixed quiet monochrome palette — design systems have no visual effect.
   // Render only 1 example to show the template works, skip the rest.
   const designList = mode === 'comic' ? designNames.slice(0, 1) : designNames;
   for (const designName of designList) {
