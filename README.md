@@ -4,7 +4,12 @@
 
 Content in, PNG out. Mold decides the shape.
 
-A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, and long-form reading cards — through one quiet paper system with 18 brand inflections and 8 content-tone palettes.
+A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, long-form reading cards, and editorial images for essays — through one quiet paper system with 18 brand inflections and 8 content-tone palettes.
+
+card-skill has two entrances:
+
+- **Content cards** — turn ideas into readable visual matter: infographics, posters, comics, whiteboards, sketchnotes, big-text posters, and long-form cards.
+- **Editorial images** — make cover images or in-article illustrations for WeChat/blog essays. These do not summarize the article; they set a visual stance, mood, or metaphor for the piece.
 
 ## Usage
 
@@ -26,12 +31,17 @@ Example prompts:
 
 - English: `make this into an infographic` / `render this as a poster` / `turn this article into a visual card` / `make a whiteboard for this argument`
 - 中文: `把这段内容做成信息图` / `做成海报` / `渲染成卡片` / `做个白板推演`
+- Editorial: `make a blog cover for this essay` / `create an editorial image for this article` / `给这篇公众号文章做头图` / `给这一节配一张正文插图`
 
 ## What it does
 
 Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content's structure, density, and emotional tone, then renders it as a high-resolution PNG (4K width, DPR 2) that looks like printed matter — not a web screenshot.
 
-## Seven modes
+For long-form authors, the editorial-image entrance analyzes the article's title, emotional temperature, core tension, possible visual metaphors, and destination aspect ratio. It proposes directions before rendering, so the result works as an image for the article rather than a second summary of the article.
+
+Editorial images support the same `design` field as other CLI-rendered modes. The design system is a mood layer — paper tone, ink, accent, surface, and rhythm — while the visual metaphor and composition still come from the article direction.
+
+## Modes
 
 | Mode | Template | Best for |
 |------|----------|----------|
@@ -42,6 +52,7 @@ Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content
 | `comic` | Narrative with conflict | Stories, debates, before/after arcs |
 | `sketchnote` | Warm narrative | Personal reflections, lessons learned |
 | `whiteboard` | Logical reasoning | Arguments, system diagrams, decision chains |
+| `editorial-image` | Visual stance, metaphor, atmosphere | WeChat/blog covers and in-article illustrations with aspect-aware canvases |
 
 ## Design systems
 
@@ -72,7 +83,7 @@ Each system contributes a muted accent, surface temperature, and rhythm hint. Ty
 3. **Match** — Start from the quiet-paper default, then pick 3-5 restrained brand inflections based on mood × theme × density
 4. **Confirm** — Present candidates in terminal; user picks one or asks for a new batch
 5. **Render** — Fill the mode's HTML template with mapped design tokens + content
-6. **Output check** — Catch missing placeholders, overflow, crop risk, broken images, and unreadable body text
+6. **Output check** — Catch missing placeholders, overflow, crop risk, broken images, unreadable body text, and bad headline line breaks
 7. **Capture** — Screenshot via Playwright at 4K width
 8. **Post-capture check** — Verify the generated PNG and rerun after safe fixes when needed
 
@@ -86,7 +97,7 @@ card-skill/
 ├── scripts/
 │   └── check-output.mjs        # Lightweight preflight/post-capture checker
 ├── assets/
-│   ├── {mode}_template.html    # HTML templates (7 modes)
+│   ├── {mode}_template.html    # HTML templates (8 modes)
 │   ├── capture.js              # Playwright screenshot script
 │   ├── fonts/                  # Xiangcui typeface family
 │   ├── avatar.png              # Default byline avatar
@@ -115,9 +126,16 @@ Built on three projects:
 - **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, content preprocessing pipeline, and early taste guidelines.
 - **[Kami](https://github.com/tw93/kami)** by tw93 — the document design system that informed the quiet-paper constraint language: warm surfaces, ink restraint, and stable page rhythm.
 
+The editorial-image entrance also draws on editorial illustration and image-use practices:
+
+- **[The Washington Post Design team](https://www.washingtonpost.com/pr/2020/12/18/washington-post-design-team-is-looking-illustrators/)** — reference for assigning illustration by purpose and starting from multiple visual directions.
+- **[The New Yorker cover practice](https://www.newyorker.com/culture/video-dept/the-art-of-the-new-yorker-cover)** — reference for images that can stand as an editorial point of view, not decoration.
+- **[GOV.UK image guidance](https://guidance.publishing.service.gov.uk/formatting-content/images/)** — reference for using images only when they help readers, with accessibility and non-essential-image rules.
+- **[Design Guidelines for Prompt Engineering Text-to-Image Generative Models](https://arxiv.org/abs/2109.06977)** — reference for turning text intent into concrete visual prompts without vague style-only instructions.
+
 ## Gallery
 
-Same text, seven modes — from the philosophical essay *Tools and Forgetting*.
+Mode samples include the philosophical essay *Tools and Forgetting* plus editorial-image samples from a real Hermes Agent longform article.
 
 <details>
 <summary>Click to expand</summary>
@@ -158,7 +176,20 @@ Same text, seven modes — from the philosophical essay *Tools and Forgetting*.
 <img src="assets/gallery/comic.png" width="400" alt="comic — narrative with conflict"><br>
 <b>comic</b> · narrative with conflict
 </td>
-<td></td>
+<td>
+<img src="assets/gallery/editorial-wechat-cover.png" width="400" alt="editorial-image — WeChat cover for Hermes Agent article"><br>
+<b>editorial-image</b> · WeChat cover with visual stance
+</td>
+</tr>
+<tr>
+<td>
+<img src="assets/gallery/editorial-blog-hero.png" width="400" alt="editorial-image — blog hero for Hermes Agent article"><br>
+<b>editorial-image</b> · blog hero for a technical essay
+</td>
+<td>
+<img src="assets/gallery/editorial-body-illustration.png" width="400" alt="editorial-image — in-article illustration for context compression"><br>
+<b>editorial-image</b> · quiet in-article illustration
+</td>
 </tr>
 </table>
 

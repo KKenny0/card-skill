@@ -9,7 +9,7 @@
  *   echo '{"mode":"big","phrase":"hello"}' | node scripts/card.js --stdin --output ~/Downloads/out.png
  *   node scripts/card.js --list-designs
  *
- * CLI-eligible modes: big, long, whiteboard, poster
+ * CLI-eligible modes: big, long, whiteboard, poster, editorial-image
  * AI-only modes (not handled here): infograph, comic, sketchnote
  */
 
@@ -49,7 +49,7 @@ Options:
   --list-designs     List all available design systems
   --help             Show this help
 
-CLI-eligible modes: big, long, whiteboard, poster
+CLI-eligible modes: big, long, whiteboard, poster, editorial-image
 AI-only modes: infograph, comic, sketchnote
 `);
   process.exit(0);
@@ -119,6 +119,7 @@ const renderers = {
   long: require('./renderers/long'),
   whiteboard: require('./renderers/whiteboard'),
   poster: require('./renderers/poster'),
+  'editorial-image': require('./renderers/editorial-image'),
 };
 
 const renderer = renderers[input.mode];

@@ -1,6 +1,6 @@
 ---
 name: card-skill
-description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using one quiet-paper visual system with 18 brand inflections (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) + 8 content tones (26 total), and 7 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a restrained brand inflection to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
+description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using one quiet-paper visual system with 18 brand inflections (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) + 8 content tones (26 total), and 8 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote, and editorial image for WeChat/blog essays. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a restrained brand inflection to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story, or creating a non-summary cover/in-article image for a long article. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup, 给文章配图, 公众号头图, 博客封面, 正文配图, article cover, blog hero, editorial image. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
 user_invocable: true
 version: "0.2.0"
 ---
@@ -8,6 +8,8 @@ version: "0.2.0"
 # card-skill
 
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
+
+另有长文作者配图入口：给公众号/博客文章做头图、封面图或正文插图。这个入口不把文章再摘要一遍，而是提炼文章的视觉立场、情绪和隐喻。
 
 ## 参数
 
@@ -24,12 +26,16 @@ version: "0.2.0"
 
 判断当前内容能否走 CLI 快速渲染。
 
-**CLI-eligible modes**: big, long, whiteboard, poster
+**CLI-eligible modes**: big, long, whiteboard, poster, editorial-image（editorial-image 仅用于已确定视觉方向后的比例画布和开放构图渲染）
 **AI-only modes**: infograph, comic, sketchnote（需要创意布局，无法 schema 化）
 
 判断逻辑：
 1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 AI 流程（Step 1）
-2. 如果 mode 是 big / long / whiteboard / poster：
+2. 如果 mode 是 editorial-image：
+   - 先进入 Step 1.5 生成或确认视觉方向
+   - 如果已有结构化 brief（title/use/aspect/visual_metaphor 或 custom HTML/CSS）→ CLI 路径
+   - 如果还没有视觉方向 → AI 流程先产出 2-3 个方向
+3. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
    - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
    - 内容过于复杂（嵌套引用、多栏对比、特殊排版需求、不确定能 fit）→ AI 路径
@@ -50,6 +56,7 @@ big: `{ mode, phrase, design?, accent_words?, ghost_char?, attribution? }`
 long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, theme? }`
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
 poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
+editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design? }`
 
 ### Step 0.5: 读取基础
 
@@ -67,6 +74,7 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 7. `references/mode-whiteboard.md` — 白板推理（逻辑链提取、4 种结构路线）
 8. `references/mode-poster.md` — 多卡分割（视觉权重计算、贪婪分割算法）
 9. `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
+10. `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文插图）
 
 ### Step 1: 获取 + 分析内容
 
@@ -91,9 +99,56 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 - 文案去 AI 腔：禁用"赋能/无缝/释放/下一代/深度赋能"等 AI 典型用词（完整清单见 `references/taste.md` 第 5 节）
 - 反翻译腔：禁用"是…的"/"在…的过程中"/"进行+名词"（完整规则见 `references/mode-sketchnote.md` 六条公理）
 
+### Step 1.5: 文章配图入口（editorial-image）
+
+当用户要求 `给文章配图` / `公众号头图` / `博客封面` / `正文配图` / `article cover` / `blog hero` / `editorial image` 时，进入 `editorial-image` 流程。
+
+**核心区别**：文章配图不是摘要卡。不要把文章观点改写成 bullet points；要提炼文章的视觉立场、情绪、核心张力和隐喻。
+
+先读取 `references/mode-editorial-image.md`，然后输出 2-3 个视觉方向，等待用户选择；除非用户明确要求直接生成一个结果。
+
+结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold。
+
+`editorial-image` 支持 `design` 字段。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户指定设计系统时照做；用户未指定时，根据文章情绪自动选择，例如技术文可用 `stripe` / `ibm` / `apple` / `claude` / `ljg_jishu`，反思类文章可用 `claude` / `notion` / `ljg_chensi`。
+
+方向输出格式：
+
+```
+配图方向：
+1. 名称 — 视觉隐喻 / 用途 / 为什么适合 / 风险
+2. 名称 — 视觉隐喻 / 用途 / 为什么适合 / 风险
+3. 名称 — 视觉隐喻 / 用途 / 为什么适合 / 风险
+```
+
+可用产物：
+- **公众号/博客封面图**：横版，少字，能撑住标题和分享预览
+- **正文插图**：安静、低干扰，用作段落之间的视觉换气
+- **概念隐喻图**：用一个物、场景或动作承载文章的核心张力
+
+比例规则：
+- `公众号头图` / `公众号封面` 默认 `aspect: wechat-cover`（2.35:1，1080x460）
+- `博客封面` / `blog hero` 默认 `aspect: blog-hero`（16:9，1080x608）
+- `正文配图` / `段落配图` 默认 `aspect: body-3-2`（3:2，1080x720）
+- 其他可选：`body-4-3`（4:3）、`cinematic`（21:9）、`square`（1:1）
+
+出图前自检：
+- 如果画面在解释文章讲了什么，而不是让读者感到文章在处理什么问题，失败
+- 如果换一篇文章也能用，失败
+- 如果文字占比过高、像摘要卡，失败
+- 如果是通用 AI 图、库存图、发光科技图，失败
+- 如果标题或短文案出现孤字、短末行、技术名词被拆开，失败；必须手动调整换行后再交付
+- 如果画面出现 `IN-ARTICLE IMAGE` / `BLOG HERO` / `EDITORIAL IMAGE` 等用途标签，失败；这些是生成说明，不是画面内容
+- 如果画面出现“给这一节使用”“用作正文配图”“安静、低干扰”“像文章中间的一次停顿”这类 brief/用途说明，失败；可见文字必须是文章内容、真实术语、视觉对象标签或极短的艺术化短语
+- 如果使用连线、箭头、路径或结构图，线条必须连接元素边界；如果线条穿过卡片、节点、文字内部，失败
+- 如果是正文插图，主体视觉必须有足够占比和重量；如果缩略图看起来主体偏小、画面没画完，失败
+- 正文插图可以保留中间留白；留白本身不是问题，问题是主体尺度太小或视觉重量撑不住画布
+- 正文插图默认不允许可读文字和主要视觉元素交叉、压叠或互相穿插；除非用户明确要 collage/overprint 效果，否则这属于失败
+
 ### Step 2: 匹配候选
 
 **Comic mode 跳过此步**：comic mode 使用固定 Quiet Paper 单色调色板，设计系统的色彩 token 不生效。直接进入 Step 4，漫画风格由 `references/mode-comic.md` 的 5 种路线（大友克洋/井上雄彦/三浦建太郎/松本大洋/谷口治郎）决定，在 Step 4 渲染时根据内容气质选择。
+
+**editorial-image 跳过常规候选匹配**：先按 `references/mode-editorial-image.md` 生成视觉方向；方向确认后再根据气质选择 Quiet Paper token。
 
 从 design-index.md 中选择 3-5 个候选品牌气质。默认先使用 Quiet Paper 审美骨架，再根据内容选择轻微偏向。
 
@@ -137,6 +192,7 @@ poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 | poster | `assets/poster_template.html` |
 | comic | `assets/comic_template.html` |
 | sketchnote | `assets/sketchnote_template.html` |
+| editorial-image | CLI 使用 `scripts/renderers/editorial-image.js` 生成固定比例画布；AI 流程可基于视觉方向扩展定制 HTML |
 
 用户选定后：
 

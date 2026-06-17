@@ -231,6 +231,85 @@ async function inspectPage(opts, issues) {
         return [...el.children].some(child => isVisible(child) && (child.textContent || '').trim().length > 0);
       }
 
+      function getLineBreaks(el, minFontSize = 36) {
+        const cs = window.getComputedStyle(el);
+        const fontSize = parseFloat(cs.fontSize) || 0;
+        if (fontSize < minFontSize) return null;
+
+        const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (text.length < 6) return null;
+
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            return (node.nodeValue || '').trim()
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+
+        const chars = [];
+        const range = document.createRange();
+        let node;
+        while ((node = walker.nextNode())) {
+          for (let i = 0; i < node.nodeValue.length; i++) {
+            const ch = node.nodeValue[i];
+            if (!ch || /\r|\n|\t/.test(ch)) continue;
+            range.setStart(node, i);
+            range.setEnd(node, i + 1);
+            const rect = [...range.getClientRects()].find(item => item.width > 0 || item.height > 0);
+            if (!rect) continue;
+            chars.push({
+              ch,
+              left: rect.left,
+              right: rect.right,
+              top: rect.top,
+            });
+          }
+        }
+        range.detach();
+
+        if (chars.length === 0) return null;
+
+        const tolerance = Math.max(3, fontSize * 0.18);
+        const lines = [];
+        for (const item of chars.sort((a, b) => a.top - b.top || a.left - b.left)) {
+          let line = lines.find(candidate => Math.abs(candidate.top - item.top) <= tolerance);
+          if (!line) {
+            line = { top: item.top, chars: [] };
+            lines.push(line);
+          }
+          line.chars.push(item);
+          line.top = (line.top + item.top) / 2;
+        }
+
+        const normalized = lines
+          .sort((a, b) => a.top - b.top)
+          .map(line => {
+            const sorted = line.chars.sort((a, b) => a.left - b.left);
+            return {
+              text: sorted.map(item => item.ch).join('').replace(/\s+/g, ' ').trim(),
+              width: Math.round(Math.max(...sorted.map(item => item.right)) - Math.min(...sorted.map(item => item.left))),
+            };
+          })
+          .filter(line => line.text.length > 0 && line.width > 0);
+
+        if (normalized.length < 2) return null;
+
+        const widths = normalized.map(line => line.width);
+        const maxWidth = Math.max(...widths);
+        const last = normalized[normalized.length - 1];
+        return {
+          tag: el.tagName,
+          className: typeof el.className === 'string' ? el.className : '',
+          text: text.slice(0, 100),
+          fontSize,
+          maxWidth,
+          lineCount: normalized.length,
+          lines: normalized,
+          lastLineRatio: maxWidth > 0 ? last.width / maxWidth : 1,
+        };
+      }
+
       const badImages = [...document.images]
         .filter(img => isVisible(img) && (!img.complete || img.naturalWidth === 0 || img.naturalHeight === 0))
         .map(img => ({
@@ -240,8 +319,10 @@ async function inspectPage(opts, issues) {
 
       const bounds = [];
       const textSizes = [];
+      const headlineLines = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
+      const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
 
       for (const el of document.querySelectorAll('body *')) {
         if (!isVisible(el)) continue;
@@ -278,6 +359,11 @@ async function inspectPage(opts, issues) {
             fontSize: parseFloat(cs.fontSize),
           });
         }
+
+        if (['H1', 'H2'].includes(el.tagName) || headlinePattern.test(className)) {
+          const lineBreaks = getLineBreaks(el, /subtitle|caption|statement/i.test(className) ? 28 : 36);
+          if (lineBreaks) headlineLines.push(lineBreaks);
+        }
       }
 
       return {
@@ -288,6 +374,7 @@ async function inspectPage(opts, issues) {
         badImages,
         bounds: bounds.slice(0, 20),
         textSizes,
+        headlineLines: headlineLines.slice(0, 20),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
 
@@ -317,7 +404,7 @@ async function inspectPage(opts, issues) {
       }));
     }
 
-    const labelPattern = /badge|label|tag|meta|source|num|kicker|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;
+    const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;
     const bodyText = report.textSizes.filter(item => {
       if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(item.tag)) return false;
       if (labelPattern.test(item.className)) return false;
@@ -338,6 +425,71 @@ async function inspectPage(opts, issues) {
     if (annotationText.length > 0) {
       issues.push(issue('warning', 'annotation_text_small', 'Some annotation text is below the 24px guideline.', {
         elements: annotationText.slice(0, 10),
+      }));
+    }
+
+    const bannedModeLabels = new Set([
+      'IN-ARTICLE IMAGE',
+      'IN ARTICLE IMAGE',
+      'EDITORIAL IMAGE',
+      'BLOG HERO',
+      'BLOG COVER',
+      'WECHAT COVER',
+      'ARTICLE COVER',
+      'COVER IMAGE',
+    ]);
+    const visibleModeLabels = report.textSizes.filter(item => {
+      const normalized = item.text.toUpperCase().replace(/\s+/g, ' ').trim();
+      return bannedModeLabels.has(normalized);
+    });
+    if (visibleModeLabels.length > 0) {
+      issues.push(issue('error', 'mode_label_visible', 'Output mode labels should not appear in the artwork.', {
+        elements: visibleModeLabels.slice(0, 10),
+      }));
+    }
+
+    const briefLeakPatterns = [
+      /给\s*[^，。；:：]{1,48}(这一节|这节|本节|段落|章节)?\s*使用/,
+      /(用作|作为)\s*(正文|文章|章节|段落|小节)?\s*配图/,
+      /(这张图|该图|此图)\s*(用于|用来|适合|作为)/,
+      /(安静|低干扰).{0,16}(停顿|视觉换气|正文|配图)/,
+      /像文章中间的?一次停顿/,
+      /\b(visual pause|in-article illustration|section illustration)\b/i,
+    ];
+    const visibleBriefLeaks = report.textSizes.filter(item => {
+      const normalized = item.text.replace(/\s+/g, ' ').trim();
+      return briefLeakPatterns.some(pattern => pattern.test(normalized));
+    });
+    if (visibleBriefLeaks.length > 0) {
+      issues.push(issue('error', 'editorial_brief_visible', 'Editorial-image brief or usage notes should not appear in the artwork.', {
+        elements: visibleBriefLeaks.slice(0, 10),
+      }));
+    }
+
+    const badHeadlineBreaks = report.headlineLines.filter(item => {
+      const last = item.lines[item.lines.length - 1];
+      const lastText = last?.text || '';
+      const cjkOnly = lastText.replace(/[^\u3400-\u9fff]/g, '');
+      const hasShortCjkLine = item.lines.some(line => {
+        const lineText = line.text || '';
+        const lineCjk = lineText.replace(/[^\u3400-\u9fff]/g, '');
+        return lineCjk.length > 0 && lineText.length <= 2 && line.width < 180;
+      });
+      const isShortLastLine = item.lineCount >= 2 && item.lastLineRatio < 0.24 && last.width < 180;
+      const isCjkOrphan = item.lineCount >= 2 && cjkOnly.length > 0 && lastText.length <= 2;
+      const isTooManyLines = item.lineCount > 3 && item.fontSize >= 48;
+      return hasShortCjkLine || isShortLastLine || isCjkOrphan || isTooManyLines;
+    });
+    if (badHeadlineBreaks.length > 0) {
+      issues.push(issue('error', 'text_line_break_bad', 'Headline or short-text line breaks do not meet the visual standard.', {
+        elements: badHeadlineBreaks.map(item => ({
+          tag: item.tag,
+          className: item.className,
+          text: item.text,
+          lineCount: item.lineCount,
+          lastLineRatio: Number(item.lastLineRatio.toFixed(2)),
+          lines: item.lines,
+        })).slice(0, 10),
       }));
     }
   } finally {

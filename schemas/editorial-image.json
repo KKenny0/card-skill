@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "card-skill editorial-image mode input",
+  "description": "Structured input for aspect-aware editorial images for WeChat/blog covers and in-article illustrations. The schema constrains purpose and canvas, while content_html/custom_css keep the composition open.",
+  "type": "object",
+  "required": ["mode", "title"],
+  "properties": {
+    "mode": { "type": "string", "const": "editorial-image" },
+    "use": {
+      "type": "string",
+      "enum": ["cover", "in-article", "metaphor"],
+      "description": "Editorial job. Defaults to cover behavior when omitted."
+    },
+    "aspect": {
+      "type": "string",
+      "enum": ["wechat-cover", "blog-hero", "body-3-2", "body-4-3", "cinematic", "square"],
+      "description": "Canvas ratio. Defaults by use: cover/metaphor -> blog-hero, in-article -> body-3-2."
+    },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to claude. Controls mood tokens such as paper, ink, accent, surface, and radius; it does not decide the visual metaphor."
+    },
+    "title": {
+      "type": "string",
+      "description": "Article title or cover title.",
+      "minLength": 1
+    },
+    "kicker": {
+      "type": "string",
+      "description": "Small editorial label, e.g. ESSAY, NOTES, or the aspect label."
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional short supporting line. Keep it brief."
+    },
+    "visual_metaphor": {
+      "type": "string",
+      "description": "One-sentence visual metaphor or scene idea."
+    },
+    "art_direction": {
+      "type": "string",
+      "description": "Freeform art direction. Used as guidance and fallback visual caption."
+    },
+    "text_plan": {
+      "type": "string",
+      "description": "Text plan for the composition, preserved as a CSS comment for traceability."
+    },
+    "content_html": {
+      "type": "string",
+      "description": "Trusted custom HTML composition. Use after the AI flow chooses a visual direction."
+    },
+    "custom_css": {
+      "type": "string",
+      "description": "Trusted custom CSS composition layer. Use for visual expression beyond the default scaffold."
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional source line in the colophon."
+    },
+    "logo": {
+      "type": "string",
+      "description": "Path to brand logo image. Default: assets/logo.png"
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Brand name in colophon footer. Default: card"
+    }
+  },
+  "examples": [
+    {
+      "mode": "editorial-image",
+      "use": "cover",
+      "aspect": "wechat-cover",
+      "design": "claude",
+      "kicker": "ESSAY",
+      "title": "工具让人遗忘什么",
+      "subtitle": "一篇关于自动化、记忆和写作边界的札记",
+      "visual_metaphor": "A writing desk with one labeled drawer missing."
+    }
+  ]
+}

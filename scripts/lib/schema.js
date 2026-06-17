@@ -62,11 +62,48 @@ const SCHEMAS = {
       brand_name: 'string',
     },
   },
+  'editorial-image': {
+    required: ['mode', 'title'],
+    optional: [
+      'design',
+      'use',
+      'aspect',
+      'kicker',
+      'subtitle',
+      'visual_metaphor',
+      'art_direction',
+      'text_plan',
+      'source',
+      'custom_css',
+      'content_html',
+      'logo',
+      'brand_name',
+    ],
+    types: {
+      mode: 'string',
+      title: 'string',
+      design: 'string',
+      use: 'string',
+      aspect: 'string',
+      kicker: 'string',
+      subtitle: 'string',
+      visual_metaphor: 'string',
+      art_direction: 'string',
+      text_plan: 'string',
+      source: 'string',
+      custom_css: 'string',
+      content_html: 'string',
+      logo: 'string',
+      brand_name: 'string',
+    },
+  },
 };
 
 const LONG_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'blockquote', 'layer_card', 'section_break']);
 const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight']);
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider']);
+const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
+const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
 
 function validate(input) {
   const errors = [];
@@ -78,7 +115,7 @@ function validate(input) {
 
   const schema = SCHEMAS[mode];
   if (!schema) {
-    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes: big, long, whiteboard, poster`] };
+    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes: big, long, whiteboard, poster, editorial-image`] };
   }
 
   // Check required fields
@@ -135,7 +172,16 @@ function validate(input) {
     });
   }
 
+  if (mode === 'editorial-image') {
+    if (input.aspect && !EDITORIAL_ASPECTS.has(input.aspect)) {
+      errors.push(`aspect must be one of: ${[...EDITORIAL_ASPECTS].join(', ')}`);
+    }
+    if (input.use && !EDITORIAL_USES.has(input.use)) {
+      errors.push(`use must be one of: ${[...EDITORIAL_USES].join(', ')}`);
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
-module.exports = { validate, SCHEMAS, LONG_BODY_TYPES, WHITEBOARD_STEP_TYPES, POSTER_BODY_TYPES };
+module.exports = { validate, SCHEMAS, LONG_BODY_TYPES, WHITEBOARD_STEP_TYPES, POSTER_BODY_TYPES, EDITORIAL_ASPECTS, EDITORIAL_USES };
