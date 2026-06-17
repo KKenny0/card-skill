@@ -1,6 +1,6 @@
 ---
 name: card-skill
-description: "Convert text content into a designed PNG image. Renders articles, quotes, notes, or any text as an infographic, poster, visual card, mockup, or styled graphic — using one quiet-paper visual system with 18 brand inflections (Apple, Stripe, Linear, Vercel, IBM, Notion, etc.) + 8 content tones (26 total), and 8 visual modes: infographic, big-text poster, long-form reading, whiteboard reasoning, multi-card grid, comic, sketchnote, and editorial image for WeChat/blog essays. Use this skill whenever the user wants to turn text into a shareable visual: making an 信息图/infographic/海报/卡片/设计稿 from content, applying a restrained brand inflection to text (e.g. '用 Stripe 风格', 'Apple aesthetic'), creating social media graphics or Instagram card grids from articles, rendering a visual summary, making a comic or sketchnote from a story, or creating a non-summary cover/in-article image for a long article. Triggers on: 做成图, 渲染成图, 做成海报, 做张卡片, 卡片组, 信息图, 设计稿, 做成漫画, 视觉笔记, 大字报, whiteboard, visual summary, brand style, mockup, 给文章配图, 公众号头图, 博客封面, 正文配图, article cover, blog hero, editorial image. Do NOT use for: writing HTML/CSS/React code, building websites or UI components, creating Figma prototypes, designing logos or VI identity systems, plotting data with charting libraries (matplotlib/echarts), photo editing, or file format conversion."
+description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, and editorial image. Supports 8 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, and editorial-image. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
 version: "0.2.0"
 ---
@@ -11,11 +11,15 @@ version: "0.2.0"
 
 另有长文作者配图入口：给公众号/博客文章做头图、封面图或正文插图。这个入口不把文章再摘要一遍，而是提炼文章的视觉立场、情绪和隐喻。
 
+## 默认原则
+
+默认直接产出可用 PNG，不要先让用户做选择题。除非用户明确要求“给我几个方向 / 换一批 / 先选风格”，否则自动选择最合适的 mode、design 和画面方向，并在验证通过后交付。
+
 ## 参数
 
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
-| `--design` | 指定设计系统（跳过候选预览） | 空（进入预览流程） |
+| `--design` | 指定设计系统（跳过自动匹配） | 空（自动选择） |
 | `--dpr` | 设备像素比 | 2（4K 质量） |
 | `--author` | 署名文字 | Kenny Wu |
 | `--photo` | 署名头像 URL/路径 | assets/avatar.png |
@@ -34,7 +38,7 @@ version: "0.2.0"
 2. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
    - 如果已有结构化 brief（title/use/aspect/visual_metaphor 或 custom HTML/CSS）→ CLI 路径
-   - 如果还没有视觉方向 → AI 流程先产出 2-3 个方向
+   - 如果还没有视觉方向 → 默认自动选择最强方向并渲染；只有用户明确要求候选时，才先产出 2-3 个方向等待选择
 3. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
    - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
@@ -47,7 +51,7 @@ version: "0.2.0"
 ```bash
 node scripts/card.js --input card_input.json --output ~/Downloads/{name}.png
 ```
-4. CLI 成功 → 跳到 Step 7 交付（跳过 Steps 1-6）
+4. CLI 成功 → 脚本已完成出厂检查、截图和复查；直接进入 Step 8 交付
 5. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
 
 **JSON schema 结构**（每个 mode 的完整定义见 `schemas/` 目录）：
@@ -60,21 +64,24 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 ### Step 0.5: 读取基础
 
-以下文件必须在开始前读取：
+按路线读取，不要为了简单 CLI 渲染过度加载参考文件。
 
-**必读**：
+**CLI 路径必读**：
+1. `schemas/{mode}.json` — 目标 mode 的结构化输入约束
+2. `references/design-index.md` — 仅当用户未指定 `--design`、需要自动选择设计系统时读取
+
+**AI / 手工 HTML 路径必读**：
 1. `references/taste.md` — 品味底线（反 AI 美学 + 纸质印刷感）
 2. `references/design-index.md` — Quiet Paper 下的 18 套品牌气质 + 8 种内容色调索引（26 总计）
-
-**按内容类型选读**（Step 1 分析后确定需要哪些）：
-3. `references/mode-infograph.md` — 信息图内容理论（密度/结构/情绪三维分析、90/8/2 色彩规则、布局生成原则）
-4. `references/mode-long.md` — 长文内容规则（金句检测、色调感知、段落预处理）
-5. `references/mode-big.md` — 大字报排版（字数→字号动态计算、手动断行原则）
-6. `references/mode-sketchnote.md` — 叙事结构（反翻译腔六条、问题→失败→顿悟弧线）
-7. `references/mode-whiteboard.md` — 白板推理（逻辑链提取、4 种结构路线）
-8. `references/mode-poster.md` — 多卡分割（视觉权重计算、贪婪分割算法）
-9. `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
-10. `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文插图）
+3. 对应 mode 文件：
+   - `references/mode-infograph.md` — 信息图内容理论（密度/结构/情绪三维分析、90/8/2 色彩规则、布局生成原则）
+   - `references/mode-long.md` — 长文内容规则（金句检测、色调感知、段落预处理）
+   - `references/mode-big.md` — 大字报排版（字数→字号动态计算、手动断行原则）
+   - `references/mode-sketchnote.md` — 叙事结构（反翻译腔六条、问题→失败→顿悟弧线）
+   - `references/mode-whiteboard.md` — 白板推理（逻辑链提取、4 种结构路线）
+   - `references/mode-poster.md` — 多卡分割（视觉权重计算、贪婪分割算法）
+   - `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
+   - `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文插图）
 
 ### Step 1: 获取 + 分析内容
 
@@ -105,13 +112,13 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 **核心区别**：文章配图不是摘要卡。不要把文章观点改写成 bullet points；要提炼文章的视觉立场、情绪、核心张力和隐喻。
 
-先读取 `references/mode-editorial-image.md`，然后输出 2-3 个视觉方向，等待用户选择；除非用户明确要求直接生成一个结果。
+先读取 `references/mode-editorial-image.md`。默认选择最贴合文章张力的 1 个视觉方向并继续渲染；只有用户明确要求“给几个方向 / 先别出图 / 我来选”，才输出 2-3 个视觉方向并等待选择。
 
 结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold。
 
 `editorial-image` 支持 `design` 字段。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户指定设计系统时照做；用户未指定时，根据文章情绪自动选择，例如技术文可用 `stripe` / `ibm` / `apple` / `claude` / `ljg_jishu`，反思类文章可用 `claude` / `notion` / `ljg_chensi`。
 
-方向输出格式：
+需要候选时，方向输出格式：
 
 ```
 配图方向：
@@ -145,13 +152,13 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 - 正文插图可以保留中间留白；留白本身不是问题，问题是主体尺度太小或视觉重量撑不住画布
 - 正文插图默认不允许可读文字和主要视觉元素交叉、压叠或互相穿插；除非用户明确要 collage/overprint 效果，否则这属于失败
 
-### Step 2: 匹配候选
+### Step 2: 匹配设计系统
 
 **Comic mode 跳过此步**：comic mode 使用固定 Quiet Paper 单色调色板，设计系统的色彩 token 不生效。直接进入 Step 4，漫画风格由 `references/mode-comic.md` 的 5 种路线（大友克洋/井上雄彦/三浦建太郎/松本大洋/谷口治郎）决定，在 Step 4 渲染时根据内容气质选择。
 
-**editorial-image 跳过常规候选匹配**：先按 `references/mode-editorial-image.md` 生成视觉方向；方向确认后再根据气质选择 Quiet Paper token。
+**editorial-image 跳过常规候选匹配**：先按 `references/mode-editorial-image.md` 确定视觉方向，再根据气质选择 Quiet Paper token。
 
-从 design-index.md 中选择 3-5 个候选品牌气质。默认先使用 Quiet Paper 审美骨架，再根据内容选择轻微偏向。
+默认从 design-index.md 中直接选择 1 个最合适的品牌气质，不等待用户确认。先使用 Quiet Paper 审美骨架，再根据内容选择轻微偏向。
 
 **匹配逻辑**：
 
@@ -164,11 +171,11 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 3. **密度适配**：稀→留白风格（apple, notion），密→data-dense 风格（stripe, ibm）
 4. **多样性边界**：候选之间应气质不同，但都必须保持 Quiet Paper：暖纸或深卡纸、低饱和 accent、小圆角、少阴影
 
-输出候选列表，每个附一句话匹配理由。
+如果用户明确要求候选、换一批或选择风格，再输出 3-5 个候选列表，每个附一句话匹配理由。
 
-### Step 3: 候选确认
+### Step 3: 候选确认（仅按需）
 
-在终端展示候选列表，每个附一句话匹配理由和色板信息：
+只有用户要求先看候选时，才在终端展示候选列表，每个附一句话匹配理由和色板信息：
 
 ```
 候选设计系统：
@@ -179,6 +186,8 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 ```
 
 告知用户：选择编号（如"用 2"），或说"换一批"重新推荐。用户确认后进入 Step 4。
+
+普通出图请求不要停在这里；自动选择设计系统后直接进入 Step 4。
 
 ### Step 4: 渲染
 
@@ -221,6 +230,12 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
 7. 写入临时文件 `card_{name}.html`
 
+**AI-only / 手工 HTML 交付约定**：
+- infograph / comic / sketchnote，以及 CLI 失败后降级的手工 HTML，统一把 HTML 写到 repo 内 `tmp/` 目录，避免 Windows 环境下 `/tmp` 路径解析失败
+- PNG 输出到 `~/Downloads/`，文件名用内容主题或 mode 命名，避免只叫 `output.png`
+- 生成 HTML 后必须走 Step 5-7；不能只保存 HTML 或只报告“已完成”
+- 最终交付前必须实际查看 PNG，确认不是空白、裁切、文字重叠、主体太小或视觉关系不清
+
 **poster 模式特殊**：每个卡片独立写入，文件名带序号 `card_{name}_{N}.html`。
 
 **多卡批次一致性**：当内容需要拆分为多张图（信息图系列、poster 多卡、用户要求「多图」）时，必须遵守以下批次规则：
@@ -246,6 +261,8 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 **署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
 
 ### Step 5: 出厂检查
+
+本步骤只适用于 AI / 手工 HTML 路径。CLI 路径由 `scripts/card.js` 内部自动执行预检、截图和复查。
 
 生成 HTML 后先运行低风险修复 + 预检：
 
@@ -276,13 +293,11 @@ node scripts/check-output.mjs --html <html_path> --width 1080 --height 800 --dpr
 ### Step 6: 截图（4K）
 
 模板 CSS 宽度为 1080px。capture4k.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
-模板 CSS 宽度为 1080px。capture4k.js 的 width 参数是 viewport 宽度（不是输出宽度）。DPR 参数控制输出分辨率。
 
 ```bash
 node assets/capture4k.js <html_path> <png_path> 1080 800 2 fullpage
 ```
 
-参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`2` = DPR（输出 2160px 宽），`fullpage` = 截取完整内容高度。
 参数说明：`1080` = viewport 宽度（匹配模板），`800` = 初始高度（fullpage 模式下自动扩展），`2` = DPR（输出 2160px 宽），`fullpage` = 截取完整内容高度。
 
 **多卡批次**：同一批次的所有卡片必须使用完全相同的 capture 命令参数，确保输出宽度和 DPR 一致。
@@ -306,7 +321,7 @@ node scripts/check-output.mjs --html <html_path> --png <png_path> --width 1080 -
 - 图片加载失败
 - 正文字号低于 36px
 
-只有复查通过才能交付。
+复查通过后，实际打开或查看 PNG，确认画面完整、清晰、主体有足够重量，文字没有重叠、裁切、孤字或明显坏行。只有脚本复查和看图复查都通过才能交付。
 
 ### Step 8: 交付
 
@@ -320,9 +335,26 @@ node scripts/check-output.mjs --html <html_path> --png <png_path> --width 1080 -
 
 ## 快捷模式（--design 指定）
 
-用户通过 `--design` 指定设计系统时，跳过 Step 3 直接进入 Step 4。
+用户通过 `--design` 指定设计系统时，跳过自动匹配和按需候选，直接进入 Step 4。
 
 可用名称见 `references/design-index.md` 的目录名列。
+
+## 维护测试
+
+改动技能或模板后，至少运行：
+
+```bash
+npm run check-output
+npm test
+```
+
+CLI 路径 smoke test 可用最小 big-mode 输入跑一次：
+
+```powershell
+[pscustomobject]@{ mode='big'; phrase='Clarity beats noise'; design='apple' } | ConvertTo-Json -Compress | node scripts/card.js --stdin --output tmp/smoke_big.png
+```
+
+生成后实际查看 PNG，确认画面不是只满足文件存在。
 
 ## 开发者工具（非 AI 流程使用）
 
