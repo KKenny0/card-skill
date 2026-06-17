@@ -466,6 +466,21 @@ async function inspectPage(opts, issues) {
       }));
     }
 
+    const gluedTermPatterns = [
+      /\bAIAgent\b/i,
+      /\bHermesAgent\b/i,
+      /\bContextCompression\b/i,
+    ];
+    const visibleGluedTerms = report.textSizes.filter(item => {
+      const normalized = item.text.replace(/\s+/g, ' ').trim();
+      return gluedTermPatterns.some(pattern => pattern.test(normalized));
+    });
+    if (visibleGluedTerms.length > 0) {
+      issues.push(issue('error', 'technical_term_spacing_bad', 'Technical or product terms should preserve real word spacing.', {
+        elements: visibleGluedTerms.slice(0, 10),
+      }));
+    }
+
     const badHeadlineBreaks = report.headlineLines.filter(item => {
       const last = item.lines[item.lines.length - 1];
       const lastText = last?.text || '';

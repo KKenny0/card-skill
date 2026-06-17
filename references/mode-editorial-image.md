@@ -200,7 +200,8 @@ The default CLI renderer is only an aspect-safe Quiet Paper scaffold. It is usef
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.
 - Prefer manual `<br>` breaks for cover titles and short hero phrases when automatic wrapping creates an awkward rhythm.
 - Never leave a single CJK character, a two-character orphan, or a very short final line as the last headline line.
-- Do not split attached technical names or phrases such as `Hermes Agent`, `run_agent.py`, `context compression`, or a product name across lines unless the split is visually intentional.
+- Do not split attached technical names or phrases such as `AI Agent`, `Hermes Agent`, `run_agent.py`, `context compression`, or a product name across lines unless the split is visually intentional.
+- Do not remove spaces inside technical or product terms. `AI Agent` must not become `AIAgent`, `Hermes Agent` must not become `HermesAgent`, and multi-word terms must keep their word boundaries unless the source itself uses a closed-up spelling.
 - Prefer one primary visual idea. Avoid icon soup.
 - The image may be ambiguous, but not unrelated.
 - Do not print mode or destination labels into the artwork. Avoid labels such as `IN-ARTICLE IMAGE`, `EDITORIAL IMAGE`, `BLOG HERO`, `WECHAT COVER`, or `COVER IMAGE` unless they are part of the article's actual title or source material.
@@ -250,6 +251,7 @@ Before delivery, ask:
 - Is the amount of text appropriate for a cover or in-article image?
 - Does every visible sentence belong in the artwork, rather than describe how the image should be used?
 - Are headline and short text line breaks intentional, with no orphaned last line or awkward split?
+- Are technical and product terms preserving their real spacing and casing?
 - If there are connectors, do they connect cleanly at element boundaries without crossing text or box interiors?
 - Does the image avoid visible mode/destination labels such as `IN-ARTICLE IMAGE` or `BLOG HERO`?
 - For in-article images, does the subject have enough visual presence for the canvas, with purposeful negative space?
