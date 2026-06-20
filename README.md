@@ -1,200 +1,188 @@
-<p align="center"><img src="assets/logo.png" alt="card-skill" width="120"></p>
+<p align="center"><img src="assets/logo.png" alt="card-skill" width="112"></p>
 
 # card-skill
 
-Content in, PNG out. Mold decides the shape.
+<p align="center"><strong>把文章、观点和论证，做成可以直接发布的图片。</strong><br>
+<sub>Turn articles, ideas, and arguments into publish-ready visual cards.</sub></p>
 
-A Claude Code skill that renders text into designed images — infographics, posters, comics, sketchnotes, whiteboards, big-text posters, long-form reading cards, and editorial images for essays — through one quiet paper system with 18 brand inflections and 8 content-tone palettes.
+给 Claude Code、Codex、OpenCode、Pi 等 coding agents 使用的内容制图 skill。输入文章、笔记、观点或 URL，它会理解内容结构，自动选择合适的版式与 Quiet Paper 气质，输出经过检查的 PNG。
 
-card-skill has two entrances:
+## 看看它能做什么
 
-- **Content cards** — turn ideas into readable visual matter: infographics, posters, comics, whiteboards, sketchnotes, big-text posters, and long-form cards.
-- **Editorial images** — make cover images or in-article illustrations for WeChat/blog essays. These do not summarize the article; they set a visual stance, mood, or metaphor for the piece.
+<img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="公众号头图示例 — editorial image">
 
-## Usage
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="assets/gallery/poster.png" width="100%" alt="小红书与社媒卡片示例 — poster"><br>
+<strong>小红书 / 社媒卡片</strong> · 把一个主题拆成可连续发布的卡片
+</td>
+<td width="50%" valign="top">
+<img src="assets/gallery/whiteboard.png" width="100%" alt="白板推演示例 — whiteboard"><br>
+<strong>白板推演</strong> · 把论点、因果与决策链画清楚
+</td>
+</tr>
+</table>
 
-**Claude Code**
+## 60 秒安装
+
+安装到 Claude Code：
 
 ```bash
 npx skills add KKenny0/card-skill -a claude-code -g -y
 ```
 
-**Generic agents** (Codex, OpenCode, Pi, and other tools that read from `~/.agents/`)
+`skills add` 不会自动安装 Playwright 或 Chromium。首次出图前需完成一次环境设置：
 
 ```bash
-npx skills add KKenny0/card-skill -a '*' -g -y
+cd ~/.claude/skills/card-skill
+npm install
+npx playwright install chromium
 ```
 
-The skill auto-triggers from natural requests, no slash command needed. Optimized for Chinese and English.
+然后把一段内容或文章链接交给 agent，并直接说：
 
-Example prompts:
+```text
+把下面这篇文章做成一张公众号头图。不要复述摘要，提炼文章的核心张力，用安静的纸张质感呈现，完成后检查裁切、换行和可读性：
 
-- English: `make this into an infographic` / `render this as a poster` / `turn this article into a visual card` / `make a whiteboard for this argument`
-- 中文: `把这段内容做成信息图` / `做成海报` / `渲染成卡片` / `做个白板推演`
-- Editorial: `make a blog cover for this essay` / `create an editorial image for this article` / `给这篇公众号文章做头图` / `给这一节配一张正文插图`
-
-## What it does
-
-Give it an article, a quote, a tweet thread, or a URL. Card analyzes the content's structure, density, and emotional tone, then renders it as a high-resolution PNG (4K width, DPR 2) that looks like printed matter — not a web screenshot.
-
-For long-form authors, the editorial-image entrance analyzes the article's title, emotional temperature, core tension, possible visual metaphors, and destination aspect ratio. It proposes directions before rendering, so the result works as an image for the article rather than a second summary of the article.
-
-Editorial images support the same `design` field as other CLI-rendered modes. The design system is a mood layer — paper tone, ink, accent, surface, and rhythm — while the visual metaphor and composition still come from the article direction.
-
-## Modes
-
-| Mode | Template | Best for |
-|------|----------|----------|
-| `infograph` | Structured data, comparisons, layered ideas | Dense analytical content |
-| `big` | Single statement, maximal contrast | Headlines, manifestos, one-liners |
-| `long` | Article-length reading | Essays, blog posts, long-form text |
-| `poster` | Multi-card series | Chapter-by-chapter, topic-per-card grids |
-| `comic` | Narrative with conflict | Stories, debates, before/after arcs |
-| `sketchnote` | Warm narrative | Personal reflections, lessons learned |
-| `whiteboard` | Logical reasoning | Arguments, system diagrams, decision chains |
-| `editorial-image` | Visual stance, metaphor, atmosphere | WeChat/blog covers and in-article illustrations with aspect-aware canvases |
-
-## Design systems
-
-card-skill uses one shared quiet-paper backbone: warm paper, restrained ink, small-radius surfaces, hairline dividers, and very little shadow. The 18 brand systems are now inflections inside that backbone, not separate visual worlds. Each brand keeps a recognizable mood while obeying the same layout discipline.
-
-**Dark Minimal** — linear, vercel
-**Dark Cinematic** — spotify
-**Light Minimal** — apple, expo, notion
-**Light Editorial** — claude, cursor, intercom, replicate, posthog, clay
-**Technical Data** — stripe, ibm, opencode.ai, sentry, raycast, together.ai
-**ljg-card tones** — 沉思, 锐利, 温暖, 技术, 科研, 创意, 商业, 默认
-
-Each system contributes a muted accent, surface temperature, and rhythm hint. Typography, spacing discipline, card treatment, and paper material remain mode-locked, so output feels like one mature system rather than a theme picker.
-
-## Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--design` | Skip candidate preview, go straight to a named design system | (enters preview flow) |
-| `--dpr` | Device pixel ratio | 2 |
-| `--author` | Byline text | Kenny Wu |
-| `--photo` | Byline avatar URL or path | assets/avatar.png |
-
-## Pipeline
-
-1. **Ingest** — URL (via WebFetch), pasted text, or file path
-2. **Analyze** — Extract title, subtitle, density, structure, emotional tone
-3. **Match** — Start from the quiet-paper default, then pick 3-5 restrained brand inflections based on mood × theme × density
-4. **Confirm** — Present candidates in terminal; user picks one or asks for a new batch
-5. **Render** — Fill the mode's HTML template with mapped design tokens + content
-6. **Output check** — Catch missing placeholders, overflow, crop risk, broken images, unreadable body text, and bad headline line breaks
-7. **Capture** — Screenshot via Playwright at 4K width
-8. **Post-capture check** — Verify the generated PNG and rerun after safe fixes when needed
-
-Output lands in `~/Downloads/`.
-
-## Project structure
-
-```
-card-skill/
-├── SKILL.md                    # Skill definition and execution flow
-├── scripts/
-│   └── check-output.mjs        # Lightweight preflight/post-capture checker
-├── assets/
-│   ├── {mode}_template.html    # HTML templates (8 modes)
-│   ├── capture.js              # Playwright screenshot script
-│   ├── fonts/                  # Xiangcui typeface family
-│   ├── avatar.png              # Default byline avatar
-│   └── logo.png                # Colophon logo
-├── references/
-│   ├── taste.md                # Anti-AI aesthetic rules, paper/print baseline
-│   ├── design-index.md         # Quiet-paper brand inflections + CSS variables
-│   ├── designs/{name}.md       # Per-brand compact design files
-│   └── mode-{name}.md          # Per-mode content theory and layout rules
-└── evals/                      # Assertion-based evaluation harness
+[在这里粘贴文章或 URL]
 ```
 
-## Dependencies
+完成一次性环境设置后，agent 会自动选择 `editorial-image` 模式和适合的视觉方向，渲染、检查并返回一张 PNG（默认写入 `~/Downloads/`）；默认不会先让你挑风格，也不会自动加入作者名或头像。
 
-- [Playwright](https://playwright.dev/) — headless Chromium for PNG capture (`npx playwright install chromium`)
-- **Fonts** — place in `assets/fonts/`:
-  - [XiangcuiDengcusong](https://github.com/Miiiller/Xiangcui-Dengcusong) (required) — CJK serif typeface used by all 7 modes
-  - [XiangcuiDazijiti](https://github.com/Miiiller/Xiangcui-Dazijiti) (optional) — CJK typewriter face used by infograph mode
-  - Playwright falls back to system fonts when these are missing.
+使用 Codex：
 
-## Credits
+```bash
+npx skills add KKenny0/card-skill -a codex -g -y
+```
 
-Built on three projects:
+OpenCode 或 Pi 用户把 agent ID 分别改为 `opencode` 或 `pi`。不要使用 `-a '*'`，它会为所有已知 agent 创建安装入口。不需要 slash command；中文、英文自然语言都可以触发。
 
-- **[awesome-design-md](https://github.com/VoltAgent/awesome-design-md)** by VoltAgent — curated DESIGN.md files from popular brand design systems, used as the visual reference library for color palettes, shadow philosophy, border radius, and whitespace rhythm.
-- **[ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card)** by lijigang — the content-to-PNG visual card skill that inspired the card metaphor, content preprocessing pipeline, and early taste guidelines.
-- **[Kami](https://github.com/tw93/kami)** by tw93 — the document design system that informed the quiet-paper constraint language: warm surfaces, ink restraint, and stable page rhythm.
+## 从你要发布的东西开始
 
-The editorial-image entrance also draws on editorial illustration and image-use practices:
+### 公众号 / 博客配图
 
-- **[The Washington Post Design team](https://www.washingtonpost.com/pr/2020/12/18/washington-post-design-team-is-looking-illustrators/)** — reference for assigning illustration by purpose and starting from multiple visual directions.
-- **[The New Yorker cover practice](https://www.newyorker.com/culture/video-dept/the-art-of-the-new-yorker-cover)** — reference for images that can stand as an editorial point of view, not decoration.
-- **[GOV.UK image guidance](https://guidance.publishing.service.gov.uk/formatting-content/images/)** — reference for using images only when they help readers, with accessibility and non-essential-image rules.
-- **[Design Guidelines for Prompt Engineering Text-to-Image Generative Models](https://arxiv.org/abs/2109.06977)** — reference for turning text intent into concrete visual prompts without vague style-only instructions.
+适合文章头图、博客 hero、正文插图。它不会把文章再总结成 bullet points，而是提炼情绪、核心张力和视觉隐喻。
 
-## Gallery
+```text
+给这篇关于 AI 如何改变个人知识管理的文章做一张公众号头图。画面要表达“记忆从仓库变成流动的工作台”，少字、克制，不要通用科技感。
+```
 
-Mode samples include the philosophical essay *Tools and Forgetting* plus editorial-image samples from a real Hermes Agent longform article.
+### 小红书 / 社媒卡片
+
+适合观点、方法论、章节拆解与系列内容。根据内容密度，可做单张大字报、信息图或多卡 poster。
+
+```text
+把这段“独立开发者如何判断一个功能值不值得做”的笔记做成 4 张社媒卡片。第一张提出冲突，中间两张讲判断标准，最后一张给行动清单；保留原意，不要写成营销文案。
+```
+
+### 白板推演
+
+适合论证、系统关系、技术选型和决策链。重点是把推理关系画清楚，而不是装饰。
+
+```text
+把这段关于“为什么小团队应该先做单体应用”的论证画成白板推演：问题 → 约束 → 两条备选路径 → 决策。标出最脆弱的假设，不要补造数据。
+```
+
+## 8 种内容模具
+
+| Mode | 最适合 |
+|---|---|
+| `editorial-image` | 公众号头图、博客封面、正文插图与概念隐喻 |
+| `poster` | 小红书、社媒系列卡片、章节拆分 |
+| `whiteboard` | 论证、因果链、系统关系与技术决策 |
+| `infograph` | 数据、比较、层级与高密度信息 |
+| `big` | 一句话观点、标题与宣言 |
+| `long` | 文章型长卡片与沉浸阅读 |
+| `comic` | 有冲突、转折或前后变化的叙事 |
+| `sketchnote` | 个人反思、经验与温暖叙事 |
+
+`big`、`long`、`whiteboard`、`poster`、`editorial-image` 有结构化 renderer；`infograph`、`comic`、`sketchnote` 保留创意布局流程，不被固定 schema 限死。
+
+## Quiet Paper
+
+所有模式共享同一套安静的纸面骨架：温暖纸色、克制墨色、细分隔线、小圆角、极少阴影。18 种品牌气质与 8 种内容色调只改变表面温度、强调色和节奏，不把作品变成品牌皮肤拼盘。
+
+默认会根据内容的结构、密度与情绪自动选择 mode、design 和画面方向。只有你明确要求“给我几个方向”“先选风格”时，它才暂停等待选择；也可以直接指定 `Apple`、`Stripe`、`Linear`、`Claude`、`IBM`、`Notion` 等气质。
+
+## 环境与首次运行
+
+安装 skill 需要 Node.js 22+ 与 npm。PNG 截图依赖 Playwright 和 Chromium；仓库声明了 Playwright 依赖，但不会声称你的环境已经自动完成浏览器安装。
+
+如果首次渲染提示缺少依赖，请进入本 skill 的安装目录后运行：
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+渲染模板会优先使用本地字体；字体文件不是运行前提。缺少 Xiangcui 字体时，浏览器会回退到系统中文字体（如苹方、宋体或对应平台字体），版面观感可能略有变化。
+
+默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同模式和比例会有不同高度，不应理解为固定的 4K 宽图。
+
+## 它怎样工作
+
+1. 读取 URL、粘贴文本或本地文件。
+2. 分析结构、密度、情绪与发布用途。
+3. 自动匹配 mode、Quiet Paper design 与画面方向。
+4. 使用结构化 renderer 或创意布局流程生成画面。
+5. 在截图前后检查占位符、溢出、裁切、坏图、正文可读性与标题换行。
+6. 通过 Playwright 截图，输出 PNG；默认署名和头像均为空。
+
+结构化 CLI 也可以单独使用：
+
+```bash
+node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
+```
+
+支持的 CLI modes：`big`、`long`、`whiteboard`、`poster`、`editorial-image`。
+
+## 更多样张
 
 <details>
-<summary>Click to expand</summary>
+<summary>展开完整 gallery</summary>
 
 <table>
 <tr>
-<td width="50%">
-<img src="assets/gallery/infograph.png" width="400" alt="infograph — structured data, layered ideas"><br>
-<b>infograph</b> · structured data, comparisons, layered ideas
-</td>
-<td width="50%">
-<img src="assets/gallery/big.png" width="400" alt="big — single statement, maximal contrast"><br>
-<b>big</b> · single statement, maximal contrast
-</td>
+<td width="50%"><img src="assets/gallery/infograph.png" width="100%" alt="infograph 示例"><br><strong>infograph</strong></td>
+<td width="50%"><img src="assets/gallery/big.png" width="100%" alt="big 示例"><br><strong>big</strong></td>
 </tr>
 <tr>
-<td>
-<img src="assets/gallery/long.png" width="400" alt="long — article-length reading"><br>
-<b>long</b> · article-length reading
-</td>
-<td>
-<img src="assets/gallery/poster.png" width="400" alt="poster — multi-card series"><br>
-<b>poster</b> · multi-card series
-</td>
+<td><img src="assets/gallery/long.png" width="100%" alt="long 示例"><br><strong>long</strong></td>
+<td><img src="assets/gallery/sketchnote.png" width="100%" alt="sketchnote 示例"><br><strong>sketchnote</strong></td>
 </tr>
 <tr>
-<td>
-<img src="assets/gallery/sketchnote.png" width="400" alt="sketchnote — warm narrative"><br>
-<b>sketchnote</b> · warm narrative
-</td>
-<td>
-<img src="assets/gallery/whiteboard.png" width="400" alt="whiteboard — logical reasoning"><br>
-<b>whiteboard</b> · logical reasoning
-</td>
+<td><img src="assets/gallery/comic.png" width="100%" alt="comic 示例"><br><strong>comic</strong></td>
+<td><img src="assets/gallery/editorial-blog-hero.png" width="100%" alt="博客头图示例"><br><strong>editorial-image</strong> · blog hero</td>
 </tr>
 <tr>
-<td>
-<img src="assets/gallery/comic.png" width="400" alt="comic — narrative with conflict"><br>
-<b>comic</b> · narrative with conflict
-</td>
-<td>
-<img src="assets/gallery/editorial-wechat-cover.png" width="400" alt="editorial-image — WeChat cover for Hermes Agent article"><br>
-<b>editorial-image</b> · WeChat cover with visual stance
-</td>
-</tr>
-<tr>
-<td>
-<img src="assets/gallery/editorial-blog-hero.png" width="400" alt="editorial-image — blog hero for Hermes Agent article"><br>
-<b>editorial-image</b> · blog hero for a technical essay
-</td>
-<td>
-<img src="assets/gallery/editorial-body-illustration.png" width="400" alt="editorial-image — in-article illustration for context compression"><br>
-<b>editorial-image</b> · quiet in-article illustration
-</td>
+<td><img src="assets/gallery/editorial-body-illustration.png" width="100%" alt="正文插图示例"><br><strong>editorial-image</strong> · body illustration</td>
+<td><img src="assets/gallery/infograph.png" width="100%" alt="结构化信息图示例"><br><strong>Quiet Paper</strong> · structured information</td>
 </tr>
 </table>
 
 </details>
 
+## Showcase：让作品替工具说话
+
+如果 card-skill 帮你做出了值得发布的图，欢迎在 GitHub Issues 分享：
+
+- 最终图片或公开发布链接
+- 使用的原始 prompt（敏感内容可删减）
+- mode 与你使用的 agent
+- 哪一步顺利、哪一步仍需要手工调整
+
+真实案例会帮助我们判断下一步该优化哪种发布任务；经作者同意后，优秀案例也可能进入 gallery，并保留来源署名。
+
+## Credits
+
+card-skill 受到以下项目与实践启发：
+
+- [awesome-design-md](https://github.com/VoltAgent/awesome-design-md) by VoltAgent — 品牌设计参考库。
+- [ljg-card](https://github.com/lijigang/ljg-skills/tree/master/skills/ljg-card) by lijigang — 内容制图与早期品味规则。
+- [Kami](https://github.com/tw93/kami) by tw93 — Quiet Paper 的纸面、墨色与节奏约束。
+- [The New Yorker cover practice](https://www.newyorker.com/culture/video-dept/the-art-of-the-new-yorker-cover) 与 [GOV.UK image guidance](https://guidance.publishing.service.gov.uk/formatting-content/images/) — editorial image 的用途与克制原则。
+
 ## License
 
-Private skill. Not distributed.
+[MIT](LICENSE) © 2026 Kenny Wu

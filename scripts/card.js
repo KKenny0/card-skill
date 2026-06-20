@@ -21,8 +21,6 @@ const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const CAPTURE_SCRIPT = path.join(ROOT, 'assets', 'capture4k.js');
 const CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-output.mjs');
-const TMP_DIR = os.tmpdir();
-
 // ── Args ──
 
 const args = process.argv.slice(2);
@@ -189,11 +187,72 @@ function captureWithOutputCheck(out, pngPath) {
   }
 }
 
+function publishPngs(entries) {
+  const publishId = `${process.pid}-${Date.now()}`;
+  const committed = [];
+  const stagingPaths = [];
+
+  try {
+    for (const [index, entry] of entries.entries()) {
+      const finalPath = path.resolve(entry.finalPath);
+      const outputDir = path.dirname(finalPath);
+      fs.mkdirSync(outputDir, { recursive: true });
+
+      if (fs.existsSync(finalPath)) {
+        const stat = fs.lstatSync(finalPath);
+        if (!stat.isFile() && !stat.isSymbolicLink()) {
+          throw new Error(`Output path is not a file: ${finalPath}`);
+        }
+      }
+
+      const stagingPath = path.join(outputDir, `.${path.basename(finalPath)}.${publishId}-${index}.tmp`);
+      const backupPath = fs.existsSync(finalPath)
+        ? path.join(outputDir, `.${path.basename(finalPath)}.${publishId}-${index}.bak`)
+        : null;
+      stagingPaths.push(stagingPath);
+      fs.copyFileSync(entry.stagedPath, stagingPath);
+
+      if (backupPath) fs.renameSync(finalPath, backupPath);
+      try {
+        fs.renameSync(stagingPath, finalPath);
+      } catch (error) {
+        if (backupPath && fs.existsSync(backupPath)) fs.renameSync(backupPath, finalPath);
+        throw error;
+      }
+      committed.push({ finalPath, backupPath });
+    }
+
+    for (const { backupPath } of committed) {
+      if (!backupPath || !fs.existsSync(backupPath)) continue;
+      try {
+        fs.unlinkSync(backupPath);
+      } catch (cleanupError) {
+        console.error(`Warning: could not remove output backup ${backupPath}: ${cleanupError.message}`);
+      }
+    }
+  } catch (error) {
+    for (const { finalPath, backupPath } of committed.reverse()) {
+      if (fs.existsSync(finalPath)) fs.unlinkSync(finalPath);
+      if (backupPath && fs.existsSync(backupPath)) fs.renameSync(backupPath, finalPath);
+    }
+    throw error;
+  } finally {
+    for (const stagingPath of stagingPaths) {
+      if (fs.existsSync(stagingPath)) fs.unlinkSync(stagingPath);
+    }
+  }
+}
+
+let runTmpDir = null;
+
 try {
+  runTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-'));
+
   // poster mode returns array; others return single object
   if (input.mode === 'poster') {
-    const outputs = renderer.render(input, TMP_DIR);
+    const outputs = renderer.render(input, runTmpDir);
     const pngPaths = [];
+    const publishEntries = [];
 
     outputs.forEach((out, i) => {
       const pngName = outputs.length === 1
@@ -202,24 +261,35 @@ try {
       const pngPath = outputs.length === 1
         ? outputPath
         : path.join(path.dirname(outputPath), pngName);
+      const stagedPath = path.join(runTmpDir, `card_${i + 1}.png`);
 
-      captureWithOutputCheck(out, pngPath);
+      captureWithOutputCheck(out, stagedPath);
       pngPaths.push(pngPath);
-      console.error(`  Card ${i + 1}/${outputs.length}: ${pngPath}`);
+      publishEntries.push({ stagedPath, finalPath: pngPath });
     });
 
+    publishPngs(publishEntries);
+    pngPaths.forEach((pngPath, i) => console.error(`  Card ${i + 1}/${pngPaths.length}: ${pngPath}`));
     console.log(pngPaths.join('\n'));
   } else {
-    const htmlFileName = `card_${input.mode}_${ts}.html`;
-    const htmlPath = path.join(TMP_DIR, htmlFileName);
+    const htmlFileName = `card_${input.mode}.html`;
+    const htmlPath = path.join(runTmpDir, htmlFileName);
     const out = renderer.render(input, htmlPath);
+    const stagedPath = path.join(runTmpDir, 'card.png');
 
-    captureWithOutputCheck(out, outputPath);
+    captureWithOutputCheck(out, stagedPath);
+    publishPngs([{ stagedPath, finalPath: outputPath }]);
 
     console.log(outputPath);
   }
 } catch (e) {
   console.error(`Render failed: ${e.message}`);
   if (e.stderr) console.error(e.stderr.toString());
-  process.exit(1);
+  process.exitCode = 1;
+} finally {
+  try {
+    if (runTmpDir) fs.rmSync(runTmpDir, { recursive: true, force: true });
+  } catch (cleanupError) {
+    console.error(`Warning: could not remove temporary directory ${runTmpDir}: ${cleanupError.message}`);
+  }
 }

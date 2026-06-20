@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { escapePhrase, escapeHtml } = require('../lib/escape');
 const { cssOverrides, getDesign } = require('../lib/designs');
 
@@ -74,8 +75,9 @@ function render(input, outputHtmlPath) {
   const ghostChar = input.ghost_char || deriveGhostChar(input.phrase, input.accent_words);
   const attribution = input.attribution ? escapeHtml(input.attribution) : '';
 
-  const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'card');
+  const logoPath = input.logo ? path.resolve(input.logo) : '';
+  const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
+  const hasBranding = Boolean(logoPath || brandName);
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
 
@@ -101,9 +103,16 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{FONT_SIZE}}', fontSize);
   template = template.replaceAll('{{GHOST_CHAR}}', ghostChar);
   template = template.replaceAll('{{ATTRIBUTION}}', attribution);
-  template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
+  template = template.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
+
+  if (!hasBranding) {
+    template = template.replace(/\s*<div class="colophon">[\s\S]*?<\/div>/, '');
+  } else {
+    if (!logoPath) template = template.replace(/\s*<img src="" alt="logo">/, '');
+    if (!brandName) template = template.replace(/\s*<span><\/span>/, '');
+  }
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

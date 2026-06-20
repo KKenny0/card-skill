@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { escapeHtml, escapePhrase } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
@@ -81,7 +82,7 @@ function baseCss(input, design, aspect) {
     }
 
     .colophon {
-      display: none;
+      display: ${input.logo || input.brand_name || input.source ? 'flex' : 'none'};
     }
 
     .editorial-frame {
@@ -199,17 +200,28 @@ function render(input, outputHtmlPath) {
   if (!aspect.width) throw new Error(`Unknown editorial-image aspect: ${aspectKey}`);
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-  const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'card');
+  const logoUrl = input.logo ? escapeHtml(pathToFileURL(path.resolve(input.logo)).href) : '';
+  const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
+  const sourceLine = input.source ? `<span class="info-source">${escapeHtml(input.source)}</span>` : '';
   const contentHtml = input.content_html || renderDefaultContent(input, aspect);
   const customCss = `${baseCss(input, design, aspect)}\n${input.custom_css || ''}`;
 
   template = template.replaceAll('{{CUSTOM_CSS}}', customCss);
   template = template.replaceAll('{{CONTENT_HTML}}', contentHtml);
-  template = template.replaceAll('{{SOURCE_LINE}}', input.source ? `<span class="info-source">${escapeHtml(input.source)}</span>` : `<span class="info-source">${aspect.label}</span>`);
-  template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
+  template = template.replaceAll('{{SOURCE_LINE}}', sourceLine);
+  template = template.replaceAll('{{LOGO}}', logoUrl);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
+
+  if (!logoUrl && !brandName) {
+    template = template.replace(/\s*<div class="who">[\s\S]*?<\/div>/, '');
+  } else {
+    if (!logoUrl) template = template.replace(/\s*<img src="" alt="">/, '');
+    if (!brandName) template = template.replace(/\s*<span><\/span>/, '');
+  }
+  if (!logoUrl && !brandName && !sourceLine) {
+    template = template.replace(/\s*<div class="colophon">\s*<\/div>/, '');
+  }
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

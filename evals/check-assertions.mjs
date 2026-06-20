@@ -34,6 +34,7 @@ function parseArgs(args) {
     all: false,
     config: 'with_skill',
     json: false,
+    selfTest: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -47,6 +48,7 @@ function parseArgs(args) {
       case '--config': opts.config = args[++i]; break;
       case '--all': opts.all = true; break;
       case '--json': opts.json = true; break;
+      case '--self-test': opts.selfTest = true; break;
       case '--help':
         console.log(`Usage: node check-assertions.mjs [options]
   --eval <id|range>   Eval ID (1) or range (1-9)
@@ -58,6 +60,7 @@ function parseArgs(args) {
   --config <name>     with_skill (default) or without_skill
   --all               Run all evals
   --json              Output JSON report
+  --self-test         Validate eval definitions and static checker contracts (no browser)
   --help              Show this help`);
         process.exit(0);
     }
@@ -433,6 +436,71 @@ const CHECKERS = {
   html_font_families: checkHtmlFontFamilies,
 };
 
+function validateEvalDefinitions(evalsData) {
+  const errors = [];
+  const ids = new Set();
+
+  if (!Array.isArray(evalsData.evals) || evalsData.evals.length === 0) {
+    return ['evals must be a non-empty array'];
+  }
+
+  for (const evalDef of evalsData.evals) {
+    if (!Number.isInteger(evalDef.id)) errors.push(`Invalid eval id: ${evalDef.id}`);
+    if (ids.has(evalDef.id)) errors.push(`Duplicate eval id: ${evalDef.id}`);
+    ids.add(evalDef.id);
+    if (!evalDef.name || typeof evalDef.name !== 'string') errors.push(`Eval ${evalDef.id} has no name`);
+    if (!Array.isArray(evalDef.assertions) || evalDef.assertions.length === 0) {
+      errors.push(`Eval ${evalDef.id} has no assertions`);
+      continue;
+    }
+
+    const assertionNames = new Set();
+    for (const assertion of evalDef.assertions) {
+      if (!assertion.name) errors.push(`Eval ${evalDef.id} has an unnamed assertion`);
+      if (assertionNames.has(assertion.name)) errors.push(`Eval ${evalDef.id} has duplicate assertion: ${assertion.name}`);
+      assertionNames.add(assertion.name);
+
+      if (!assertion.auto || assertion.auto.type === 'manual') continue;
+      if (!CHECKERS[assertion.auto.type]) {
+        errors.push(`Eval ${evalDef.id}/${assertion.name} uses unknown checker: ${assertion.auto.type}`);
+      }
+      if (assertion.auto.pattern) {
+        try {
+          new RegExp(assertion.auto.pattern, assertion.auto.flags || '');
+        } catch (error) {
+          errors.push(`Eval ${evalDef.id}/${assertion.name} has invalid regex: ${error.message}`);
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+
+async function runSelfTest(evalsData) {
+  const definitionErrors = validateEvalDefinitions(evalsData);
+  if (definitionErrors.length > 0) {
+    throw new Error(`Eval definition validation failed:\n${definitionErrors.map(error => `  - ${error}`).join('\n')}`);
+  }
+
+  const contracts = [
+    ['html_match', { htmlSource: '<main>card</main>' }, { pattern: '<main>card</main>' }],
+    ['html_not_match', { htmlSource: '<main>card</main>' }, { pattern: 'gradient' }],
+    ['text_match', { visibleText: '2 / 4' }, { pattern: '\\d+\\s*/\\s*\\d+' }],
+    ['file_exists', { pngFiles: ['card.png'] }, {}],
+    ['file_count_min', { pngFiles: ['1.png', '2.png'] }, { min: 2 }],
+    ['css_var_match', { cssVars: { '--accent': '#635bff' } }, { vars: { '--accent': ['#533afd', '#635bff'] }, tolerance: 0 }],
+  ];
+
+  for (const [type, context, auto] of contracts) {
+    const result = await CHECKERS[type](context, auto);
+    if (!result.pass) throw new Error(`Checker contract failed (${type}): ${result.evidence}`);
+  }
+
+  const assertionCount = evalsData.evals.reduce((sum, evalDef) => sum + evalDef.assertions.length, 0);
+  console.log(`Assertion self-test passed: ${evalsData.evals.length} evals, ${assertionCount} assertions, ${contracts.length} checker contracts.`);
+}
+
 async function runAssertions(evalDef, htmlPaths, pngPaths, browser) {
   const results = [];
 
@@ -592,6 +660,11 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const evalsData = JSON.parse(fs.readFileSync(EVALS_PATH, 'utf-8'));
 
+  if (opts.selfTest) {
+    await runSelfTest(evalsData);
+    return;
+  }
+
   // Determine which evals to run
   let evalIds = [];
   if (opts.all) {
@@ -682,6 +755,9 @@ async function main() {
     console.log(`\n${'═'.repeat(50)}`);
     console.log(`Aggregate: ${totalPass}/${totalAuto} PASS, ${totalFail} FAIL, ${totalReview} NEEDS_REVIEW`);
   }
+
+  const hasFailures = allReports.some(report => report.error || report.results.some(result => result.status === 'FAIL' || result.status === 'ERROR'));
+  if (hasFailures) process.exitCode = 1;
 }
 
 main().catch(err => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const fs = require('fs');
+const { pathToFileURL } = require('url');
 
 async function main() {
   const args = process.argv.slice(2);
@@ -34,7 +34,7 @@ async function main() {
   });
   const page = await context.newPage();
 
-  const fileUrl = 'file://' + resolvedHtml;
+  const fileUrl = pathToFileURL(resolvedHtml).href;
   await page.goto(fileUrl, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);
 

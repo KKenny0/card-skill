@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { escapeHtml, escapePhrase } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
@@ -92,8 +93,9 @@ function render(input, outputHtmlPath) {
     });
   }
 
-  const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'card');
+  const logoPath = input.logo ? path.resolve(input.logo) : '';
+  const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
+  const hasBranding = Boolean(logoPath || brandName);
 
   // Fill placeholders
   template = template.replaceAll('{{KICKER}}', escapeHtml(input.kicker || ''));
@@ -101,9 +103,16 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{SUBTITLE}}', escapeHtml(input.subtitle || ''));
   template = template.replaceAll('{{BODY_HTML}}', renderBody(input.body));
   template = template.replaceAll('{{SOURCE_LINE}}', input.source ? `<span class="source-line">${escapeHtml(input.source)}</span>` : '');
-  template = template.replaceAll('{{LOGO}}', 'file://' + logoPath);
+  template = template.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
+
+  if (!hasBranding) {
+    template = template.replace(/\s*<footer class="colophon">[\s\S]*?<\/footer>/, '');
+  } else {
+    if (!logoPath) template = template.replace(/\s*<img src="" alt="logo">/, '');
+    if (!brandName) template = template.replace(/\s*<span class="name"><\/span>/, '');
+  }
 
   fs.writeFileSync(outputHtmlPath, template, 'utf-8');
 

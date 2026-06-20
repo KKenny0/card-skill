@@ -23,7 +23,7 @@ Read `assets/big_template.html`
 - 和紙卡片 1036x1396 + 多重 radial-gradient 云晕 + SVG noise 纸张颗粒
 - `<filter id="weathered">` feTurbulence + feDisplacementMap 做旧滤镜（已配置 baseFrequency=0.82, scale=1.8）
 - `.main-text` 默认衬线碑刻字（Noto Serif SC 900 + 刻痕 text-shadow）
-- `.signature` 左下署名栏（logo + 李继刚）
+- `.signature` 左下可选署名栏；仅在用户明确提供署名或品牌时显示
 - 模板变量：`{{FONT_SIZE}}` `{{MAIN_TEXT}}` `{{SOURCE_LINE}}` `{{CUSTOM_CSS}}`
 
 ## 步骤 2：理解内容
@@ -165,7 +165,7 @@ LLM
 | `{{SOURCE_LINE}}` | 来源线 HTML 或空 |
 | `{{CUSTOM_CSS}}` | 额外自定义 CSS（一般留空，模板已足够） |
 
-写入：`/tmp/card_big_{name}.html`
+写入操作系统临时目录：`<system_temp>/card_big_{name}.html`
 
 ## 步骤 4：自检
 
@@ -176,17 +176,17 @@ LLM
 - [ ] 颜色是 `--ink` (#2C2826) 墨色，不是纯黑？
 - [ ] 和紙底色 `--paper` (#F4EFE6)，有云晕纹理？
 - [ ] 外层暗底 22px 创造阴影边框？
-- [ ] 左下署名栏存在（logo + 李继刚）？
+- [ ] 用户提供署名或品牌时，左下署名栏是否正确？未提供时是否完全隐藏？
 - [ ] 朱砂高亮 ≤ 1 处？
 - [ ] 整体视觉：重、旧、悬 三感齐备？
 
 ## 步骤 5：截图
 
 ```bash
-node assets/capture.js \
-  /tmp/card_big_{name}.html \
+node assets/capture4k.js \
+  <system_temp>/card_big_{name}.html \
   ~/Downloads/{name}.png \
-  1080 1440
+  1080 1440 2
 ```
 
 **不用 fullpage**——`-b` 模具是固定画布 1080x1440。

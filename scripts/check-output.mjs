@@ -2,8 +2,9 @@
 
 import { chromium } from 'playwright';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -19,6 +20,7 @@ function parseArgs(argv) {
     fix: false,
     skipPng: false,
     json: false,
+    selfTest: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -51,6 +53,9 @@ function parseArgs(argv) {
       case '--json':
         opts.json = true;
         break;
+      case '--self-test':
+        opts.selfTest = true;
+        break;
       case '--help':
       case '-h':
         printHelp();
@@ -80,6 +85,7 @@ Options:
   --fix           Apply low-risk HTML guards before checking
   --skip-png      Do not require a PNG file
   --json          Print JSON report
+  --self-test     Verify safe placeholder fixes without launching a browser
 `);
 }
 
@@ -92,21 +98,19 @@ function stripHtmlComments(html) {
 }
 
 function fileUrl(filePath) {
-  return 'file://' + path.resolve(filePath).replace(/\\/g, '/');
+  return pathToFileURL(path.resolve(filePath)).href;
 }
 
 function applySafeFixes(htmlPath) {
   let html = fs.readFileSync(htmlPath, 'utf-8');
   let fixed = false;
 
-  const logoUrl = fileUrl(path.join(ROOT, 'assets', 'logo.png'));
-  const avatarUrl = fileUrl(path.join(ROOT, 'assets', 'avatar.png'));
   const fontBase = path.join(ROOT, 'assets', 'fonts').replace(/\\/g, '/');
 
   const replacements = [
-    ['{{LOGO}}', logoUrl],
-    ['{{AVATAR}}', avatarUrl],
-    ['{{PHOTO}}', avatarUrl],
+    ['{{LOGO}}', ''],
+    ['{{AVATAR}}', ''],
+    ['{{PHOTO}}', ''],
     ['{{FONT_BASE}}', fontBase],
   ];
 
@@ -130,6 +134,25 @@ img { max-width: 100%; height: auto; }
 
   if (fixed) fs.writeFileSync(htmlPath, html, 'utf-8');
   return fixed;
+}
+
+function runSelfTest() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-output-check-'));
+  const htmlPath = path.join(tmpDir, 'placeholders.html');
+
+  try {
+    fs.writeFileSync(htmlPath, '<!doctype html><html><head></head><body><img src="{{AVATAR}}"><img src="{{PHOTO}}"><img src="{{LOGO}}"><span>{{FONT_BASE}}</span></body></html>');
+    if (!applySafeFixes(htmlPath)) throw new Error('Safe placeholder fixes were not applied');
+
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    if (/\{\{(?:AVATAR|PHOTO|LOGO)\}\}/.test(html)) throw new Error('Branding placeholder was not cleared');
+    if (/assets\/(?:avatar|logo)\.png/.test(html)) throw new Error('Bundled branding was injected by default');
+    if (!html.includes('/assets/fonts')) throw new Error('Font placeholder was not resolved');
+
+    console.log('Output-check self-test passed: branding placeholders default to empty and the font path placeholder is resolved.');
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 }
 
 function readPngSize(pngPath) {
@@ -536,6 +559,10 @@ function printReport(report, json) {
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  if (opts.selfTest) {
+    runSelfTest();
+    return;
+  }
   if (!opts.html) throw new Error('Missing --html <file>');
   opts.html = path.resolve(opts.html);
   if (!fs.existsSync(opts.html)) throw new Error(`HTML file not found: ${opts.html}`);

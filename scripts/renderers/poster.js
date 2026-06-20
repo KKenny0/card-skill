@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { escapeHtml } = require('../lib/escape');
 const { getDesign } = require('../lib/designs');
 
@@ -59,8 +60,9 @@ function render(input, outputDir) {
   }
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-  const logoPath = path.resolve(input.logo || path.resolve(__dirname, '../../assets/logo.png'));
-  const brandName = escapeHtml(input.brand_name || 'card');
+  const logoPath = input.logo ? path.resolve(input.logo) : '';
+  const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
+  const hasBranding = Boolean(logoPath || brandName);
   const totalCards = input.cards.length;
 
   const results = [];
@@ -84,8 +86,10 @@ function render(input, outputDir) {
 
     // Build colophon block (only for last card)
     let colophonBlock = '';
-    if (isLast) {
-      colophonBlock = `<div class="colophon"><div class="brand-mark"><div class="stripe-bar"></div><span>${brandName}</span></div><img class="logo-mark" src="file://${logoPath}" alt="logo"><span class="endmark">■</span></div>`;
+    if (isLast && hasBranding) {
+      const brandMark = brandName ? `<div class="brand-mark"><div class="stripe-bar"></div><span>${brandName}</span></div>` : '';
+      const logoMark = logoPath ? `<img class="logo-mark" src="${escapeHtml(pathToFileURL(logoPath).href)}" alt="logo">` : '';
+      colophonBlock = `<div class="colophon">${brandMark}${logoMark}<span class="endmark">■</span></div>`;
     }
 
     // Fill template
@@ -104,12 +108,12 @@ function render(input, outputDir) {
     html = html.replaceAll('{{TITLE_BLOCK}}', titleBlock);
     html = html.replaceAll('{{BODY_HTML}}', Array.isArray(card.body) ? renderCardBody(card.body) : '');
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophonBlock);
-    html = html.replaceAll('{{LOGO}}', 'file://' + logoPath);
+    html = html.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');
     html = html.replaceAll('{{BRAND_NAME}}', brandName);
     html = html.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
     html = html.replaceAll('{{PAGE_INFO}}', ''); // documented in comment but not used in body
 
-    const htmlFileName = `card_poster_${Date.now()}_${i + 1}.html`;
+    const htmlFileName = `card_poster_${i + 1}.html`;
     const htmlPath = path.join(outputDir, htmlFileName);
     fs.writeFileSync(htmlPath, html, 'utf-8');
 

@@ -1,0 +1,41 @@
+name: Share a card
+description: Submit a card made with card-skill for the community showcase.
+title: "[Showcase] "
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for sharing what you made. Please avoid including private or sensitive content.
+  - type: textarea
+    id: work
+    attributes:
+      label: Generated work
+      description: Drag the generated image here, or add a public image link.
+      placeholder: Drop your image here.
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Prompt
+      description: Share the prompt or source content you used. Redact anything sensitive.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and version
+      description: Which agent and version of card-skill produced this result?
+      placeholder: "Codex; card-skill v0.2.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: permission
+    attributes:
+      label: Showcase permission
+      description: May maintainers feature this work in the repository or project channels with attribution?
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true

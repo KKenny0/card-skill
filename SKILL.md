@@ -15,14 +15,25 @@ version: "0.2.0"
 
 默认直接产出可用 PNG，不要先让用户做选择题。除非用户明确要求“给我几个方向 / 换一批 / 先选风格”，否则自动选择最合适的 mode、design 和画面方向，并在验证通过后交付。
 
+优先从用户的发布任务理解需求，再映射到内部 mode；不要要求用户先学习 mode 名称：
+
+| 用户任务 | 默认入口 |
+|----------|----------|
+| 公众号头图 / 封面 | `editorial-image` + `wechat-cover` |
+| 公众号正文配图 | `editorial-image` + `body-3-2` |
+| 小红书 / 社媒卡片 | 单一观点优先 `big`，多观点或系列优先 `poster`，结构化知识优先 `infograph` |
+| 推理过程 / 关系梳理 / 白板 | `whiteboard` |
+
+这些只是入口映射，不新增 mode；内容结构明显更适合其他现有 mode 时，自动改走更合适的路线。
+
 ## 参数
 
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
 | `--design` | 指定设计系统（跳过自动匹配） | 空（自动选择） |
-| `--dpr` | 设备像素比 | 2（4K 质量） |
-| `--author` | 署名文字 | Kenny Wu |
-| `--photo` | 署名头像 URL/路径 | assets/avatar.png |
+| `--dpr` | 设备像素比 | 2（2× 像素密度） |
+| `--author` | 可选署名文字；只在用户明确提供时渲染 | 空 |
+| `--photo` | 可选署名头像 URL/路径；只在用户明确提供时渲染 | 空 |
 
 ## 执行流程
 
@@ -46,13 +57,14 @@ version: "0.2.0"
 
 **CLI 路径**：
 1. 从内容中提取结构化 JSON，符合对应 mode 的 schema
-2. 写入临时文件 `card_input.json`
+2. 将 JSON 写入操作系统临时目录，不要写进 repo
 3. 调用：
 ```bash
-node scripts/card.js --input card_input.json --output ~/Downloads/{name}.png
+node scripts/card.js --input <system_temp>/card_input_{timestamp}.json --output ~/Downloads/{name}.png
 ```
-4. CLI 成功 → 脚本已完成出厂检查、截图和复查；直接进入 Step 8 交付
-5. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
+4. 无论成功或失败，都删除本次临时 JSON
+5. CLI 成功 → 脚本已完成预检、DPR 2 截图和脚本复查；实际查看 PNG 后进入 Step 8 交付
+6. CLI 失败 → 报告错误，降级到 AI 全流程（继续 Step 1）
 
 **JSON schema 结构**（每个 mode 的完整定义见 `schemas/` 目录）：
 
@@ -228,13 +240,14 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 5. 根据内容分析设计画面（密度/结构/锚点），原则同 ljg-card 信息图模式
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
-7. 写入临时文件 `card_{name}.html`
+7. 写入操作系统临时目录中的 `card_{name}.html`
 
 **AI-only / 手工 HTML 交付约定**：
-- infograph / comic / sketchnote，以及 CLI 失败后降级的手工 HTML，统一把 HTML 写到 repo 内 `tmp/` 目录，避免 Windows 环境下 `/tmp` 路径解析失败
+- infograph / comic / sketchnote，以及 CLI 失败后降级的手工 HTML，统一把 HTML 写到操作系统临时目录（macOS/Linux 使用系统 temp；Windows 使用 `%TEMP%`），不要在 repo 内创建 `tmp/`
 - PNG 输出到 `~/Downloads/`，文件名用内容主题或 mode 命名，避免只叫 `output.png`
 - 生成 HTML 后必须走 Step 5-7；不能只保存 HTML 或只报告“已完成”
 - 最终交付前必须实际查看 PNG，确认不是空白、裁切、文字重叠、主体太小或视觉关系不清
+- 交付完成后删除本次生成的临时 HTML/JSON；不要删除其他进程或用户已有的临时文件
 
 **poster 模式特殊**：每个卡片独立写入，文件名带序号 `card_{name}_{N}.html`。
 
@@ -258,11 +271,11 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 4. **禁止跨卡漂移**：不同卡之间，相同语义层级的元素必须使用相同字号。例如，如果卡 1 的正文是 36px，卡 2 的正文也必须是 36px。只有布局结构（grid、flex、positioning）允许因内容不同而变化。
 
-**署名参数**：`--author` 替换 footer 左侧文字，`--photo` 作为 footer 头像。未指定时，默认署名为 Kenny Wu，默认头像为 `assets/avatar.png` 的绝对路径。
+**署名参数**：`--author` 和 `--photo` 都是可选的 skill 输入，不是 `scripts/card.js` 的 CLI 参数。只有用户明确提供时才把署名或头像写进 footer；未提供时，两者都替换为空字符串并隐藏对应元素。不要把任何维护者身份或仓库素材作为用户产物的默认值。尤其要在 Step 5 前清空未使用的 `{{AVATAR}}` / `{{PHOTO}}` 占位符。
 
 ### Step 5: 出厂检查
 
-本步骤只适用于 AI / 手工 HTML 路径。CLI 路径由 `scripts/card.js` 内部自动执行预检、截图和复查。
+本步骤只适用于 AI / 手工 HTML 路径。CLI 路径由 `scripts/card.js` 内部自动执行预检、`capture4k.js` 截图和脚本复查，但仍需人工看图。
 
 生成 HTML 后先运行低风险修复 + 预检：
 
@@ -273,7 +286,7 @@ node scripts/check-output.mjs --html <html_path> --width 1080 --height 800 --dpr
 固定画布模式（big / poster）不要加 `--fullpage`，并使用该模式的截图高度（通常 1440）。
 
 预检会自动修复：
-- `{{LOGO}}` / `{{AVATAR}}` / `{{PHOTO}}` / `{{FONT_BASE}}` 这类基础路径占位符
+- `{{LOGO}}` / `{{FONT_BASE}}` 等基础路径占位符；`{{AVATAR}}` / `{{PHOTO}}` 只允许在用户明确提供头像时保留，未提供时必须在预检前清空
 - 横向溢出保护
 - 图片基础缩放保护
 
@@ -351,10 +364,11 @@ npm test
 CLI 路径 smoke test 可用最小 big-mode 输入跑一次：
 
 ```powershell
-[pscustomobject]@{ mode='big'; phrase='Clarity beats noise'; design='apple' } | ConvertTo-Json -Compress | node scripts/card.js --stdin --output tmp/smoke_big.png
+$output = Join-Path $env:TEMP 'smoke_big.png'
+[pscustomobject]@{ mode='big'; phrase='Clarity beats noise'; design='apple' } | ConvertTo-Json -Compress | node scripts/card.js --stdin --output $output
 ```
 
-生成后实际查看 PNG，确认画面不是只满足文件存在。
+生成后实际查看 PNG，确认画面不是只满足文件存在；检查完成后删除该 smoke PNG。
 
 ## 开发者工具（非 AI 流程使用）
 
@@ -363,4 +377,3 @@ CLI 路径 smoke test 可用最小 big-mode 输入跑一次：
 | `scripts/gallery_render.js` | 渲染所有 design×mode 组合，生成静态展示页 |
 | `scripts/batch_render_covers.js` | 批量生成亮色封面截图 |
 | `scripts/batch_render_covers_dark.js` | 批量生成暗色封面截图 |
-| `scripts/picker_server.js` | 本地 HTTP 服务器，配合 `assets/candidate_picker.html` 提供候选选择 UI |

@@ -39,13 +39,11 @@
     },
     "logo": {
       "type": "string",
-      "description": "Path to brand logo image. Default: assets/logo.png",
-      "default": "assets/logo.png"
+      "description": "Optional path to a brand logo image. Omit for an unbranded output."
     },
     "brand_name": {
       "type": "string",
-      "description": "Brand name in colophon footer. Default: 'card'",
-      "default": "card"
+      "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
     }
   },
   "examples": [

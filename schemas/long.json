@@ -97,7 +97,7 @@
       "description": "Optional source attribution line.",
       "default": ""
     },
-    "logo": { "type": "string", "default": "assets/logo.png" },
-    "brand_name": { "type": "string", "default": "card" }
+    "logo": { "type": "string", "description": "Optional path to a brand logo image. Omit for an unbranded output." },
+    "brand_name": { "type": "string", "description": "Optional brand name in the colophon footer. Omit for an unbranded output." }
   }
 }
