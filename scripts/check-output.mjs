@@ -234,7 +234,7 @@ async function inspectPage(opts, issues) {
     await page.goto(fileUrl(opts.html), { waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
 
-    const report = await page.evaluate(({ width, height, fullpage }) => {
+    const report = await page.evaluate(async ({ width, height, fullpage }) => {
       const viewportWidth = width;
       const viewportHeight = fullpage ? document.documentElement.scrollHeight : height;
       const doc = document.documentElement;
@@ -389,6 +389,82 @@ async function inspectPage(opts, issues) {
         }
       }
 
+      // ===== SVG text overflow: g > rect/circle/ellipse + text =====
+      // Detects pill/badge/label containers where text spills past the shape.
+      const svgTextOverflows = [];
+      for (const svg of document.querySelectorAll('svg')) {
+        for (const g of svg.querySelectorAll('g')) {
+          const shape = g.querySelector(':scope > rect, :scope > circle, :scope > ellipse');
+          const texts = g.querySelectorAll(':scope > text');
+          if (!shape || texts.length === 0) continue;
+          if (!isVisible(g) && !isVisible(shape)) continue;
+          const shapeBox = shape.getBoundingClientRect();
+          if (shapeBox.width === 0 || shapeBox.height === 0) continue;
+          const PAD = 2; // tolerance for sub-pixel anti-aliasing
+          for (const text of texts) {
+            const textBox = text.getBoundingClientRect();
+            if (textBox.width === 0 || textBox.height === 0) continue;
+            const overflowRight = textBox.right - (shapeBox.right - PAD);
+            const overflowLeft = (shapeBox.left + PAD) - textBox.left;
+            if (overflowRight > 0 || overflowLeft > 0) {
+              svgTextOverflows.push({
+                groupTransform: g.getAttribute('transform') || '(none)',
+                shape: shape.tagName,
+                text: (text.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+                shapeRight: Math.round(shapeBox.right),
+                textRight: Math.round(textBox.right),
+                overflowPx: Math.round(Math.max(overflowRight, overflowLeft)),
+              });
+            }
+          }
+        }
+      }
+
+      // ===== Font load failure: @font-face declared but not actually loaded =====
+      // Catches silent fallback when @font-face src URL is wrong, file is
+      // .gitignored out, or font name has a typo. Browser still renders text
+      // using a fallback family, hiding the failure visually but breaking
+      // typography metrics.
+      const fontLoadFailures = [];
+      const declaredFonts = [];
+      try {
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try { rules = sheet.cssRules; } catch (e) { continue; }
+          if (!rules) continue;
+          for (const rule of rules) {
+            if (rule instanceof CSSFontFaceRule) {
+              const family = rule.style.getPropertyValue('font-family');
+              if (!family) continue;
+              declaredFonts.push(family.replace(/['"]/g, '').trim());
+            }
+          }
+        }
+      } catch (e) { /* CSSOM blocked, skip */ }
+
+      if (declaredFonts.length > 0 && document.fonts) {
+        try { await document.fonts.ready; } catch (e) { /* timeout */ }
+        for (const family of [...new Set(declaredFonts)]) {
+          let ok = false;
+          try { ok = document.fonts.check(`16px "${family}"`); } catch (e) { continue; }
+          if (ok) continue;
+          // Find actual fallback by inspecting elements that requested this family
+          let fallback = 'unknown';
+          for (const el of document.querySelectorAll('*')) {
+            const cs = window.getComputedStyle(el);
+            const cssFamily = cs.fontFamily || '';
+            if (cssFamily.toLowerCase().includes(family.toLowerCase())) {
+              fallback = cssFamily.slice(0, 120);
+              break;
+            }
+          }
+          fontLoadFailures.push({
+            declaredFamily: family,
+            fallbackFamily: fallback,
+          });
+        }
+      }
+
       return {
         scrollWidth: Math.max(doc.scrollWidth, body.scrollWidth),
         clientWidth: doc.clientWidth,
@@ -398,6 +474,8 @@ async function inspectPage(opts, issues) {
         bounds: bounds.slice(0, 20),
         textSizes,
         headlineLines: headlineLines.slice(0, 20),
+        svgTextOverflows: svgTextOverflows.slice(0, 10),
+        fontLoadFailures: fontLoadFailures.slice(0, 10),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
 
@@ -425,6 +503,18 @@ async function inspectPage(opts, issues) {
       issues.push(issue('error', 'element_out_of_bounds', 'Visible elements extend outside the captured area.', {
         elements: report.bounds,
       }));
+    }
+
+    if (report.svgTextOverflows.length > 0) {
+      issues.push(issue('error', 'svg_text_overflow',
+        'SVG text extends past its container shape (rect/circle/ellipse). Widen the shape, shorten the text, or reduce font-size.',
+        { elements: report.svgTextOverflows }));
+    }
+
+    if (report.fontLoadFailures.length > 0) {
+      issues.push(issue('error', 'font_load_failed',
+        '@font-face declared but the font did not actually load. Browser fell back silently. Check the @font-face src URL, the .gitignore (fonts must be tracked), and the font-family spelling.',
+        { elements: report.fontLoadFailures }));
     }
 
     const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;

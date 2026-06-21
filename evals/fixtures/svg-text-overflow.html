@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG text overflow fixture</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: #f6f4ee; }
+    .page { width: 1080px; height: 720px; padding: 80px; box-sizing: border-box; }
+    h1 { font-size: 56px; font-family: serif; color: #172434; margin: 0 0 40px 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Fixture: SVG text overflow</h1>
+    <svg viewBox="0 0 460 100" width="460" height="100" xmlns="http://www.w3.org/2000/svg">
+      <!-- This rect is intentionally too narrow for the text. check-output.mjs
+           should report svg_text_overflow ERROR. -->
+      <g transform="translate(20, 20)">
+        <rect x="0" y="0" width="80" height="22" fill="rgba(49,77,115,0.10)" stroke="#314d73" stroke-width="0.7"/>
+        <circle cx="11" cy="11" r="3" fill="#314d73"/>
+        <text x="22" y="15" font-family="JetBrains Mono, monospace" font-size="10" fill="#172434" letter-spacing="1.2">curl raw.github</text>
+      </g>
+    </svg>
+  </div>
+</body>
+</html>
