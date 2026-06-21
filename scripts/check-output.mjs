@@ -391,7 +391,12 @@ async function inspectPage(opts, issues) {
 
       // ===== SVG text overflow: g > rect/circle/ellipse + text =====
       // Detects pill/badge/label containers where text spills past the shape.
+      // Only flags text that overlaps the shape and extends past its edge by
+      // more than TOLERANCE px. Text fully outside the shape (e.g. a label
+      // placed beside a rect, not inside it) is skipped — that is a design
+      // intent, not overflow.
       const svgTextOverflows = [];
+      const OVERFLOW_TOLERANCE = 2; // allow text to align flush with shape edge
       for (const svg of document.querySelectorAll('svg')) {
         for (const g of svg.querySelectorAll('g')) {
           const shape = g.querySelector(':scope > rect, :scope > circle, :scope > ellipse');
@@ -400,13 +405,17 @@ async function inspectPage(opts, issues) {
           if (!isVisible(g) && !isVisible(shape)) continue;
           const shapeBox = shape.getBoundingClientRect();
           if (shapeBox.width === 0 || shapeBox.height === 0) continue;
-          const PAD = 2; // tolerance for sub-pixel anti-aliasing
           for (const text of texts) {
             const textBox = text.getBoundingClientRect();
             if (textBox.width === 0 || textBox.height === 0) continue;
-            const overflowRight = textBox.right - (shapeBox.right - PAD);
-            const overflowLeft = (shapeBox.left + PAD) - textBox.left;
-            if (overflowRight > 0 || overflowLeft > 0) {
+            // Skip text that sits fully outside the shape — likely a label
+            // placed beside the shape, not an overflow of the shape's content.
+            const fullyOutsideHorizontal = textBox.right <= shapeBox.left || textBox.left >= shapeBox.right;
+            const fullyOutsideVertical = textBox.bottom <= shapeBox.top || textBox.top >= shapeBox.bottom;
+            if (fullyOutsideHorizontal || fullyOutsideVertical) continue;
+            const overflowRight = textBox.right - shapeBox.right;
+            const overflowLeft = shapeBox.left - textBox.left;
+            if (overflowRight > OVERFLOW_TOLERANCE || overflowLeft > OVERFLOW_TOLERANCE) {
               svgTextOverflows.push({
                 groupTransform: g.getAttribute('transform') || '(none)',
                 shape: shape.tagName,
