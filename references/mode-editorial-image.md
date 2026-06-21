@@ -224,6 +224,26 @@ Use these rules whenever lines, arrows, wires, rails, or flow paths appear:
 - Prefer short connector segments, subtle anchor dots, or orthogonal routes over long diagonal lines that slice through the composition.
 - Avoid fake precision. If the relationship is metaphorical rather than literal, use spacing, alignment, grouping, or repeated forms before adding lines.
 
+## SVG Text Inside Containers
+
+When an SVG `<text>` element sits inside a `<rect>`, `<circle>`, or `<ellipse>` (the pill / badge / label / button / tag pattern), the shape must be wide enough to contain the text plus padding. The preflight (`scripts/check-output.mjs`) automatically measures rendered text bounding box against the shape and fails with `svg_text_overflow` ERROR if text spills past the shape by more than 2px.
+
+To avoid the failure, budget the rect width before writing the SVG:
+
+| Token type | Width estimate |
+|---|---|
+| CJK character | `1.0 × font-size` |
+| ASCII character (mono) | `0.55 × font-size` |
+| ASCII character (proportional) | `0.50 × font-size` |
+| `letter-spacing` | add `spacing × (chars − 1)` |
+| Dot / icon prefix | `cx + r + 8px` of clearance before text starts |
+
+Formula: `rect.width ≥ (text_start_x − rect.x) + text_width + 16px padding`.
+
+When unsure, prefer the wider rect. The preflight catches underestimates; overestimates are visually harmless.
+
+Example: a pill containing `dot(cx=11, r=3) + text("curl raw.github", font-size=10, letter-spacing=1.2)` needs at least `22 (start) + 14 chars × 5.5px + 13 gaps × 1.2px + 16 (pad) ≈ 130px`. The instinct to write `width="116"` will fail.
+
 ## Anti-Patterns
 
 - **Title rebus**: drawing every noun in the title.
