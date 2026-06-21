@@ -116,7 +116,7 @@ npm install
 npx playwright install chromium
 ```
 
-渲染模板会优先使用本地字体；字体文件不是运行前提。缺少 Xiangcui 字体时，浏览器会回退到系统中文字体（如苹方、宋体或对应平台字体），版面观感可能略有变化。
+字体随 skill 一起分发。`assets/fonts/` 包含 4 个 OFL 1.1 开源字体（XiangcuiDengcusong、香萃打字机体 W15/W40、NanxiChuxiasong），共 ~57MB。安装时 `npx skills add` 自动拉取，无需额外下载。字体 license 见 `assets/fonts/LICENSE-fonts.md` 与 `assets/fonts/OFL-1.1.txt`。预检脚本会在每次出图时验证字体是否真加载，避免静默 fallback 到系统中文字体。
 
 默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同模式和比例会有不同高度，不应理解为固定的 4K 宽图。
 
