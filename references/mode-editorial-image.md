@@ -242,7 +242,7 @@ Formula: `rect.width ≥ (text_start_x − rect.x) + text_width + 16px padding`.
 
 When unsure, prefer the wider rect. The preflight catches underestimates; overestimates are visually harmless.
 
-Example: a pill containing `dot(cx=11, r=3) + text("curl raw.github", font-size=10, letter-spacing=1.2)` needs at least `22 (start) + 14 chars × 5.5px + 13 gaps × 1.2px + 16 (pad) ≈ 130px`. The instinct to write `width="116"` will fail.
+Example: a pill containing `dot(cx=11, r=3) + text("curl raw.github", font-size=10, letter-spacing=1.2)` needs at least `22 (start) + 14 × (0.55 × 10)px + 13 × 1.2px + 16 (pad) ≈ 130px`. The instinct to write `width="116"` will fail.
 
 ## Anti-Patterns
 
