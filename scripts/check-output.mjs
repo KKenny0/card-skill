@@ -474,6 +474,45 @@ async function inspectPage(opts, issues) {
         }
       }
 
+      // ===== SVG text outside viewBox: hard constraint, zero threshold =====
+      // Any SVG <text> whose rendered bounding box exceeds any edge of the
+      // SVG's viewBox (left < 0, top < 0, right > width, bottom > height)
+      // is an ERROR. This is a boolean check, not a padding threshold.
+      // Visual "near-edge" tightness is handled by the SVG ViewBox Design
+      // Principle in mode-editorial-image.md (viewBox includes padding),
+      // not by this runtime check.
+      const svgTextOutsideViewbox = [];
+      for (const svg of document.querySelectorAll('svg')) {
+        const vb = svg.viewBox && svg.viewBox.baseVal;
+        if (!vb || vb.width === 0 || vb.height === 0) continue;
+        const svgBox = svg.getBoundingClientRect();
+        if (svgBox.width === 0 || svgBox.height === 0) continue;
+        const scaleX = vb.width / svgBox.width;
+        const scaleY = vb.height / svgBox.height;
+        for (const text of svg.querySelectorAll('text')) {
+          if (!isVisible(text)) continue;
+          const textBox = text.getBoundingClientRect();
+          if (textBox.width === 0 || textBox.height === 0) continue;
+          const left_vb = (textBox.left - svgBox.left) * scaleX;
+          const right_vb = (textBox.right - svgBox.left) * scaleX;
+          const top_vb = (textBox.top - svgBox.top) * scaleY;
+          const bottom_vb = (textBox.bottom - svgBox.top) * scaleY;
+          const TOL = 0.5; // sub-unit tolerance for float rounding
+          const violations = [];
+          if (left_vb < -TOL) violations.push({ edge: 'left', value: Math.round(left_vb * 10) / 10 });
+          if (top_vb < -TOL) violations.push({ edge: 'top', value: Math.round(top_vb * 10) / 10 });
+          if (right_vb > vb.width + TOL) violations.push({ edge: 'right', value: Math.round(right_vb * 10) / 10, limit: vb.width });
+          if (bottom_vb > vb.height + TOL) violations.push({ edge: 'bottom', value: Math.round(bottom_vb * 10) / 10, limit: vb.height });
+          if (violations.length > 0) {
+            svgTextOutsideViewbox.push({
+              text: (text.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+              viewBox: `${vb.width}x${vb.height}`,
+              violations,
+            });
+          }
+        }
+      }
+
       return {
         scrollWidth: Math.max(doc.scrollWidth, body.scrollWidth),
         clientWidth: doc.clientWidth,
@@ -485,6 +524,7 @@ async function inspectPage(opts, issues) {
         headlineLines: headlineLines.slice(0, 20),
         svgTextOverflows: svgTextOverflows.slice(0, 10),
         fontLoadFailures: fontLoadFailures.slice(0, 10),
+        svgTextOutsideViewbox: svgTextOutsideViewbox.slice(0, 10),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
 
@@ -524,6 +564,12 @@ async function inspectPage(opts, issues) {
       issues.push(issue('error', 'font_load_failed',
         '@font-face declared but the font did not actually load. Browser fell back silently. Check the @font-face src URL, the .gitignore (fonts must be tracked), and the font-family spelling.',
         { elements: report.fontLoadFailures }));
+    }
+
+    if (report.svgTextOutsideViewbox.length > 0) {
+      issues.push(issue('error', 'svg_text_outside_viewbox',
+        'SVG text bounding box exceeds the viewBox rectangle. Every <text> must render fully inside its SVG viewBox. Fix by widening the viewBox, moving the text inward, or shortening the string.',
+        { elements: report.svgTextOutsideViewbox }));
     }
 
     const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;

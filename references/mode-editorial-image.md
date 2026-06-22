@@ -224,6 +224,29 @@ Use these rules whenever lines, arrows, wires, rails, or flow paths appear:
 - Prefer short connector segments, subtle anchor dots, or orthogonal routes over long diagonal lines that slice through the composition.
 - Avoid fake precision. If the relationship is metaphorical rather than literal, use spacing, alignment, grouping, or repeated forms before adding lines.
 
+## SVG ViewBox Design Principle
+
+The `viewBox` attribute is **not** the content area. It is the rendered canvas, including padding. Treating `viewBox` as the content area is the most common cause of text "touching the edge" — the text never literally overflows the viewBox, but it sits flush against it with no visual breathing room.
+
+**Rule: viewBox = content bbox + four-sided padding.** When authoring an SVG:
+
+1. First, determine the content bounding box — the tightest rectangle that contains every shape, line, and the intended text position. Example: content spans `x = 30..430`, `y = 50..540`.
+2. Then choose a padding value (`PAD`, typically 20–40 viewBox units for an editorial illustration).
+3. Set `viewBox = (content.min_x − PAD) (content.min_y − PAD) (content.width + 2·PAD) (content.height + 2·PAD)`. Example above with `PAD = 20`: `viewBox="10 30 440 530"`.
+4. Place every `<text>` inside the content bbox. Text never relies on the viewBox padding zone for its position.
+
+### Common anti-patterns
+
+- `viewBox="0 0 460 560"` with `<text x="440" text-anchor="end">` — the text right edge lands 20 units from the viewBox right edge, which is the padding zone, not a comfortable margin. Either move the text inward (`x = content.right − 4`) or shrink the viewBox to match the content (`viewBox="20 20 420 520"` if content is `[20..440] × [20..540]`).
+- `viewBox="0 0 200 100"` with `<text x="200">` — text right edge touches viewBox right edge. Always leave content room inside the viewBox.
+- Inlining a long label without measuring — assume ASCII mono = 0.55 × font-size per char, then budget the rect/viewBox accordingly before writing the SVG.
+
+### What the preflight catches
+
+`scripts/check-output.mjs` enforces a **hard constraint** (`svg_text_outside_viewbox`): any `<text>` whose rendered bounding box exceeds the viewBox rectangle on any side is an ERROR. This is a boolean check, zero threshold — the text either fits inside the viewBox or it does not.
+
+The preflight does **not** enforce a visual-edge-padding threshold. Tight-but-inside layout is allowed by the runtime check. Avoiding tightness is the designer's (and the AI author's) job, using the principle above: design the viewBox with padding, then keep text inside the content area.
+
 ## SVG Text Inside Containers
 
 When an SVG `<text>` element sits inside a `<rect>`, `<circle>`, or `<ellipse>` (the pill / badge / label / button / tag pattern), the shape must be wide enough to contain the text plus padding. The preflight (`scripts/check-output.mjs`) automatically measures rendered text bounding box against the shape and fails with `svg_text_overflow` ERROR if text spills past the shape by more than 2px.
