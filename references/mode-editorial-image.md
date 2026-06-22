@@ -267,6 +267,51 @@ When unsure, prefer the wider rect. The preflight catches underestimates; overes
 
 Example: a pill containing `dot(cx=11, r=3) + text("curl raw.github", font-size=10, letter-spacing=1.2)` needs at least `22 (start) + 14 × (0.55 × 10)px + 13 × 1.2px + 16 (pad) ≈ 130px`. The instinct to write `width="116"` will fail.
 
+## SVG Label Positioning Principle
+
+Every SVG `<text>` label must sit at the visual center of the element it **semantically annotates** — not at the edge of the SVG, not at the edge of a sibling container, not where it merely "avoids overlap" with another label.
+
+### Rule
+
+For each `<text>` in an SVG:
+
+1. Identify the element the label is naming or annotating (a line, a rect, a circle, a region, a path, a group). The label describes a property of that element ("GPU HBM ceiling", "overflow zone", "FLOPs", "shared foundation").
+2. Compute that element's bounding-box center: `(bbox.x + bbox.width/2, bbox.y + bbox.height/2)`.
+3. Place the label's anchor at that center with `text-anchor="middle"`. If the label sits *above* the element, subtract ~1em from y (one line height); if *below*, add ~1em.
+
+### Why this principle exists
+
+Labels positioned at "the edge of their target" (`text-anchor="end" x="line.right"`) carry two failure modes at once:
+
+- They hug the viewBox edge → visual tightness against the SVG boundary.
+- They look "attached to the side" of the element rather than "naming" it → semantic ambiguity (does the label describe the line, the adjacent container, or the SVG edge?).
+
+Centering on the annotated object removes both failures and makes the label-to-target relationship unambiguous.
+
+### When centered labels visually overlap
+
+Two labels can land near each other when their annotated objects share a band (e.g., a global ceiling line at y=100 and a local overflow region at y=70..100). Resolution, in order of preference:
+
+1. **Background contrast** — give each label a `fill` that contrasts with what's directly behind it (white text on a dark overflow block, dark text on the paper background). The labels read as belonging to different visual layers even when horizontally close.
+2. **Vertical offset above vs. below** — if the annotated objects allow it, place one label above its object and the other below, doubling the vertical separation.
+3. **Drop one label** — if the element is self-evident from its rendering (e.g., a dark overflow block already shows overflow), the label is decoration, not information. Cut it.
+
+**Never resolve overlap by moving a label off-center.** Off-center labels are the bug; overlap is the symptom that exposes the underlying object-layout problem. Fix the layout (or apply the list above), don't drift the label.
+
+### Anti-patterns
+
+- `text-anchor="end" x="line.right.x"` on a full-width reference line — the label lands at the viewBox's right padding zone, not at the line's semantic center. Use `text-anchor="middle" x="line.center.x"` instead.
+- `text-anchor="end" x="container.right + small offset"` — the label "hangs off" the container edge. Use `text-anchor="middle" x="container.center.x"` instead.
+- Two labels at the same y-coordinate using `text-anchor="end"` and `text-anchor="start"` to "avoid each other" — this is the symptom of off-center placement. Either center each on its own annotated object, or drop the redundant label.
+
+### Worked example
+
+Diagram with a horizontal ceiling line spanning `x = 40..420` and a vertical overflow block centered at `x = 330, y = 70..100`:
+
+✗ `ceiling-label x=420 text-anchor="end"` (hugs viewBox edge) + `overflow-label x=244 text-anchor="end"` (hangs off container left) — two off-center labels collide visually and read ambiguously.
+
+✓ `ceiling-label x=230 text-anchor="middle"` (center of line bbox 40..420) + `overflow-label x=330 text-anchor="middle" fill="#f6f4ee"` (center of overflow block, white text on dark fill) — both labels centered on their annotated object, separated by background contrast instead of position hacking.
+
 ## Anti-Patterns
 
 - **Title rebus**: drawing every noun in the title.

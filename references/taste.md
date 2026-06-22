@@ -240,3 +240,4 @@ document.fonts.check('16px XiangcuiDengcusong')  // true 才算加载成功
 - [ ] 卡片、阴影、色块是否足够少？能否继续用留白或 hairline 降噪？
 - [ ] SVG 内 `<text>` 是否在所属 `<rect>/<circle>/<ellipse>` 内（按字宽公式留 ≥16px padding）？
 - [ ] 每个 `@font-face` 都已真加载（无静默 fallback 到系统字体）？
+- [ ] SVG 内每个 `<text>` 是否在它语义标注对象的 bbox 正中央（`text-anchor="middle"` + 对象中心坐标）？标签不"挂在边缘"或"避其他标签"，重叠用背景色对比或垂直分离解决。
