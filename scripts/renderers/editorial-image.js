@@ -107,7 +107,7 @@ function baseCss(input, design, aspect) {
 
     .editorial-copy h1 {
       max-width: 680px;
-      font-family: var(--serif), var(--zh-serif);
+      font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
       font-size: ${aspect.height <= 500 ? '64px' : '84px'};
       line-height: 1.03;
       letter-spacing: 0;

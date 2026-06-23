@@ -453,7 +453,21 @@ async function inspectPage(opts, issues) {
 
       if (declaredFonts.length > 0 && document.fonts) {
         try { await document.fonts.ready; } catch (e) { /* timeout */ }
+        // Only check fonts actually applied to at least one element.
+        // Templates may declare @font-face families that the current render
+        // never uses (e.g. editorial-image inherits infograph_template's
+        // XiangcuiDazijiti but only renders XiangcuiDengcusong). Browsers
+        // don't load unused families, so document.fonts.check() returns
+        // false for them — a false positive that fails the build.
+        const appliedFamilies = new Set();
+        for (const el of document.querySelectorAll('*')) {
+          const families = window.getComputedStyle(el).fontFamily || '';
+          for (const f of families.split(',')) {
+            appliedFamilies.add(f.trim().replace(/['"]/g, '').toLowerCase());
+          }
+        }
         for (const family of [...new Set(declaredFonts)]) {
+          if (!appliedFamilies.has(family.toLowerCase())) continue;
           let ok = false;
           try { ok = document.fonts.check(`16px "${family}"`); } catch (e) { continue; }
           if (ok) continue;
