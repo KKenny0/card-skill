@@ -29,7 +29,7 @@ function defaultAspect(input) {
 }
 
 function renderDefaultContent(input, aspect) {
-  const kicker = escapeHtml(input.kicker || aspect.label);
+  const kicker = input.kicker ? `<p class="editorial-kicker">${escapeHtml(input.kicker)}</p>` : '';
   const title = escapePhrase(input.title);
   const subtitle = input.subtitle ? `<p class="editorial-subtitle">${escapeHtml(input.subtitle)}</p>` : '';
   const metaphor = escapeHtml(input.visual_metaphor || input.art_direction || '');
@@ -37,7 +37,7 @@ function renderDefaultContent(input, aspect) {
   return `
     <section class="editorial-frame editorial-${aspect.key}" data-metaphor="${metaphor}">
       <div class="editorial-copy">
-        <p class="editorial-kicker">${kicker}</p>
+        ${kicker}
         <h1>${title}</h1>
         ${subtitle}
       </div>
