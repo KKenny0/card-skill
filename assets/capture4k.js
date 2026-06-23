@@ -36,7 +36,11 @@ async function main() {
 
   const fileUrl = pathToFileURL(resolvedHtml).href;
   await page.goto(fileUrl, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(800);
+  // Wait for web/local fonts to actually load before screenshotting.
+  // The old `waitForTimeout(800)` was a fixed guess; on slow disks the 23MB
+  // XiangcuiDengcusong TTF can still be mid-decode at 800ms, producing a
+  // silent fallback to system CJK fonts.
+  await page.evaluate(() => document.fonts.ready);
 
   if (fullpage) {
     // Measure actual content height
