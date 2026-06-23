@@ -53,6 +53,23 @@ function renderDefaultContent(input, aspect) {
 
 function baseCss(input, design, aspect) {
   const textPlan = input.text_plan ? `/* text plan: ${input.text_plan.replace(/\*\//g, '')} */` : '';
+
+  // Dynamic h1 font-size: title visual width vs copy column capacity.
+  // Copy column ~453px in the 2-col grid. At 84px CJK ≈ 5 chars/line (orphan-prone);
+  // 64px ≈ 7 chars/line; 52px ≈ 9 chars/line. Pick the smallest size that lets the
+  // title wrap cleanly without producing a 1-2 char orphan last line.
+  // CJK weight 2, Latin/digit 1, space 0.5. Title weight ≤10 fits at 84px,
+  // ≤14 fits at 64px, otherwise 52px.
+  const titleWeight = [...(input.title || '')].reduce((sum, c) => {
+    if (/\s/.test(c)) return sum + 0.5;
+    if (c.charCodeAt(0) > 0x3400) return sum + 2;
+    return sum + 1;
+  }, 0);
+  const titleFontSize = aspect.height <= 500 ? 64
+                      : titleWeight <= 10 ? 84
+                      : titleWeight <= 14 ? 64
+                      : 52;
+
   return `
     :root {
       --bg: ${design.canvas};
@@ -108,7 +125,7 @@ function baseCss(input, design, aspect) {
     .editorial-copy h1 {
       max-width: 680px;
       font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
-      font-size: ${aspect.height <= 500 ? '64px' : '84px'};
+      font-size: ${titleFontSize}px;
       line-height: 1.03;
       letter-spacing: 0;
       color: var(--ink);
@@ -120,6 +137,7 @@ function baseCss(input, design, aspect) {
       margin-top: 18px;
       font: 400 ${aspect.height <= 500 ? '32px' : '38px'}/1.35 var(--zh-serif);
       color: var(--ink-light);
+      text-wrap: balance;
     }
 
     .editorial-visual {
