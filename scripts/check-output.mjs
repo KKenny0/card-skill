@@ -619,6 +619,15 @@ async function inspectPage(opts, issues) {
       'WECHAT COVER',
       'ARTICLE COVER',
       'COVER IMAGE',
+      // Chinese equivalents — same brief-leak class, just localized
+      '公众号头图',
+      '公众号封面',
+      '博客封面',
+      '博客头图',
+      '正文配图',
+      '段落配图',
+      '文章封面',
+      '封面图',
     ]);
     const visibleModeLabels = report.textSizes.filter(item => {
       const normalized = item.text.toUpperCase().replace(/\s+/g, ' ').trim();
