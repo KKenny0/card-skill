@@ -115,7 +115,7 @@ function validate(input) {
 
   const schema = SCHEMAS[mode];
   if (!schema) {
-    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes: big, long, whiteboard, poster, editorial-image`] };
+    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image`] };
   }
 
   // Check required fields

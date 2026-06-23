@@ -39,13 +39,15 @@ version: "0.2.3"
 
 ### Step 0: 渲染路由
 
-判断当前内容能否走 CLI 快速渲染。
+card-skill 把 8 个 mode 分两层：
 
-**CLI-eligible modes**: big, long, whiteboard, poster, editorial-image（editorial-image 仅用于已确定视觉方向后的比例画布和开放构图渲染）
-**AI-only modes**: infograph, comic, sketchnote（需要创意布局，无法 schema 化）
+- **Stable tier**（CLI-rendered）：`big`、`long`、`whiteboard`、`poster`、`editorial-image`。走结构化 renderer，schema 校验失败直接报错；输出确定性高，是产品主体。
+- **Creative tier**（AI-rendered）：`infograph`、`comic`、`sketchnote`。需要创意布局，无法 schema 化；每次产物有差异，依赖人工审美兜底。
+
+判断当前内容能否走 Stable tier 的 CLI 路径：
 
 判断逻辑：
-1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 AI 流程（Step 1）
+1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 Creative tier 的 AI 流程（Step 1）
 2. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
    - 如果已有结构化 brief（title/use/aspect/visual_metaphor 或 custom HTML/CSS）→ CLI 路径
@@ -53,7 +55,7 @@ version: "0.2.3"
 3. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
    - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
-   - 内容过于复杂（嵌套引用、多栏对比、特殊排版需求、不确定能 fit）→ AI 路径
+   - 内容过于复杂（嵌套引用、多栏对比、特殊排版需求、不确定能 fit）→ 降级到 AI 路径
 
 **CLI 路径**：
 1. 从内容中提取结构化 JSON，符合对应 mode 的 schema
@@ -238,8 +240,8 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 6. 替换模板中的占位符（每个模板的占位符见模板文件顶部注释）
 7. 写入操作系统临时目录中的 `card_{name}.html`
 
-**AI-only / 手工 HTML 交付约定**：
-- infograph / comic / sketchnote，以及 CLI 失败后降级的手工 HTML，统一把 HTML 写到操作系统临时目录（macOS/Linux 使用系统 temp；Windows 使用 `%TEMP%`），不要在 repo 内创建 `tmp/`
+**Creative tier / 手工 HTML 交付约定**：
+- infograph / comic / sketchnote（Creative tier），以及 Stable tier CLI 失败后降级的手工 HTML，统一把 HTML 写到操作系统临时目录（macOS/Linux 使用系统 temp；Windows 使用 `%TEMP%`），不要在 repo 内创建 `tmp/`
 - PNG 输出到 `~/Downloads/`，文件名用内容主题或 mode 命名，避免只叫 `output.png`
 - 生成 HTML 后必须走 Step 5-7；不能只保存 HTML 或只报告“已完成”
 - 最终交付前必须实际查看 PNG，确认不是空白、裁切、文字重叠、主体太小或视觉关系不清

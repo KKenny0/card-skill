@@ -9,8 +9,8 @@
  *   echo '{"mode":"big","phrase":"hello"}' | node scripts/card.js --stdin --output ~/Downloads/out.png
  *   node scripts/card.js --list-designs
  *
- * CLI-eligible modes: big, long, whiteboard, poster, editorial-image
- * AI-only modes (not handled here): infograph, comic, sketchnote
+ * CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image
+ * AI-only modes (Creative tier, not handled here): infograph, comic, sketchnote
  */
 
 const fs = require('fs');
@@ -47,8 +47,8 @@ Options:
   --list-designs     List all available design systems
   --help             Show this help
 
-CLI-eligible modes: big, long, whiteboard, poster, editorial-image
-AI-only modes: infograph, comic, sketchnote
+CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image
+AI-only modes (Creative tier): infograph, comic, sketchnote
 `);
   process.exit(0);
 }
