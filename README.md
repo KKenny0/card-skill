@@ -120,6 +120,16 @@ npx playwright install chromium
 
 默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同模式和比例会有不同高度，不应理解为固定的 4K 宽图。
 
+### PNG 体积优化（可选）
+
+默认 PNG 无损 4K，长文卡可能 10-17MB，Slack / 公众号会再压缩可能损失细节。如需更小体积，单独跑一次：
+
+```bash
+pngquant --quality=80-95 --force --output card.png card.png   # 11MB → 1-2MB，肉眼几乎无差
+```
+
+`pngquant` 是跨平台 CLI（macOS `brew install pngquant` / Ubuntu `apt install pngquant` / Windows 见 pngquant.org），skill 本身不依赖它。
+
 ## 它怎样工作
 
 1. 读取 URL、粘贴文本或本地文件。
