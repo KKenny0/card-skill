@@ -230,6 +230,7 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{LOGO}}', logoUrl);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
+  template = template.replace('<div class="page">', '<div class="page" data-card-mode="editorial-image">');
 
   if (!logoUrl && !brandName) {
     template = template.replace(/\s*<div class="who">[\s\S]*?<\/div>/, '');

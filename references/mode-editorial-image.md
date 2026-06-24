@@ -66,6 +66,21 @@ Examples:
 - Agent architecture -> stacked tracing paper, each sheet showing a different layer.
 - Writing under automation -> a hand editing a page while a second shadow-hand waits.
 
+## Field Contract
+
+`use` and `aspect` are separate decisions:
+
+| User request | `use` | Default `aspect` |
+|--------------|-------|------------------|
+| `公众号头图`, `公众号封面`, article cover | `cover` | `wechat-cover` |
+| `博客封面`, `blog hero` | `cover` | `blog-hero` |
+| `正文配图`, `段落配图`, section illustration | `in-article` | `body-3-2` |
+| concept metaphor or visual stance image | `metaphor` | `blog-hero` |
+
+Do not put an aspect value such as `body-3-2` or `wechat-cover` into `use`. If the user gives a destination in natural language, map it to both fields before rendering.
+
+Optional attribution fields are `brand_name`, `logo`, and `source`. Do not use `author` or `photo` aliases; they are not part of the structured renderer contract.
+
 ## Aspect Ratios
 
 Aspect ratio is part of the editorial decision, not an export detail. Pick the ratio before composing the image because it decides where the title can sit, how much negative space is needed, and whether the visual idea can survive cropping.
@@ -154,7 +169,7 @@ The chosen design should be mentioned in the rendering brief, but it should not 
 
 ## Direction Proposal
 
-Always propose 2-3 visual directions before rendering unless the user explicitly asks for a single direct result.
+Default to choosing one strongest visual direction and continue rendering. Propose 2-3 directions only when the user explicitly asks for options, asks to choose first, or says not to render yet.
 
 Each direction must include:
 
@@ -183,7 +198,7 @@ The structured fields are guardrails, not the final visual language.
 
 Use fields like `use`, `aspect`, `title`, `visual_metaphor`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
 
-For final rendering, the AI flow may use:
+For final rendering, use a custom composition when the brief has a real article tension, concept metaphor, or in-article illustration job:
 
 - `content_html` for the chosen visual structure
 - `custom_css` for the actual composition, spacing, symbolic objects, and atmosphere
@@ -191,10 +206,51 @@ For final rendering, the AI flow may use:
 
 The default CLI renderer is only an aspect-safe Quiet Paper scaffold. It is useful for validation and simple covers, but high-quality editorial images should use a custom composition derived from the selected direction.
 
+The composition needs one dominant visible subject: an object, scene, gesture, spatial relationship, or concrete diagram metaphor. A stack of paper rectangles, loose lines, decorative frames, or empty negative space is not enough unless it has been transformed into a specific metaphor tied to the article. If hiding the title makes the image feel generic, rebuild the custom composition before capture.
+
+## Controlled Font Stack
+
+Editorial images use a controlled primary font stack so custom compositions stay inside the same visual system.
+
+Allowed primary fonts for visible text:
+
+- `XiangcuiDengcusong` for Chinese body text and restrained Chinese headings
+- `XiangcuiDazijiti` for emphatic Chinese display moments
+- `DM Sans` for neutral Latin headings and labels
+- `DM Serif Display` for editorial Latin titles
+- `JetBrains Mono` for code, terminal, and technical labels
+
+Fallback fonts are allowed after the primary font. For example, `font-family: "DM Sans", Arial, sans-serif` is valid because `DM Sans` is the controlled primary choice. `font-family: Inter, Arial, sans-serif` and `font-family: Arial, sans-serif` are invalid because the primary font is outside the editorial-image system.
+
+Do not introduce free-floating font stacks such as `Inter`, `Arial`, `Helvetica`, `system-ui`, or `sans-serif` as the first font for visible text. They may appear only as fallback fonts after an allowed primary font.
+
+## Editorial Visual System
+
+Editorial images may use custom layout, object metaphors, diagrams, and illustrated scenes, but they must still look like part of card-skill's Quiet Paper system.
+
+Use the shared design tokens as the visual source of truth:
+
+- Canvas and surfaces: `--bg`, `--surface-1`, `--surface-2`
+- Ink and secondary text: `--ink`, `--ink-light` / `--ink-muted`
+- Accent marks: `--accent`
+- Borders and dividers: `--hairline`
+- Shape rhythm: `--radius`
+
+Visual weight rules:
+
+- Default borders are hairline: `1px`. Use `2px` only for a deliberate focal object. Avoid `3px+` borders because they push the image toward a UI mockup or flowchart.
+- Accent color should behave like an ink mark, underline, small signal, or focal stroke. Do not use saturated accent fills as the dominant module surface.
+- Large surfaces should use token-derived paper colors, usually `--surface-1`, `--surface-2`, or a low-mix variant of them.
+- Avoid heavy drop shadows. Prefer layering, overlap, whitespace, hairline, paper grain, and subtle contrast.
+- Diagrams should feel like editorial artwork: paper layers, annotations, measured spacing, and restrained connectors. Avoid dashboard-like cards, button-like modules, and loud process-diagram styling unless the article itself is about UI mockups.
+
+Custom CSS should not create a separate visual universe. If the composition needs stronger contrast, increase hierarchy through scale, position, or negative space before adding thick borders, bright fills, or heavy shadows.
+
 ## Rendering Rules
 
 - Text should usually take less than 20% of the image.
 - Visible text must belong to the artwork. It may be the article title, a section title, a real term, a short excerpt, a byline, or a label attached to a visual object.
+- A final image should have one concrete dominant subject. Do not let a safe scaffold or abstract paper stack stand in for the article's visual idea.
 - Do not print generation notes, usage notes, or internal rationale into the artwork. Avoid sentences like `给这一节使用`, `用作正文配图`, `安静、低干扰`, `像文章中间的一次停顿`, or `visual pause`.
 - For in-article images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.
@@ -218,6 +274,7 @@ Editorial images may use diagrams, maps, or structural metaphors, but they must 
 
 Use these rules whenever lines, arrows, wires, rails, or flow paths appear:
 
+- Lines must express a relationship: connection, direction, sequence, dependency, grouping, layer, or measurement. If a line has no clear source, target, or structural job, delete it or demote it into a low-contrast background texture.
 - Connect from boundary to boundary: edge of card to edge of node, object to object, or anchor point to anchor point.
 - Do not let connector lines run through the interior of labeled boxes, cards, circles, or text blocks.
 - If a line must cross an object, treat it as a deliberate overprint layer: lower contrast, no accidental overlap with readable text, and visually subordinate to the main idea.

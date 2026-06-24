@@ -9,12 +9,12 @@
     "use": {
       "type": "string",
       "enum": ["cover", "in-article", "metaphor"],
-      "description": "Editorial job. Defaults to cover behavior when omitted."
+      "description": "Editorial job, not a canvas ratio. Use cover for article covers, in-article for body illustrations, and metaphor for concept/stance images. Defaults to cover behavior when omitted."
     },
     "aspect": {
       "type": "string",
       "enum": ["wechat-cover", "blog-hero", "body-3-2", "body-4-3", "cinematic", "square"],
-      "description": "Canvas ratio. Defaults by use: cover/metaphor -> blog-hero, in-article -> body-3-2."
+      "description": "Canvas ratio. Defaults by use: cover -> blog-hero unless WeChat is requested, metaphor -> blog-hero, in-article -> body-3-2. Do not put aspect values into use."
     },
     "design": {
       "type": "string",
@@ -47,11 +47,11 @@
     },
     "content_html": {
       "type": "string",
-      "description": "Trusted custom HTML composition. Use after the AI flow chooses a visual direction."
+      "description": "Trusted custom HTML composition. Use after the AI flow chooses a visual direction; preferred for final editorial images that need a concrete subject or scene."
     },
     "custom_css": {
       "type": "string",
-      "description": "Trusted custom CSS composition layer. Use for visual expression beyond the default scaffold."
+      "description": "Trusted custom CSS composition layer. Use for visual expression beyond the default scaffold, including the dominant object, scene, gesture, or diagram metaphor. Visible text must use a controlled primary font: DM Sans, DM Serif Display, JetBrains Mono, XiangcuiDengcusong, or XiangcuiDazijiti; fallback fonts may follow the primary font. Custom CSS must stay inside the card-skill Quiet Paper system: token-derived paper surfaces, low-saturation accents, hairline borders, small radius, and little or no shadow."
     },
     "source": {
       "type": "string",
@@ -59,11 +59,11 @@
     },
     "logo": {
       "type": "string",
-      "description": "Optional path to a brand logo image. Omit for an unbranded output."
+      "description": "Optional path to a brand logo or avatar image. Omit for an unbranded output; do not use a photo alias."
     },
     "brand_name": {
       "type": "string",
-      "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
+      "description": "Optional brand or author name in the colophon footer. Omit for an unbranded output; do not use an author alias."
     }
   },
   "examples": [

@@ -118,6 +118,13 @@ function validate(input) {
     return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image`] };
   }
 
+  if (input.author !== undefined) {
+    errors.push('Field "author" is not supported. Use "brand_name" for an opt-in signature or brand label.');
+  }
+  if (input.photo !== undefined) {
+    errors.push('Field "photo" is not supported. Use "logo" for an opt-in avatar or brand image path.');
+  }
+
   // Check required fields
   for (const field of schema.required) {
     if (input[field] === undefined || input[field] === null || input[field] === '') {

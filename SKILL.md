@@ -2,7 +2,7 @@
 name: card-skill
 description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, and editorial image. Supports 8 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, and editorial-image. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.2.6"
+version: "0.2.7"
 ---
 
 # card-skill
@@ -32,8 +32,9 @@ version: "0.2.6"
 |------|------|--------|
 | `--design` | 指定设计系统（跳过自动匹配） | 空（自动选择） |
 | `--dpr` | 设备像素比 | 2（2× 像素密度） |
-| `--author` | 可选署名文字；只在用户明确提供时渲染 | 空 |
-| `--photo` | 可选署名头像 URL/路径；只在用户明确提供时渲染 | 空 |
+| `brand_name` | 可选署名/品牌文字；只在用户明确提供时渲染 | 空 |
+| `logo` | 可选署名头像/品牌 logo 路径；只在用户明确提供时渲染 | 空 |
+| `source` | 可选来源文字；`long` 与 `editorial-image` 支持 | 空 |
 
 ## 执行流程
 
@@ -50,8 +51,10 @@ card-skill 把 8 个 mode 分两层：
 1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 Creative tier 的 AI 流程（Step 1）
 2. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
-   - 如果已有结构化 brief（title/use/aspect/visual_metaphor 或 custom HTML/CSS）→ CLI 路径
-   - 如果还没有视觉方向 → 默认自动选择最强方向并渲染；只有用户明确要求候选时，才先产出 2-3 个方向等待选择
+   - 先把自然语言用途映射成结构化字段：`use` 只表示编辑任务（`cover` / `in-article` / `metaphor`），`aspect` 只表示画布比例（`wechat-cover` / `blog-hero` / `body-3-2` / `body-4-3` / `cinematic` / `square`）
+   - 如果已有具体画面结构（`content_html` + `custom_css`）→ CLI 路径，作为高质量最终图的首选
+   - 如果只有 `title/use/aspect/visual_metaphor/art_direction` → CLI 可渲染比例安全的 Quiet Paper scaffold，但这只是兜底；正式配图应优先补出自定义构图
+   - 如果还没有视觉方向 → 默认自动选择 1 个最强方向并继续渲染；只有用户明确要求候选时，才先产出 2-3 个方向等待选择
 3. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
    - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
@@ -128,7 +131,18 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 先读取 `references/mode-editorial-image.md`。默认选择最贴合文章张力的 1 个视觉方向并继续渲染；只有用户明确要求“给几个方向 / 先别出图 / 我来选”，才输出 2-3 个视觉方向并等待选择。
 
-结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold。
+字段映射必须清楚，避免把比例名填进用途字段：
+
+| 自然语言请求 | `use` | 默认 `aspect` |
+|--------------|-------|----------------|
+| 公众号头图 / 公众号封面 / 文章封面 | `cover` | `wechat-cover` |
+| 博客封面 / blog hero | `cover` | `blog-hero` |
+| 正文配图 / 段落配图 / section illustration | `in-article` | `body-3-2` |
+| 概念隐喻图 / visual metaphor | `metaphor` | `blog-hero` |
+
+结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold，适合验证和简单封面，不应当作为复杂文章配图的默认终点。
+
+正式配图必须有一个具体主视觉对象或场景，例如桌面、抽屉、纸页、窗口、手势、路径、容器、仪表、地图、阴影关系等。不要只用纸片、线条、抽象框和留白来替代视觉隐喻；如果拿掉标题后画面与文章关系消失，就需要重做 `content_html` + `custom_css`。
 
 `editorial-image` 支持 `design` 字段。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户指定设计系统时照做；用户未指定时，根据文章情绪自动选择，例如技术文可用 `stripe` / `ibm` / `apple` / `claude` / `ljg_jishu`，反思类文章可用 `claude` / `notion` / `ljg_chensi`。
 
@@ -270,7 +284,7 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 4. **禁止跨卡漂移**：不同卡之间，相同语义层级的元素必须使用相同字号。例如，如果卡 1 的正文是 36px，卡 2 的正文也必须是 36px。只有布局结构（grid、flex、positioning）允许因内容不同而变化。
 
-**署名参数**：`--author` 和 `--photo` 都是可选的 skill 输入，不是 `scripts/card.js` 的 CLI 参数。只有用户明确提供时才把署名或头像写进 footer；未提供时，两者都替换为空字符串并隐藏对应元素。不要把任何维护者身份或仓库素材作为用户产物的默认值。尤其要在 Step 5 前清空未使用的 `{{AVATAR}}` / `{{PHOTO}}` 占位符。
+**署名/来源字段**：`brand_name`、`logo`、`source` 都是可选字段，不是命令行 flag。只有用户明确提供时才把署名、头像/logo 或来源写进 footer；未提供时全部留空并隐藏对应元素。不要使用 `author` / `photo` 这类别名，也不要把维护者身份或仓库素材作为用户产物的默认值。尤其要在 Step 5 前清空未使用的 `{{LOGO}}` / `{{AVATAR}}` / `{{PHOTO}}` 占位符。
 
 ### Step 5: 出厂检查
 

@@ -152,6 +152,8 @@ node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 
 支持的 CLI modes：`big`、`long`、`whiteboard`、`poster`、`editorial-image`。
 
+可选署名与来源字段使用 `brand_name`、`logo`、`source`；默认全部为空，不会自动加入作者名、头像或维护者品牌。
+
 ## 更多样张
 
 <details>

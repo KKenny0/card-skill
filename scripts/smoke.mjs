@@ -44,6 +44,39 @@ try {
   assert.equal(result.stderr, '', 'Single-card success wrote unexpected stderr output');
   assert.deepEqual(readPngSize(outputPath), { width: 2160, height: 2880 });
 
+  const editorialOutputPath = path.join(harnessDir, 'editorial.png');
+  const editorial = runCard({
+    mode: 'editorial-image',
+    title: 'Attention has a boundary',
+    use: 'in-article',
+    aspect: 'body-3-2',
+    design: 'claude',
+    visual_metaphor: 'A narrow beam illuminates the center of a paper workbench while outer pages fade away.',
+    content_html: `
+      <section class="attention-workbench">
+        <div class="page-field">
+          <div class="focus-beam"></div>
+          <div class="center-note">ATTENTION</div>
+          <div class="faded-sheet sheet-left"></div>
+          <div class="faded-sheet sheet-right"></div>
+        </div>
+      </section>
+    `,
+    custom_css: `
+      .attention-workbench { height: 100%; display: grid; place-items: center; padding: 56px; }
+      .page-field { position: relative; width: 78%; height: 66%; border: 1px solid var(--hairline); background: color-mix(in srgb, var(--surface-1) 78%, var(--bg)); }
+      .focus-beam { position: absolute; left: 32%; right: 32%; top: 42%; height: 2px; background: var(--accent); transform: rotate(-8deg); }
+      .center-note { position: absolute; left: 34%; top: 48%; font: 700 44px/1 var(--mono); color: var(--ink); letter-spacing: 0; }
+      .faded-sheet { position: absolute; width: 30%; height: 48%; border: 1px solid var(--hairline); opacity: .34; }
+      .sheet-left { left: 8%; top: 24%; transform: rotate(-7deg); }
+      .sheet-right { right: 8%; top: 22%; transform: rotate(6deg); }
+    `,
+  }, editorialOutputPath);
+  assert.equal(editorial.status, 0, editorial.stderr || editorial.stdout || 'editorial-image CLI failed');
+  assert.equal(editorial.stdout.trim(), editorialOutputPath, 'editorial-image stdout did not contain only the output path');
+  assert.equal(editorial.stderr, '', 'editorial-image success wrote unexpected stderr output');
+  assert.deepEqual(readPngSize(editorialOutputPath), { width: 2160, height: 1440 });
+
   const posterCard = text => ({ body: [{ type: 'paragraph', text }] });
   const overflowBase = path.join(harnessDir, 'overflow.png');
   const overflow = runCard({
@@ -75,7 +108,7 @@ try {
 
   assert.deepEqual(activeRunDirs(), beforeRunDirs, 'card CLI left a temporary run directory behind');
 
-  console.log('Runtime smoke passed: CLI, Chromium capture, PNG dimensions, stdout contract, poster transactions, and temp cleanup.');
+  console.log('Runtime smoke passed: CLI, editorial-image field render, Chromium capture, PNG dimensions, stdout contract, poster transactions, and temp cleanup.');
 } finally {
   fs.rmSync(harnessDir, { recursive: true, force: true });
 }

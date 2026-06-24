@@ -93,6 +93,14 @@ function issue(severity, code, message, details = {}) {
   return { severity, code, message, details };
 }
 
+const EDITORIAL_ALLOWED_PRIMARY_FONTS = new Set([
+  'dm sans',
+  'dm serif display',
+  'jetbrains mono',
+  'xiangcuidengcusong',
+  'xiangcuidazijiti',
+]);
+
 function stripHtmlComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '');
 }
@@ -343,15 +351,136 @@ async function inspectPage(opts, issues) {
       const bounds = [];
       const textSizes = [];
       const headlineLines = [];
+      const editorialFontViolations = [];
+      const htmlTextBoxOverflows = [];
+      const editorialVisualSystemErrors = [];
+      const editorialVisualSystemWarnings = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
+      const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"]'));
+      const allowedPrimaryFonts = new Set([
+        'dm sans',
+        'dm serif display',
+        'jetbrains mono',
+        'xiangcuidengcusong',
+        'xiangcuidazijiti',
+      ]);
+
+      function splitFontFamilies(value) {
+        const families = [];
+        let current = '';
+        let quote = null;
+
+        for (const ch of value || '') {
+          if ((ch === '"' || ch === "'") && !quote) {
+            quote = ch;
+            current += ch;
+            continue;
+          }
+          if (ch === quote) {
+            quote = null;
+            current += ch;
+            continue;
+          }
+          if (ch === ',' && !quote) {
+            if (current.trim()) families.push(current.trim());
+            current = '';
+            continue;
+          }
+          current += ch;
+        }
+
+        if (current.trim()) families.push(current.trim());
+        return families;
+      }
+
+      function normalizeFontFamily(value) {
+        return (value || '')
+          .trim()
+          .replace(/^['"]|['"]$/g, '')
+          .replace(/\s+/g, ' ')
+          .toLowerCase();
+      }
+
+      function hasVisibleBoxFrame(el) {
+        const cs = window.getComputedStyle(el);
+        const borderWidth = ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth']
+          .reduce((sum, prop) => sum + (parseFloat(cs[prop]) || 0), 0);
+        const outlineWidth = parseFloat(cs.outlineWidth) || 0;
+        return borderWidth > 0 || outlineWidth > 0;
+      }
+
+      function nearestTextFrame(el) {
+        for (let parent = el.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+          if (!isVisible(parent)) continue;
+          if (!hasVisibleBoxFrame(parent)) continue;
+          return parent;
+        }
+        return null;
+      }
+
+      function parseRgb(value) {
+        const match = (value || '').match(/rgba?\(([^)]+)\)/i);
+        if (!match) return null;
+        const parts = match[1].split(',').map(part => part.trim());
+        if (parts.length < 3) return null;
+        const rgb = parts.slice(0, 3).map(part => {
+          if (part.endsWith('%')) return Math.round(parseFloat(part) * 2.55);
+          return parseFloat(part);
+        });
+        const alpha = parts[3] == null ? 1 : parseFloat(parts[3]);
+        if (rgb.some(n => Number.isNaN(n)) || Number.isNaN(alpha)) return null;
+        return { r: rgb[0], g: rgb[1], b: rgb[2], a: alpha };
+      }
+
+      function cssColorToRgb(value) {
+        const probe = document.createElement('span');
+        probe.style.color = value;
+        document.body.appendChild(probe);
+        const parsed = parseRgb(window.getComputedStyle(probe).color);
+        probe.remove();
+        return parsed;
+      }
+
+      function rgbKey(rgb) {
+        if (!rgb) return '';
+        return `${Math.round(rgb.r)},${Math.round(rgb.g)},${Math.round(rgb.b)}`;
+      }
+
+      function saturation(rgb) {
+        const r = rgb.r / 255;
+        const g = rgb.g / 255;
+        const b = rgb.b / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        if (max === min) return 0;
+        const lightness = (max + min) / 2;
+        const delta = max - min;
+        return delta / (1 - Math.abs(2 * lightness - 1));
+      }
+
+      function maxShadowPx(boxShadow) {
+        if (!boxShadow || boxShadow === 'none') return 0;
+        const px = [...boxShadow.matchAll(/(-?\d+(?:\.\d+)?)px/g)]
+          .map(match => Math.abs(parseFloat(match[1])));
+        return px.length ? Math.max(...px) : 0;
+      }
+
+      const rootStyle = window.getComputedStyle(document.documentElement);
+      const tokenColorKeys = new Set(
+        ['--bg', '--surface-1', '--surface-2', '--accent', '--ink', '--ink-light', '--ink-muted', '--hairline']
+          .map(name => rgbKey(cssColorToRgb(rootStyle.getPropertyValue(name).trim())))
+          .filter(Boolean)
+      );
+      const viewportArea = viewportWidth * viewportHeight;
 
       for (const el of document.querySelectorAll('body *')) {
         if (!isVisible(el)) continue;
         const rect = el.getBoundingClientRect();
         const className = typeof el.className === 'string' ? el.className : '';
         const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        const cs = window.getComputedStyle(el);
 
         if (!ignoreBounds.test(className)) {
           const offLeft = rect.left < -2;
@@ -373,14 +502,102 @@ async function inspectPage(opts, issues) {
           }
         }
 
+        if (isEditorialImage && rect.width > 0 && rect.height > 0 && !ignoreBounds.test(className)) {
+          const borderWidths = ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth']
+            .map(prop => parseFloat(cs[prop]) || 0);
+          const maxBorder = Math.max(...borderWidths);
+          if (maxBorder > 2.01) {
+            editorialVisualSystemErrors.push({
+              code: 'thick_border',
+              tag: el.tagName,
+              className,
+              text: text.slice(0, 80),
+              borderPx: Number(maxBorder.toFixed(1)),
+            });
+          }
+
+          const bg = parseRgb(cs.backgroundColor);
+          const area = rect.width * rect.height;
+          if (bg && bg.a > 0.05 && area > viewportArea * 0.025) {
+            const sat = saturation(bg);
+            const key = rgbKey(bg);
+            const isTokenColor = tokenColorKeys.has(key);
+            const isNearPure = (bg.r > 245 && bg.g > 245 && bg.b > 245) || (bg.r < 12 && bg.g < 12 && bg.b < 12);
+            if (!isTokenColor && (sat > 0.55 || isNearPure)) {
+              editorialVisualSystemErrors.push({
+                code: 'loud_large_fill',
+                tag: el.tagName,
+                className,
+                text: text.slice(0, 80),
+                backgroundColor: cs.backgroundColor,
+                saturation: Number(sat.toFixed(2)),
+                areaRatio: Number((area / viewportArea).toFixed(3)),
+              });
+            }
+          }
+
+          const shadowPx = maxShadowPx(cs.boxShadow);
+          if (shadowPx > 8) {
+            editorialVisualSystemWarnings.push({
+              code: 'heavy_shadow',
+              tag: el.tagName,
+              className,
+              text: text.slice(0, 80),
+              boxShadow: cs.boxShadow.slice(0, 160),
+            });
+          }
+        }
+
         if (meaningfulTags.has(el.tagName) && text && !hasVisibleTextChild(el)) {
-          const cs = window.getComputedStyle(el);
+          const families = splitFontFamilies(cs.fontFamily || '');
+          const primaryFont = normalizeFontFamily(families[0] || '');
           textSizes.push({
             tag: el.tagName,
             className,
             text: text.slice(0, 80),
             fontSize: parseFloat(cs.fontSize),
+            primaryFont,
           });
+
+          if (isEditorialImage && primaryFont && !allowedPrimaryFonts.has(primaryFont)) {
+            editorialFontViolations.push({
+              tag: el.tagName,
+              className,
+              text: text.slice(0, 80),
+              primaryFont,
+              fontFamily: (cs.fontFamily || '').slice(0, 160),
+            });
+          }
+
+          const frame = nearestTextFrame(el);
+          if (frame) {
+            const frameRect = frame.getBoundingClientRect();
+            const TOL = 2;
+            const overflowLeft = frameRect.left - rect.left;
+            const overflowRight = rect.right - frameRect.right;
+            const overflowTop = frameRect.top - rect.top;
+            const overflowBottom = rect.bottom - frameRect.bottom;
+            if (
+              overflowLeft > TOL ||
+              overflowRight > TOL ||
+              overflowTop > TOL ||
+              overflowBottom > TOL
+            ) {
+              htmlTextBoxOverflows.push({
+                tag: el.tagName,
+                className,
+                text: text.slice(0, 80),
+                frameTag: frame.tagName,
+                frameClassName: typeof frame.className === 'string' ? frame.className : '',
+                overflowPx: {
+                  left: Math.max(0, Math.round(overflowLeft)),
+                  right: Math.max(0, Math.round(overflowRight)),
+                  top: Math.max(0, Math.round(overflowTop)),
+                  bottom: Math.max(0, Math.round(overflowBottom)),
+                },
+              });
+            }
+          }
         }
 
         if (['H1', 'H2'].includes(el.tagName) || headlinePattern.test(className)) {
@@ -536,6 +753,10 @@ async function inspectPage(opts, issues) {
         bounds: bounds.slice(0, 20),
         textSizes,
         headlineLines: headlineLines.slice(0, 20),
+        editorialFontViolations: editorialFontViolations.slice(0, 10),
+        htmlTextBoxOverflows: htmlTextBoxOverflows.slice(0, 10),
+        editorialVisualSystemErrors: editorialVisualSystemErrors.slice(0, 10),
+        editorialVisualSystemWarnings: editorialVisualSystemWarnings.slice(0, 10),
         svgTextOverflows: svgTextOverflows.slice(0, 10),
         fontLoadFailures: fontLoadFailures.slice(0, 10),
         svgTextOutsideViewbox: svgTextOutsideViewbox.slice(0, 10),
@@ -574,10 +795,34 @@ async function inspectPage(opts, issues) {
         { elements: report.svgTextOverflows }));
     }
 
+    if (report.htmlTextBoxOverflows.length > 0) {
+      issues.push(issue('error', 'html_text_box_overflow',
+        'HTML text extends past its framed container. Widen the frame, shorten the label, or reduce the font-size.',
+        { elements: report.htmlTextBoxOverflows }));
+    }
+
+    if (report.editorialVisualSystemErrors.length > 0) {
+      issues.push(issue('error', 'editorial_visual_system_violation',
+        'Editorial-image visual styling drifted outside the Quiet Paper system. Use token-derived surfaces, hairline borders, low-saturation accents, and restrained contrast.',
+        { elements: report.editorialVisualSystemErrors }));
+    }
+
+    if (report.editorialVisualSystemWarnings.length > 0) {
+      issues.push(issue('warning', 'editorial_visual_system_warning',
+        'Editorial-image styling is visually heavy for Quiet Paper. Prefer layering, whitespace, and hairline structure over heavy shadow.',
+        { elements: report.editorialVisualSystemWarnings }));
+    }
+
     if (report.fontLoadFailures.length > 0) {
       issues.push(issue('error', 'font_load_failed',
         '@font-face declared but the font did not actually load. Browser fell back silently. Check the @font-face src URL, the .gitignore (fonts must be tracked), and the font-family spelling.',
         { elements: report.fontLoadFailures }));
+    }
+
+    if (report.editorialFontViolations.length > 0) {
+      issues.push(issue('error', 'editorial_font_primary_not_allowed',
+        `Editorial-image text must use a controlled primary font. Use one of: ${[...EDITORIAL_ALLOWED_PRIMARY_FONTS].join(', ')}. Fallback fonts are allowed after the primary font.`,
+        { elements: report.editorialFontViolations }));
     }
 
     if (report.svgTextOutsideViewbox.length > 0) {
