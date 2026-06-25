@@ -195,6 +195,14 @@ node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 
 真实案例会帮助我们判断下一步该优化哪种发布任务；经作者同意后，优秀案例也可能进入 gallery，并保留来源署名。
 
+## Support
+
+如果 card-skill 帮你做出了真实发布的图，最有帮助的是在 Issues 里分享案例。你也可以通过这里支持后续维护：
+
+<https://kkenny0.github.io/support/>
+
+支持会帮助我继续维护字体、浏览器渲染、图片压缩、模具质量和跨 agent 兼容性。
+
 ## Credits
 
 card-skill 受到以下项目与实践启发：
