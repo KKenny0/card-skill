@@ -30,6 +30,17 @@ const inputs = {
   'editorial-image': { mode: 'editorial-image', title: 'A visual argument' },
 };
 
+function assertVersionSources() {
+  const version = fs.readFileSync(path.join(ROOT, 'VERSION'), 'utf8').trim();
+  const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  const skill = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
+  const skillVersion = skill.match(/^version:\s*"([^"]+)"/m)?.[1];
+
+  assert.match(version, /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/, 'VERSION is not a valid semver value');
+  assert.equal(packageJson.version, version, 'package.json version does not match VERSION');
+  assert.equal(skillVersion, version, 'SKILL.md version does not match VERSION');
+}
+
 function stripComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '');
 }
@@ -69,6 +80,8 @@ function runOutputCheck(htmlPath, output) {
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
 
 try {
+  assertVersionSources();
+
   for (const [mode, input] of Object.entries(inputs)) {
     const validation = validate(input);
     assert.equal(validation.valid, true, `${mode} smoke input failed schema validation: ${validation.errors.join(', ')}`);
@@ -320,7 +333,7 @@ try {
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
 
-  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, branding matrix, editorial-image field checks, custom composition, schema, and design registry.`);
+  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image field checks, custom composition, schema, and design registry.`);
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }

@@ -7,6 +7,8 @@ version: "0.2.8"
 
 # card-skill
 
+**Update check (non-blocking).** Before starting, run `node scripts/check-update.mjs` once; if it prints a line, relay it to the user, then continue. It runs at most once a day, only reads this skill's public `VERSION` file, sends no content, and fails silently. Set `CARD_SKILL_DISABLE_UPDATE_CHECK=1` to skip this check.
+
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
 
 另有长文作者配图入口：给公众号/博客文章做头图、封面图或正文插图。这个入口不把文章再摘要一遍，而是提炼文章的视觉立场、情绪和隐喻。

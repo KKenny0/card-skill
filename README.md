@@ -127,6 +127,16 @@ npx playwright install chromium
 
 默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同模式和比例会有不同高度，不应理解为固定的 4K 宽图。
 
+### 更新提醒与隐私
+
+每次 agent 开始使用 card-skill 时，会先运行一个非阻塞更新检查：一天最多一次，只读取 GitHub 上公开的 `VERSION` 文件；不会上传你的文章、prompt、路径或图片。检查失败会静默跳过，不影响出图。有新版时只提醒你运行：
+
+```bash
+npx skills update card-skill -g -y
+```
+
+如需完全关闭，设置环境变量 `CARD_SKILL_DISABLE_UPDATE_CHECK=1`。
+
 ### PNG 体积优化（可选）
 
 默认 PNG 无损 4K，长文卡可能 10-17MB，Slack / 公众号会再压缩可能损失细节。如需更小体积，单独跑一次：
