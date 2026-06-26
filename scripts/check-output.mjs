@@ -355,10 +355,12 @@ async function inspectPage(opts, issues) {
       const htmlTextBoxOverflows = [];
       const editorialVisualSystemErrors = [];
       const editorialVisualSystemWarnings = [];
+      const bigPhraseMetrics = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
       const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"]'));
+      const isBigMode = Boolean(document.querySelector('[data-card-mode="big"]'));
       const allowedPrimaryFonts = new Set([
         'dm sans',
         'dm serif display',
@@ -744,6 +746,25 @@ async function inspectPage(opts, issues) {
         }
       }
 
+      if (isBigMode) {
+        const phrase = document.querySelector('[data-card-mode="big"] .phrase');
+        if (phrase && isVisible(phrase)) {
+          const rect = phrase.getBoundingClientRect();
+          const cs = window.getComputedStyle(phrase);
+          bigPhraseMetrics.push({
+            tag: phrase.tagName,
+            className: typeof phrase.className === 'string' ? phrase.className : '',
+            text: (phrase.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+            fontSize: parseFloat(cs.fontSize) || 0,
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            areaRatio: Number(((rect.width * rect.height) / viewportArea).toFixed(4)),
+            widthRatio: Number((rect.width / viewportWidth).toFixed(4)),
+            heightRatio: Number((rect.height / viewportHeight).toFixed(4)),
+          });
+        }
+      }
+
       return {
         scrollWidth: Math.max(doc.scrollWidth, body.scrollWidth),
         clientWidth: doc.clientWidth,
@@ -760,6 +781,7 @@ async function inspectPage(opts, issues) {
         svgTextOverflows: svgTextOverflows.slice(0, 10),
         fontLoadFailures: fontLoadFailures.slice(0, 10),
         svgTextOutsideViewbox: svgTextOutsideViewbox.slice(0, 10),
+        bigPhraseMetrics: bigPhraseMetrics.slice(0, 3),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
 
@@ -829,6 +851,26 @@ async function inspectPage(opts, issues) {
       issues.push(issue('error', 'svg_text_outside_viewbox',
         'SVG text bounding box exceeds the viewBox rectangle. Every <text> must render fully inside its SVG viewBox. Fix by widening the viewBox, moving the text inward, or shortening the string.',
         { elements: report.svgTextOutsideViewbox }));
+    }
+
+    if (report.bigPhraseMetrics.length === 0) {
+      const hasBigMarker = fs.readFileSync(opts.html, 'utf-8').includes('data-card-mode="big"');
+      if (hasBigMarker) {
+        issues.push(issue('error', 'big_phrase_missing',
+          'Big mode output must include a visible .phrase element.',
+          {}));
+      }
+    }
+
+    const undersizedBigPhrases = report.bigPhraseMetrics.filter(item => (
+      item.fontSize < 96
+      || item.areaRatio < 0.025
+      || item.heightRatio < 0.08
+    ));
+    if (undersizedBigPhrases.length > 0) {
+      issues.push(issue('error', 'big_phrase_too_small',
+        'Big mode main phrase is too small for a large-text poster. Increase font size or use a denser composition.',
+        { elements: undersizedBigPhrases }));
     }
 
     const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;

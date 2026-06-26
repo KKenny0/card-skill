@@ -26,6 +26,12 @@ function calcFontSize(phraseHtml) {
   return '160px';
 }
 
+function normalizeFontSize(value) {
+  if (typeof value === 'number') return `${value}px`;
+  if (typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value.trim())) return `${value.trim()}px`;
+  return value;
+}
+
 /**
  * Derive ghost character from phrase or accent_words.
  */
@@ -71,7 +77,7 @@ function render(input, outputHtmlPath) {
   let phraseHtml = escapePhrase(input.phrase);
   phraseHtml = applyAccentWords(phraseHtml, input.accent_words);
 
-  const fontSize = input.font_size || calcFontSize(phraseHtml);
+  const fontSize = normalizeFontSize(input.font_size ?? calcFontSize(phraseHtml));
   const ghostChar = input.ghost_char || deriveGhostChar(input.phrase, input.accent_words);
   const attribution = input.attribution ? escapeHtml(input.attribution) : '';
 
@@ -124,4 +130,4 @@ function render(input, outputHtmlPath) {
   };
 }
 
-module.exports = { render, calcFontSize };
+module.exports = { render, calcFontSize, normalizeFontSize };

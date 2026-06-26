@@ -37,7 +37,7 @@ function runCard(input, output) {
 }
 
 try {
-  const result = runCard({ mode: 'big', phrase: 'Runtime smoke', design: 'apple' }, outputPath);
+  const result = runCard({ mode: 'big', phrase: 'Runtime smoke', design: 'apple', font_size: 172 }, outputPath);
 
   assert.equal(result.status, 0, result.stderr || result.stdout || 'card CLI failed');
   assert.equal(result.stdout.trim(), outputPath, 'CLI stdout did not contain only the output path');

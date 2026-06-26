@@ -129,6 +129,37 @@ try {
   assert.equal(photoAliasValidation.valid, false, 'photo alias unexpectedly passed validation');
   assert.match(photoAliasValidation.errors.join('\n'), /Use "logo"/);
 
+  assert.equal(renderers.big.normalizeFontSize(172), '172px', 'numeric big font_size did not resolve to px');
+  assert.equal(renderers.big.normalizeFontSize('172'), '172px', 'numeric string big font_size did not resolve to px');
+
+  const numericBigPath = path.join(tmpDir, 'numeric-big-font.html');
+  const numericBigOutput = renderers.big.render({
+    mode: 'big',
+    phrase: 'Make it<br>large',
+    font_size: 172,
+  }, numericBigPath);
+  const numericBigHtml = stripComments(fs.readFileSync(numericBigPath, 'utf8'));
+  assert.match(numericBigHtml, /data-card-mode="big"/, 'big render did not mark its output mode');
+  assert.match(numericBigHtml, /style="font-size: 172px;"/, 'numeric big font_size was not emitted with px');
+  const numericBigCheck = runOutputCheck(numericBigPath, numericBigOutput);
+  assert.equal(numericBigCheck.result.status, 0, `numeric big font-size failed output check: ${numericBigCheck.result.stdout}\n${numericBigCheck.result.stderr}`);
+  assert.equal(numericBigCheck.report?.pass, true, 'numeric big font-size did not pass');
+
+  const tinyBigPath = path.join(tmpDir, 'tiny-big-font.html');
+  const tinyBigOutput = renderers.big.render({
+    mode: 'big',
+    phrase: 'Tiny visual phrase',
+    font_size: 16,
+  }, tinyBigPath);
+  const tinyBigCheck = runOutputCheck(tinyBigPath, tinyBigOutput);
+  assert.notEqual(tinyBigCheck.result.status, 0, 'undersized big phrase unexpectedly passed output check');
+  assert.equal(tinyBigCheck.report?.pass, false, 'undersized big phrase did not produce a failing report');
+  assert.match(
+    tinyBigCheck.report?.issues?.map(item => item.code).join('\n') || '',
+    /big_phrase_too_small/,
+    `undersized big phrase failed for the wrong reason: ${tinyBigCheck.result.stdout}\n${tinyBigCheck.result.stderr}`,
+  );
+
   const customEditorialPath = path.join(tmpDir, 'custom-editorial.html');
   renderers['editorial-image'].render({
     mode: 'editorial-image',
