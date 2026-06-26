@@ -58,10 +58,34 @@ const DESIGNS = {
   ljg_moren:    { surface:'light', canvas:'#f3f1ec', accent:'#8b5b68', ink:'#2d2926', inkMuted:'#625d58', surface1:'#fbfaf6', surface2:'#e5e0d5', hairline:'#d5cec2', radius:'6px' },
 };
 
+const DESIGN_ALIASES = {
+  linear_app: 'linear',
+  opencode_ai: 'opencode',
+};
+
+const EDITORIAL_TONE_DESIGNS = {
+  reflective: ['claude', 'notion', 'apple', 'ljg_chensi'],
+  sharp: ['linear', 'raycast', 'stripe', 'ljg_ruili'],
+  warm: ['claude', 'clay', 'intercom', 'posthog', 'ljg_wennuan'],
+  technical: ['stripe', 'ibm', 'opencode', 'sentry', 'together_ai', 'ljg_jishu'],
+};
+
+const EDITORIAL_TONES = new Set(Object.keys(EDITORIAL_TONE_DESIGNS));
+
+function normalizeDesignName(name) {
+  if (typeof name !== 'string') return '';
+  const key = name.trim().toLowerCase().replace(/[.\-]/g, '_');
+  return DESIGN_ALIASES[key] || key;
+}
+
 function getDesign(name) {
-  // Accept underscore, hyphen, and dot forms (e.g. "together.ai" → "together_ai")
-  const key = name.replace(/[.\-]/g, '_');
+  // Accept underscore, hyphen, and dot forms (e.g. "together.ai" -> "together_ai")
+  const key = normalizeDesignName(name);
   return DESIGNS[key] || null;
+}
+
+function isValidDesignName(name) {
+  return Boolean(getDesign(name));
 }
 
 function listDesigns() {
@@ -90,4 +114,44 @@ function cssOverrides(designName) {
   ].join('\n    ');
 }
 
-module.exports = { DESIGNS, getDesign, listDesigns, cssOverrides };
+function stableIndex(seed, length) {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return hash % length;
+}
+
+function resolveEditorialDesignName(input = {}) {
+  if (input.design) {
+    const explicit = normalizeDesignName(input.design);
+    return DESIGNS[explicit] ? explicit : null;
+  }
+
+  const tone = input.editorial_tone;
+  const pool = EDITORIAL_TONE_DESIGNS[tone];
+  if (!pool) return 'claude';
+
+  const seed = [
+    input.title,
+    input.subtitle,
+    input.visual_metaphor,
+    input.art_direction,
+    tone,
+  ].filter(Boolean).join('|') || tone;
+
+  return pool[stableIndex(seed, pool.length)];
+}
+
+module.exports = {
+  DESIGNS,
+  DESIGN_ALIASES,
+  EDITORIAL_TONE_DESIGNS,
+  EDITORIAL_TONES,
+  normalizeDesignName,
+  getDesign,
+  isValidDesignName,
+  listDesigns,
+  cssOverrides,
+  resolveEditorialDesignName,
+};

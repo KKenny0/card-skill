@@ -149,23 +149,25 @@ For long articles, do not summarize every section. Find the recurring pressure u
 
 ## Design System Use
 
-Editorial image supports the same `design` field as other CLI-rendered modes.
+Editorial image supports the same `design` field as other CLI-rendered modes, plus an `editorial_tone` field for automatic design selection.
 
 Use design systems as taste inflections, not as concept generators:
 
 - `design` controls canvas color, ink color, accent color, paper surface, border tone, and radius.
+- `design` is explicit and always wins when provided.
+- `editorial_tone` is used only when `design` is omitted. Allowed values: `reflective`, `sharp`, `warm`, `technical`.
 - `design` does not decide the visual metaphor, composition, object choice, or article stance.
 - If the user specifies a design system or brand feeling, honor it as a mood layer.
-- If the user does not specify one, choose automatically from the article's emotional temperature and topic.
+- If the user does not specify one, set `editorial_tone` from the article's emotional temperature and topic, then let the CLI choose a real design from that tone pool.
 
 Good defaults:
 
-- Technical essays: `stripe`, `ibm`, `apple`, `claude`, or `ljg_jishu`
-- Reflective essays: `claude`, `notion`, `apple`, `ljg_chensi`, or `ljg_wennuan`
-- Sharp opinion pieces: `linear`, `raycast`, `ljg_ruili`, or `stripe`
-- Quiet in-article illustrations: `claude`, `notion`, `apple`, or `ljg_chensi`
+- Reflective essays: `editorial_tone: "reflective"` → `claude`, `notion`, `apple`, or `ljg_chensi`
+- Sharp opinion pieces: `editorial_tone: "sharp"` → `linear`, `raycast`, `stripe`, or `ljg_ruili`
+- Warm human essays: `editorial_tone: "warm"` → `claude`, `clay`, `intercom`, `posthog`, or `ljg_wennuan`
+- Technical essays: `editorial_tone: "technical"` → `stripe`, `ibm`, `opencode`, `sentry`, `together_ai`, or `ljg_jishu`
 
-The chosen design should be mentioned in the rendering brief, but it should not become visible text in the artwork.
+Do not use descriptive buckets such as `editorial-warm`, `technical-data`, `quiet-minimal`, `dark-paper`, or `precision-dark` as `design` values. They are not renderer names. The chosen real design may be mentioned in the rendering brief, but it should not become visible text in the artwork.
 
 ## Direction Proposal
 
@@ -267,6 +269,7 @@ Custom CSS should not create a separate visual universe. If the composition need
 - For in-article illustrations, reduce contrast and text weight compared with cover images.
 - Leave crop-safe space around important visual elements.
 - Do not add a default colophon or footnote. Editorial images should feel like article artwork, not branded cards.
+- When this mode changes design-selection behavior, render and inspect at least five PNGs before delivery: one each for `reflective`, `sharp`, `warm`, `technical`, and one explicit `design` override.
 
 ## Diagram And Connector Discipline
 

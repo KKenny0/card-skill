@@ -3,6 +3,8 @@
  * Each schema defines required fields, optional fields, and type checks.
  */
 
+const { EDITORIAL_TONES, isValidDesignName, listDesigns } = require('./designs');
+
 const SCHEMAS = {
   big: {
     required: ['mode', 'phrase'],
@@ -66,6 +68,7 @@ const SCHEMAS = {
     required: ['mode', 'title'],
     optional: [
       'design',
+      'editorial_tone',
       'use',
       'aspect',
       'kicker',
@@ -83,6 +86,7 @@ const SCHEMAS = {
       mode: 'string',
       title: 'string',
       design: 'string',
+      editorial_tone: 'string',
       use: 'string',
       aspect: 'string',
       kicker: 'string',
@@ -104,6 +108,7 @@ const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider']);
 const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
 const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
+const DESIGN_NAMES = listDesigns().map(design => design.name);
 
 function validate(input) {
   const errors = [];
@@ -139,6 +144,10 @@ function validate(input) {
     if (actual !== expected) {
       errors.push(`Field "${field}" must be ${expected}, got ${actual}`);
     }
+  }
+
+  if (typeof input.design === 'string' && !isValidDesignName(input.design)) {
+    errors.push(`design must be one of: ${DESIGN_NAMES.join(', ')}`);
   }
 
   // Mode-specific body/step validation
@@ -180,6 +189,9 @@ function validate(input) {
   }
 
   if (mode === 'editorial-image') {
+    if (input.editorial_tone && !EDITORIAL_TONES.has(input.editorial_tone)) {
+      errors.push(`editorial_tone must be one of: ${[...EDITORIAL_TONES].join(', ')}`);
+    }
     if (input.aspect && !EDITORIAL_ASPECTS.has(input.aspect)) {
       errors.push(`aspect must be one of: ${[...EDITORIAL_ASPECTS].join(', ')}`);
     }
@@ -191,4 +203,4 @@ function validate(input) {
   return { valid: errors.length === 0, errors };
 }
 
-module.exports = { validate, SCHEMAS, LONG_BODY_TYPES, WHITEBOARD_STEP_TYPES, POSTER_BODY_TYPES, EDITORIAL_ASPECTS, EDITORIAL_USES };
+module.exports = { validate, SCHEMAS, LONG_BODY_TYPES, WHITEBOARD_STEP_TYPES, POSTER_BODY_TYPES, EDITORIAL_ASPECTS, EDITORIAL_USES, EDITORIAL_TONES };

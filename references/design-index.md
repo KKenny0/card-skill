@@ -6,10 +6,12 @@
 品牌系统不再是 18 套互不相干的外观主题。它们共享同一套版面纪律，只在 accent、surface 温度、密度倾向和语义气质上轻微区分。
 
 ## How to match
-- 沉思 → Light Editorial / Light Minimal / ljg-沉思
-- 锐利 → Dark Minimal / Technical Data / ljg-锐利
-- 温暖 → Light Editorial / ljg-温暖
-- 技术 → Technical Data / Dark Minimal / ljg-技术
+- 沉思 / `reflective` → `claude` / `notion` / `apple` / `ljg_chensi`
+- 锐利 / `sharp` → `linear` / `raycast` / `stripe` / `ljg_ruili`
+- 温暖 / `warm` → `claude` / `clay` / `intercom` / `posthog` / `ljg_wennuan`
+- 技术 / `technical` → `stripe` / `ibm` / `opencode` / `sentry` / `together_ai` / `ljg_jishu`
+
+Use these as real renderer names, not loose group labels. `editorial-warm`, `technical-data`, `quiet-minimal`, and similar descriptive buckets are not valid `design` values.
 
 Compact design files at: `references/designs/{name}.md`（ljg-* 色调无需文件，直接用本表 CSS 变量）
 

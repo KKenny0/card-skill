@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { escapeHtml, escapePhrase } = require('../lib/escape');
-const { getDesign } = require('../lib/designs');
+const { getDesign, resolveEditorialDesignName } = require('../lib/designs');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/infograph_template.html');
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
@@ -210,8 +210,9 @@ function baseCss(input, design, aspect) {
 }
 
 function render(input, outputHtmlPath) {
-  const design = getDesign(input.design || 'claude');
-  if (!design) throw new Error(`Design not found: ${input.design}`);
+  const designName = resolveEditorialDesignName(input);
+  const design = designName ? getDesign(designName) : null;
+  if (!design) throw new Error(`Design not found: ${input.design || input.editorial_tone}`);
 
   const aspectKey = defaultAspect(input);
   const aspect = { ...ASPECTS[aspectKey], key: aspectKey };
@@ -230,7 +231,11 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{LOGO}}', logoUrl);
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
-  template = template.replace('<div class="page">', '<div class="page" data-card-mode="editorial-image">');
+  const toneAttr = input.editorial_tone ? ` data-editorial-tone="${escapeHtml(input.editorial_tone)}"` : '';
+  template = template.replace(
+    '<div class="page">',
+    `<div class="page" data-card-mode="editorial-image" data-card-design="${escapeHtml(designName)}"${toneAttr}>`,
+  );
 
   if (!logoUrl && !brandName) {
     template = template.replace(/\s*<div class="who">[\s\S]*?<\/div>/, '');

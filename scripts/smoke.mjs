@@ -50,7 +50,7 @@ try {
     title: 'Attention has a boundary',
     use: 'in-article',
     aspect: 'body-3-2',
-    design: 'claude',
+    editorial_tone: 'technical',
     visual_metaphor: 'A narrow beam illuminates the center of a paper workbench while outer pages fade away.',
     content_html: `
       <section class="attention-workbench">

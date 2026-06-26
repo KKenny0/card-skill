@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const { validate } = require('./lib/schema');
-const { listDesigns } = require('./lib/designs');
+const { EDITORIAL_TONE_DESIGNS, listDesigns, resolveEditorialDesignName } = require('./lib/designs');
 
 const renderers = {
   big: require('./renderers/big'),
@@ -117,6 +117,46 @@ try {
   assert.match(sourceOnlyHtml, /class="colophon"/);
   assert.match(sourceOnlyHtml, />Source only</);
   assert.doesNotMatch(sourceOnlyHtml, /class="who"/);
+
+  const designNames = new Set(listDesigns().map(design => design.name));
+  for (const [tone, pool] of Object.entries(EDITORIAL_TONE_DESIGNS)) {
+    const toneInput = {
+      mode: 'editorial-image',
+      title: `Tone selector ${tone}`,
+      editorial_tone: tone,
+      visual_metaphor: `${tone} paper mood`,
+    };
+    const selectedDesign = resolveEditorialDesignName(toneInput);
+    assert.ok(pool.includes(selectedDesign), `${tone} selected design outside its tone pool: ${selectedDesign}`);
+    assert.ok(designNames.has(selectedDesign), `${tone} selected an unknown design: ${selectedDesign}`);
+
+    const tonePath = path.join(tmpDir, `tone-${tone}.html`);
+    renderers['editorial-image'].render(toneInput, tonePath);
+    const toneHtml = stripComments(fs.readFileSync(tonePath, 'utf8'));
+    assert.match(toneHtml, new RegExp(`data-editorial-tone="${tone}"`), `${tone} tone was not recorded in HTML`);
+    assert.match(toneHtml, new RegExp(`data-card-design="${selectedDesign}"`), `${tone} selected design was not rendered`);
+  }
+
+  const explicitDesignInput = {
+    mode: 'editorial-image',
+    title: 'Explicit design wins',
+    design: 'stripe',
+    editorial_tone: 'warm',
+  };
+  assert.equal(resolveEditorialDesignName(explicitDesignInput), 'stripe', 'explicit design did not override editorial_tone');
+  const explicitDesignPath = path.join(tmpDir, 'explicit-design-editorial.html');
+  renderers['editorial-image'].render(explicitDesignInput, explicitDesignPath);
+  const explicitDesignHtml = stripComments(fs.readFileSync(explicitDesignPath, 'utf8'));
+  assert.match(explicitDesignHtml, /data-card-design="stripe"/, 'explicit design was not rendered');
+  assert.equal(validate({ mode: 'editorial-image', title: 'Alias', design: 'opencode.ai' }).valid, true, 'documented opencode.ai alias failed validation');
+
+  const invalidDesignValidation = validate({ mode: 'editorial-image', title: 'Bad design', design: 'technical-data' });
+  assert.equal(invalidDesignValidation.valid, false, 'invalid grouped design unexpectedly passed validation');
+  assert.match(invalidDesignValidation.errors.join('\n'), /design must be one of:/);
+
+  const invalidToneValidation = validate({ mode: 'editorial-image', title: 'Bad tone', editorial_tone: 'editorial-warm' });
+  assert.equal(invalidToneValidation.valid, false, 'invalid editorial tone unexpectedly passed validation');
+  assert.match(invalidToneValidation.errors.join('\n'), /editorial_tone must be one of: reflective, sharp, warm, technical/);
 
   const inArticleValidation = validate({
     mode: 'editorial-image',
@@ -333,7 +373,7 @@ try {
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
 
-  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image field checks, custom composition, schema, and design registry.`);
+  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image tone selector, field checks, custom composition, schema, and design registry.`);
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }

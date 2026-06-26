@@ -18,7 +18,12 @@
     },
     "design": {
       "type": "string",
-      "description": "Design system name. Defaults to claude. Controls mood tokens such as paper, ink, accent, surface, and radius; it does not decide the visual metaphor."
+      "description": "Explicit design system name. Overrides editorial_tone. Controls mood tokens such as paper, ink, accent, surface, and radius; it does not decide the visual metaphor."
+    },
+    "editorial_tone": {
+      "type": "string",
+      "enum": ["reflective", "sharp", "warm", "technical"],
+      "description": "Automatic editorial design selector used only when design is omitted. Maps the article mood to a real Quiet Paper design."
     },
     "title": {
       "type": "string",
@@ -71,7 +76,7 @@
       "mode": "editorial-image",
       "use": "cover",
       "aspect": "wechat-cover",
-      "design": "claude",
+      "editorial_tone": "reflective",
       "kicker": "ESSAY",
       "title": "工具让人遗忘什么",
       "subtitle": "一篇关于自动化、记忆和写作边界的札记",

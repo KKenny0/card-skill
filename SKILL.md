@@ -33,6 +33,7 @@ version: "0.2.8"
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
 | `--design` | 指定设计系统（跳过自动匹配） | 空（自动选择） |
+| `editorial_tone` | `editorial-image` 自动设计选择：`reflective` / `sharp` / `warm` / `technical` | 空 |
 | `--dpr` | 设备像素比 | 2（2× 像素密度） |
 | `brand_name` | 可选署名/品牌文字；只在用户明确提供时渲染 | 空 |
 | `logo` | 可选署名头像/品牌 logo 路径；只在用户明确提供时渲染 | 空 |
@@ -79,7 +80,7 @@ big: `{ mode, phrase, design?, accent_words?, ghost_char?, attribution? }`
 long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, theme? }`
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
 poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
-editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design? }`
+editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design?, editorial_tone? }`
 
 ### Step 0.5: 读取基础
 
@@ -146,7 +147,7 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 正式配图必须有一个具体主视觉对象或场景，例如桌面、抽屉、纸页、窗口、手势、路径、容器、仪表、地图、阴影关系等。不要只用纸片、线条、抽象框和留白来替代视觉隐喻；如果拿掉标题后画面与文章关系消失，就需要重做 `content_html` + `custom_css`。
 
-`editorial-image` 支持 `design` 字段。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户指定设计系统时照做；用户未指定时，根据文章情绪自动选择，例如技术文可用 `stripe` / `ibm` / `apple` / `claude` / `ljg_jishu`，反思类文章可用 `claude` / `notion` / `ljg_chensi`。
+`editorial-image` 支持 `design` 和 `editorial_tone` 字段。`design` 是显式设计系统，优先级最高；`editorial_tone` 是自动选择入口，只能是 `reflective` / `sharp` / `warm` / `technical`。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户未指定 `design` 时，必须根据文章情绪给出 `editorial_tone`，让 CLI 落到真实存在的 Quiet Paper design。
 
 需要候选时，方向输出格式：
 
@@ -189,11 +190,12 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 **匹配逻辑**：
 
-1. **情绪→品牌气质**：
-   - 沉思 → editorial-warm / quiet-minimal / dark-paper
-   - 锐利 → technical-data / dark-paper / restrained-contrast
-   - 温暖 → editorial-warm / organic-warm / soft-paper
-   - 技术 → technical-data / monospace / precision-dark
+1. **情绪→真实 design**：
+   - 沉思 / reflective → `claude` / `notion` / `apple` / `ljg_chensi`
+   - 锐利 / sharp → `linear` / `raycast` / `stripe` / `ljg_ruili`
+   - 温暖 / warm → `claude` / `clay` / `intercom` / `posthog` / `ljg_wennuan`
+   - 技术 / technical → `stripe` / `ibm` / `opencode` / `sentry` / `together_ai` / `ljg_jishu`
+   - 不要把 `editorial-warm` / `technical-data` / `quiet-minimal` 等分组词写入 `design`；它们不是可渲染 design 名。
 2. **主题关联**：内容领域与品牌领域有交集时加分（如 AI 内容→AI 品牌，金融→fintech）
 3. **密度适配**：稀→留白风格（apple, notion），密→data-dense 风格（stripe, ibm）
 4. **多样性边界**：候选之间应气质不同，但都必须保持 Quiet Paper：暖纸或深卡纸、低饱和 accent、小圆角、少阴影
@@ -367,6 +369,8 @@ node scripts/check-output.mjs --html <html_path> --png <png_path> --width 1080 -
 
 可用名称见 `references/design-index.md` 的目录名列。
 
+`editorial-image` 的自动路径使用 `editorial_tone`，不要把抽象分组名写进 `design`。如果用户没有指定 `--design`，根据文章情绪填入 `editorial_tone`，由 CLI 稳定选择真实 design。
+
 ## 维护测试
 
 改动技能或模板后，至少运行：
@@ -384,6 +388,8 @@ $output = Join-Path $env:TEMP 'smoke_big.png'
 ```
 
 生成后实际查看 PNG，确认画面不是只满足文件存在；检查完成后删除该 smoke PNG。
+
+涉及 `editorial-image` 设计选择时，还必须实际渲染并检查一组 PNG：`reflective`、`sharp`、`warm`、`technical`、显式 `design` 各 1 张。确认视觉气质确实不同、仍保持 Quiet Paper、无明显裁切/溢出/坏换行/主体过小。
 
 ## 开发者工具（非 AI 流程使用）
 
