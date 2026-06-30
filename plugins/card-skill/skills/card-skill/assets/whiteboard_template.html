@@ -1,0 +1,449 @@
+<!--
+  ═══════════════════════════════════════════════════════════
+  Whiteboard (白板) Template — Brand-Agnostic
+  Theme: class="dark" (default) or class="light" on <html>
+  ═══════════════════════════════════════════════════════════
+
+  PLACEHOLDERS
+  ────────────
+  {{SUBTITLE}}    — Subtitle / kicker line (e.g. "推理链：从 API 调用到自主决策")
+  {{TITLE_HTML}}  — Title with optional <span class="keyword">accent</span>
+  {{STEPS_HTML}}  — All step sections: chain nodes, layer cards, insight boxes
+  {{LOGO}}        — Path to brand logo image
+  {{BRAND_NAME}}  — Brand / tool name for colophon
+
+  CSS VARIABLES (override to theme)
+  ──────────────────────────────────
+  --bg         — Canvas / page background
+  --surface-1  — Elevated surface (layer cards)
+  --surface-2  — Secondary surface (insight box)
+  --accent     — Accent / highlight colour
+  --ink        — Primary text colour
+  --ink-muted  — Secondary / muted text colour
+  --hairline   — Border / divider colour
+
+  ═══════════════════════════════════════════════════════════
+-->
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>{{BRAND_NAME}} | 白板</title>
+<style>
+  /* ─── Font-face ─── */
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('file://{{FONT_BASE}}/XiangcuiDengcusong.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ─── Theme tokens (override per-brand) ─── */
+  :root {
+    --bg:         #151413;
+    --surface-1:  #1d1b18;
+    --surface-2:  #26231f;
+    --accent:     #7b84b8;
+    --ink:        #e8e2da;
+    --ink-muted:  #aaa297;
+    --hairline:   #353129;
+    --radius:     8px;
+  }
+
+  /* ─── Light theme visual adjustments ─── */
+  html.light .whiteboard {
+    background:
+      radial-gradient(ellipse at 28% 12%, rgba(255, 248, 232, 0.32), transparent 58%),
+      var(--bg);
+  }
+
+  html.dark .whiteboard {
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(232, 226, 218, 0.055), transparent 54%),
+      var(--bg);
+  }
+
+  /* ─── Reset ─── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    width: 1080px;
+    margin: 0 auto;
+    font-family: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── Whiteboard canvas ─── */
+  .whiteboard {
+    position: relative;
+    width: 1080px;
+    padding: 72px 80px 60px 80px;
+    background: var(--bg);
+  }
+
+  /* ═══════════════════════════════════
+     Typography
+     ═══════════════════════════════════ */
+
+  /* ─── Subtitle / kicker ─── */
+  .subtitle {
+    font-family: 'JetBrains Mono', 'DM Sans', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    letter-spacing: 1.5px;
+    text-transform: none;
+    margin-bottom: 18px;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .subtitle::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ─── Main title ─── */
+  .title {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 58px;
+    line-height: 1.18;
+    color: var(--ink);
+    margin-bottom: 24px;
+    max-width: 860px;
+  }
+
+  .title .keyword {
+    color: var(--accent);
+  }
+
+  .title-wave {
+    height: 1px;
+    background: var(--hairline);
+    margin-bottom: 56px;
+    max-width: 860px;
+  }
+
+  .title-wave svg {
+    display: none;
+  }
+
+  /* ═══════════════════════════════════
+     Sections & Steps
+     ═══════════════════════════════════ */
+
+  .section {
+    margin-bottom: 60px;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', 'DM Sans', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0.6;
+  }
+
+  .step-num {
+    font-family: 'Permanent Marker', 'Kalam', cursive;
+    font-size: 24px;
+    color: var(--ink-muted);
+    opacity: 0.5;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  /* ═══════════════════════════════════
+     Chain (horizontal reasoning)
+     ═══════════════════════════════════ */
+
+  .chain {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .chain-node {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 36px;
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 6px 4px;
+    white-space: nowrap;
+  }
+
+  .chain-node .highlight {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .chain-node .muted {
+    color: var(--ink-muted);
+    font-size: 36px;
+  }
+
+  /* ═══════════════════════════════════
+     Annotation
+     ═══════════════════════════════════ */
+
+  .annotation {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 36px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    padding-left: 4px;
+  }
+
+  .annotation .em {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ═══════════════════════════════════
+     Layer cards
+     ═══════════════════════════════════ */
+
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+    margin-left: 16px;
+  }
+
+  .layer {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 24px;
+    background: var(--surface-1);
+    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+    max-width: 820px;
+  }
+
+  .layer-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .layer-body {
+    flex: 1;
+  }
+
+  .layer-name {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 36px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .layer-desc {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 36px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════
+     Insight / conclusion box
+     ═══════════════════════════════════ */
+
+  .insight-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 28px 32px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+    max-width: 860px;
+    margin-top: 60px;
+  }
+
+  .insight-box .insight-icon {
+    flex-shrink: 0;
+  }
+
+  .insight-box .insight-text {
+    font-family: 'XiangcuiDengcusong', 'PingFang SC', serif;
+    font-size: 34px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .insight-box .insight-text .accent-word {
+    color: var(--accent);
+  }
+
+  /* ═══════════════════════════════════
+     Colophon
+     ═══════════════════════════════════ */
+
+  .colophon {
+    margin-top: 80px;
+    padding-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.72;
+  }
+
+  .colophon img {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+  }
+
+  .colophon span {
+    font-family: 'JetBrains Mono', 'DM Sans', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="whiteboard">
+
+  <!-- Subtitle -->
+  <div class="subtitle">{{SUBTITLE}}</div>
+
+  <!-- Title -->
+  <div class="title">{{TITLE_HTML}}</div>
+
+  <!-- Wavy underline -->
+  <div class="title-wave">
+    <svg width="580" height="16" viewBox="0 0 580 16" fill="none">
+      <path d="M2 10 Q40 2, 80 10 T160 10 T240 10 T320 10 T400 10 T480 10 T560 10"
+            stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"
+            style="color: var(--accent);"/>
+    </svg>
+  </div>
+
+  <!-- ═══ Steps content ═══ -->
+  {{STEPS_HTML}}
+
+  <!-- ═══ Colophon ═══ -->
+  <div class="colophon">
+    <img src="{{LOGO}}" alt="logo"/>
+    <span>{{BRAND_NAME}}</span>
+  </div>
+
+</div>
+
+<!--
+  ═══════════════════════════════════════════════════════════════
+  INLINE SVG ICON CATALOGUE (copy into steps as needed)
+  ═══════════════════════════════════════════════════════════════
+
+  ┌─ Eye / Perception ─────────────────────────────────────────┐
+  │  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">│
+  │    <ellipse cx="18" cy="18" rx="15" ry="9"                  │
+  │      stroke="var(--ink-muted)" stroke-width="1.8" fill="none"/>│
+  │    <circle cx="18" cy="18" r="4"                            │
+  │      stroke="var(--ink)" stroke-width="1.8" fill="none"/>   │
+  │    <circle cx="18" cy="18" r="1.5" fill="var(--ink)"/>      │
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─ Brain / Reasoning ────────────────────────────────────────┐
+  │  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">│
+  │    <path d="M10 26 Q6 18, 12 12 Q15 6, 22 8 Q30 6, 30 14   │
+  │             Q34 20, 28 26"                                   │
+  │      stroke="var(--ink-muted)" stroke-width="1.8" fill="none"│
+  │      stroke-linecap="round"/>                                │
+  │    <path d="M15 14 L18 20 L21 14"                           │
+  │      stroke="var(--ink)" stroke-width="1.5" fill="none"     │
+  │      stroke-linecap="round" stroke-linejoin="round"/>       │
+  │    <line x1="18" y1="20" x2="18" y2="24"                   │
+  │      stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>│
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─ Hand / Action ────────────────────────────────────────────┐
+  │  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">│
+  │    <path d="M12 24 L12 16 Q12 14, 14 14 Q16 14, 16 16      │
+  │             L16 22"                                          │
+  │      stroke="var(--ink)" stroke-width="1.8" fill="none"     │
+  │      stroke-linecap="round"/>                                │
+  │    <path d="M16 22 L16 12 Q16 10, 18 10 Q20 10, 20 12      │
+  │             L20 22"                                          │
+  │      stroke="var(--ink)" stroke-width="1.8" fill="none"     │
+  │      stroke-linecap="round"/>                                │
+  │    <path d="M20 22 L20 14 Q20 12, 22 12 Q24 12, 24 14      │
+  │             L24 22"                                          │
+  │      stroke="var(--ink)" stroke-width="1.8" fill="none"     │
+  │      stroke-linecap="round"/>                                │
+  │    <path d="M24 22 L24 16 Q24 14, 26 14 Q28 14, 28 16      │
+  │             L28 22"                                          │
+  │      stroke="var(--ink)" stroke-width="1.8" fill="none"     │
+  │      stroke-linecap="round"/>                                │
+  │    <path d="M10 24 Q10 30, 18 30 Q26 30, 28 24"            │
+  │      stroke="var(--ink-muted)" stroke-width="1.8" fill="none"│
+  │      stroke-linecap="round"/>                                │
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─ Lightbulb / Insight ──────────────────────────────────────┐
+  │  <svg width="48" height="48" viewBox="0 0 48 48" fill="none">│
+  │    <path d="M24 4 C16 4, 10 10, 10 18 C10 23, 13 27, 17    │
+  │             29 L17 34 C17 35, 18 36, 19 36 L29 36           │
+  │             C30 36, 31 35, 31 34 L31 29                     │
+  │             C35 27, 38 23, 38 18 C38 10, 32 4, 24 4Z"      │
+  │      stroke="var(--accent)" stroke-width="2" fill="none"/>  │
+  │    <line x1="19" y1="40" x2="29" y2="40"                   │
+  │      stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>│
+  │    <line x1="20" y1="44" x2="28" y2="44"                   │
+  │      stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>│
+  │    <path d="M24 14 L24 22"                                  │
+  │      stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>│
+  │    <path d="M20 18 L28 18"                                  │
+  │      stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>│
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─ Arrow (chain connector) ──────────────────────────────────┐
+  │  <svg viewBox="0 0 36 20" fill="none">                     │
+  │    <path d="M2 10 L28 10" stroke="var(--ink-muted)"         │
+  │      stroke-width="2" stroke-linecap="round"/>              │
+  │    <path d="M24 5 L30 10 L24 15" stroke="var(--ink-muted)"  │
+  │      stroke-width="2" stroke-linecap="round"                │
+  │      stroke-linejoin="round"/>                               │
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+
+  ┌─ Wavy underline (title decoration) ────────────────────────┐
+  │  <svg width="580" height="16" viewBox="0 0 580 16" fill="none">│
+  │    <path d="M2 10 Q40 2, 80 10 T160 10 T240 10 T320 10     │
+  │             T400 10 T480 10 T560 10"                         │
+  │      stroke="var(--accent)" stroke-width="2.5" fill="none"  │
+  │      stroke-linecap="round"/>                                │
+  │  </svg>                                                     │
+  └─────────────────────────────────────────────────────────────┘
+-->
+
+</body>
+</html>

@@ -41,6 +41,60 @@ function assertVersionSources() {
   assert.equal(skillVersion, version, 'SKILL.md version does not match VERSION');
 }
 
+function assertPackagedSkill() {
+  const packageRoot = path.join(ROOT, 'plugins', 'card-skill');
+  const skillRoot = path.join(packageRoot, 'skills', 'card-skill');
+  const pluginJsonPath = path.join(packageRoot, '.codex-plugin', 'plugin.json');
+  const marketplacePath = path.join(ROOT, '.agents', 'plugins', 'marketplace.json');
+
+  for (const requiredPath of [
+    pluginJsonPath,
+    marketplacePath,
+    path.join(skillRoot, 'SKILL.md'),
+    path.join(skillRoot, 'VERSION'),
+    path.join(skillRoot, 'package.json'),
+    path.join(skillRoot, 'scripts', 'card.js'),
+    path.join(skillRoot, 'scripts', 'check-output.mjs'),
+    path.join(skillRoot, 'assets', 'big_template.html'),
+    path.join(skillRoot, 'assets', 'fonts'),
+    path.join(skillRoot, 'schemas', 'big.json'),
+    path.join(skillRoot, 'references', 'design-index.md'),
+  ]) {
+    assert.ok(fs.existsSync(requiredPath), `Packaged skill is missing ${path.relative(ROOT, requiredPath)}`);
+  }
+
+  const rootVersion = fs.readFileSync(path.join(ROOT, 'VERSION'), 'utf8').trim();
+  const packagedVersion = fs.readFileSync(path.join(skillRoot, 'VERSION'), 'utf8').trim();
+  const pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, 'utf8'));
+  const marketplaceJson = JSON.parse(fs.readFileSync(marketplacePath, 'utf8'));
+  const marketplaceEntry = marketplaceJson.plugins?.find(plugin => plugin.name === 'card-skill');
+
+  assert.equal(packagedVersion, rootVersion, 'packaged VERSION does not match root VERSION');
+  assert.equal(pluginJson.name, 'card-skill', 'plugin.json name is not card-skill');
+  assert.equal(pluginJson.version, rootVersion, 'plugin.json version does not match VERSION');
+  assert.equal(pluginJson.skills, './skills/', 'plugin.json skills path must point at ./skills/');
+  assert.ok(marketplaceEntry, 'marketplace.json is missing card-skill entry');
+  assert.equal(marketplaceEntry.source?.path, './plugins/card-skill', 'marketplace entry must point at ./plugins/card-skill');
+
+  for (const relativePath of [
+    'SKILL.md',
+    'README.md',
+    'package.json',
+    'package-lock.json',
+    'scripts/card.js',
+    'scripts/check-output.mjs',
+    'scripts/validate.mjs',
+    'schemas/big.json',
+    'schemas/editorial-image.json',
+    'references/design-index.md',
+    'assets/big_template.html',
+  ]) {
+    const rootContent = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+    const packagedContent = fs.readFileSync(path.join(skillRoot, relativePath), 'utf8');
+    assert.equal(packagedContent, rootContent, `packaged ${relativePath} is stale; run npm run package-skill`);
+  }
+}
+
 function stripComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '');
 }
@@ -81,6 +135,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
 
 try {
   assertVersionSources();
+  assertPackagedSkill();
 
   for (const [mode, input] of Object.entries(inputs)) {
     const validation = validate(input);

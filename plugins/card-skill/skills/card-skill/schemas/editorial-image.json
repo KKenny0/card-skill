@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "card-skill editorial-image mode input",
+  "description": "Structured input for aspect-aware editorial images for WeChat/blog covers and in-article illustrations. The schema constrains purpose and canvas, while content_html/custom_css keep the composition open.",
+  "type": "object",
+  "required": ["mode", "title"],
+  "properties": {
+    "mode": { "type": "string", "const": "editorial-image" },
+    "use": {
+      "type": "string",
+      "enum": ["cover", "in-article", "metaphor"],
+      "description": "Editorial job, not a canvas ratio. Use cover for article covers, in-article for body illustrations, and metaphor for concept/stance images. Defaults to cover behavior when omitted."
+    },
+    "aspect": {
+      "type": "string",
+      "enum": ["wechat-cover", "blog-hero", "body-3-2", "body-4-3", "cinematic", "square"],
+      "description": "Canvas ratio. Defaults by use: cover -> blog-hero unless WeChat is requested, metaphor -> blog-hero, in-article -> body-3-2. Do not put aspect values into use."
+    },
+    "design": {
+      "type": "string",
+      "description": "Explicit design system name. Overrides editorial_tone. Controls mood tokens such as paper, ink, accent, surface, and radius; it does not decide the visual metaphor."
+    },
+    "editorial_tone": {
+      "type": "string",
+      "enum": ["reflective", "sharp", "warm", "technical"],
+      "description": "Automatic editorial design selector used only when design is omitted. Maps the article mood to a real Quiet Paper design."
+    },
+    "title": {
+      "type": "string",
+      "description": "Article title or cover title.",
+      "minLength": 1
+    },
+    "kicker": {
+      "type": "string",
+      "description": "Small editorial label, e.g. ESSAY, NOTES, or the aspect label."
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional short supporting line. Keep it brief."
+    },
+    "visual_metaphor": {
+      "type": "string",
+      "description": "One-sentence visual metaphor or scene idea."
+    },
+    "art_direction": {
+      "type": "string",
+      "description": "Freeform art direction. Used as guidance and fallback visual caption."
+    },
+    "text_plan": {
+      "type": "string",
+      "description": "Text plan for the composition, preserved as a CSS comment for traceability."
+    },
+    "content_html": {
+      "type": "string",
+      "description": "Trusted custom HTML composition. Use after the AI flow chooses a visual direction; preferred for final editorial images that need a concrete subject or scene."
+    },
+    "custom_css": {
+      "type": "string",
+      "description": "Trusted custom CSS composition layer. Use for visual expression beyond the default scaffold, including the dominant object, scene, gesture, or diagram metaphor. Visible text must use a controlled primary font: DM Sans, DM Serif Display, JetBrains Mono, XiangcuiDengcusong, or XiangcuiDazijiti; fallback fonts may follow the primary font. Custom CSS must stay inside the card-skill Quiet Paper system: token-derived paper surfaces, low-saturation accents, hairline borders, small radius, and little or no shadow."
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional source line in the colophon."
+    },
+    "logo": {
+      "type": "string",
+      "description": "Optional path to a brand logo or avatar image. Omit for an unbranded output; do not use a photo alias."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Optional brand or author name in the colophon footer. Omit for an unbranded output; do not use an author alias."
+    }
+  },
+  "examples": [
+    {
+      "mode": "editorial-image",
+      "use": "cover",
+      "aspect": "wechat-cover",
+      "editorial_tone": "reflective",
+      "kicker": "ESSAY",
+      "title": "工具让人遗忘什么",
+      "subtitle": "一篇关于自动化、记忆和写作边界的札记",
+      "visual_metaphor": "A writing desk with one labeled drawer missing."
+    }
+  ]
+}

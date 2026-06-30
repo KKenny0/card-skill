@@ -2,10 +2,28 @@
 name: card-skill
 description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, and editorial image. Supports 8 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, and editorial-image. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.2.9"
+version: "0.2.10"
 ---
 
 # card-skill
+
+**Install integrity check.** Before using this skill, confirm this directory contains `scripts/card.js`, `scripts/check-output.mjs`, `assets/`, `schemas/`, and `references/`. If any of them are missing, stop and tell the user this installation is incomplete: bare `npx skills add KKenny0/card-skill ...` installs only `SKILL.md` for this repository shape. Ask them to reinstall the self-contained skill package instead:
+
+Codex plugin:
+```bash
+codex plugin marketplace add KKenny0/card-skill
+codex plugin add card-skill@card-skill
+```
+
+Generic agent:
+```bash
+npx skills add KKenny0/card-skill/plugins/card-skill/skills/card-skill -a codex -g -y
+cd ~/.agents/skills/card-skill
+npm install
+npx playwright install chromium
+```
+
+For one-off use without installing, run `npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill card-skill`.
 
 **Update check (non-blocking).** Before starting, run `node scripts/check-update.mjs` once; if it prints a line, relay it to the user, then continue. It runs at most once a day, only reads this skill's public `VERSION` file, sends no content, and fails silently. Set `CARD_SKILL_DISABLE_UPDATE_CHECK=1` to skip this check.
 

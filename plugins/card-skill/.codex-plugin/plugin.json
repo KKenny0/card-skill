@@ -1,0 +1,38 @@
+{
+  "name": "card-skill",
+  "version": "0.2.10",
+  "description": "Render text content into polished, shareable PNG cards, posters, whiteboards, long-form reading cards, and editorial images.",
+  "author": {
+    "name": "KKenny0",
+    "url": "https://github.com/KKenny0"
+  },
+  "homepage": "https://github.com/KKenny0/card-skill",
+  "repository": "https://github.com/KKenny0/card-skill",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "skills",
+    "cards",
+    "poster",
+    "visualization",
+    "editorial-image"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "card-skill",
+    "shortDescription": "Turn text into publish-ready visual cards",
+    "longDescription": "card-skill packages Quiet Paper renderers, templates, fonts, schemas, and output checks for turning articles, notes, arguments, and stories into polished PNG visuals.",
+    "developerName": "KKenny0",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "websiteURL": "https://github.com/KKenny0/card-skill",
+    "defaultPrompt": [
+      "Turn this article into a WeChat cover image",
+      "Make these notes into a social card set",
+      "Draw this argument as a whiteboard card"
+    ],
+    "brandColor": "#9B6048"
+  }
+}

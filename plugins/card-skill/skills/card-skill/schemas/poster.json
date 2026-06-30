@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "card-skill poster mode input",
+  "description": "Structured input for poster mode CLI rendering. Poster mode produces a series of cards (1080x1440 each) from structured content.",
+  "type": "object",
+  "required": ["mode", "title", "cards"],
+  "properties": {
+    "mode": { "type": "string", "const": "poster" },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to 'stripe'. See scripts/lib/designs.js for full list.",
+      "default": "stripe"
+    },
+    "title": {
+      "type": "string",
+      "description": "Overall title for the poster series, shown on the first card header.",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional subtitle shown below the title on the first card.",
+      "default": ""
+    },
+    "cards": {
+      "type": "array",
+      "description": "Array of card objects. Each card gets its own HTML file and PNG output.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["body"],
+        "properties": {
+          "body": {
+            "type": "array",
+            "description": "Array of body elements for this card.",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "logo": {
+      "type": "string",
+      "description": "Optional path to a brand logo image. Omit for an unbranded output."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
+    }
+  },
+  "examples": [
+    {
+      "mode": "poster",
+      "design": "stripe",
+      "title": "从零到一：创业第一年的 10 条教训",
+      "cards": [
+        {
+          "body": [
+            { "type": "heading", "text": "不要等产品完美才上线" },
+            { "type": "paragraph", "text": "MVP 的 M 不是 Minimum，是 Mother——够用就行。" }
+          ]
+        },
+        {
+          "body": [
+            { "type": "heading", "text": "找到第一个付费客户" },
+            { "type": "paragraph", "text": "付费是最好的产品验证。" }
+          ]
+        }
+      ]
+    }
+  ]
+}

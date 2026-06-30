@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "card-skill whiteboard mode input",
+  "description": "Structured input for whiteboard mode CLI rendering. Whiteboard mode produces a reasoning chain card (1080px wide, auto height).",
+  "type": "object",
+  "required": ["mode", "title", "steps"],
+  "properties": {
+    "mode": { "type": "string", "const": "whiteboard" },
+    "design": {
+      "type": "string",
+      "description": "Design system name. Defaults to 'stripe'.",
+      "default": "stripe"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Subtitle / kicker line. Example: '推理链：从 API 调用到自主决策'",
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "description": "Main title. Use accent_words to highlight specific words.",
+      "minLength": 1
+    },
+    "accent_words": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Words to wrap in <span class=\"keyword\"> in the title."
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered reasoning steps. Each step is one of: chain, annotation, layers, insight.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type", "nodes"],
+            "properties": {
+              "type": { "type": "string", "const": "chain" },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["text"],
+                  "properties": {
+                    "text": { "type": "string" },
+                    "highlight": { "type": "boolean", "default": false },
+                    "muted": { "type": "boolean", "default": false }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "annotation" },
+              "text": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "items"],
+            "properties": {
+              "type": { "type": "string", "const": "layers" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "desc"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "desc": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "text"],
+            "properties": {
+              "type": { "type": "string", "const": "insight" },
+              "text": { "type": "string", "description": "HTML allowed: <span class=\"accent-word\">" }
+            }
+          }
+        ]
+      },
+      "minItems": 1
+    },
+    "logo": { "type": "string", "description": "Optional path to a brand logo image. Omit for an unbranded output." },
+    "brand_name": { "type": "string", "description": "Optional brand name in the colophon footer. Omit for an unbranded output." }
+  }
+}

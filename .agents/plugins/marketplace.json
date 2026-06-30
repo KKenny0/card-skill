@@ -1,0 +1,20 @@
+{
+  "name": "card-skill",
+  "interface": {
+    "displayName": "card-skill"
+  },
+  "plugins": [
+    {
+      "name": "card-skill",
+      "source": {
+        "source": "local",
+        "path": "./plugins/card-skill"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  LONG MODE TEMPLATE — Brand-Agnostic Long-Form Card        ║
+  ║  Width: 1080px  |  Height: auto (content-driven)            ║
+  ║                                                              ║
+  ║  PLACEHOLDERS:                                               ║
+  ║    {{KICKER}}      — Top label / category tag                ║
+  ║                       (e.g. "Architecture Pattern")          ║
+  ║    {{TITLE}}       — Main headline                           ║
+  ║                       (e.g. "Why Agent != LLM + Loop")       ║
+  ║    {{SUBTITLE}}    — Subtitle / deck line                    ║
+  ║    {{BODY_HTML}}   — Full body content. Supports:            ║
+  ║                       <p>, .dropcap <p>, .highlight,         ║
+  ║                       .layer-card, .section-break,           ║
+  ║                       <blockquote>, <h2>, <h3>               ║
+  ║    {{SOURCE_LINE}} — Optional source attribution             ║
+  ║                       (e.g. "Source: designsystems.com")     ║
+  ║    {{LOGO}}        — Logo image path                         ║
+  ║                       (e.g. "assets/logo.png")               ║
+  ║    {{BRAND_NAME}}  — Brand / product name                    ║
+  ║                       (e.g. "MyBrand")                       ║
+  ║                                                              ║
+  ║  CSS VARIABLES (override per brand):                         ║
+  ║    --bg          Canvas background                           ║
+  ║    --surface-1   Card / block background                     ║
+  ║    --surface-2   Elevated surface background                 ║
+  ║    --accent      Highlight / accent color                    ║
+  ║    --ink         Primary text color                          ║
+  ║    --ink-muted   Secondary / muted text color                ║
+  ║    --hairline    Borders and dividers                        ║
+  ║    --radius      Border radius (6px | 12px | …)             ║
+  ║                                                              ║
+  ║  THEME VARIANTS:                                             ║
+  ║    Add class "dark" on <html> to switch to dark palette.     ║
+  ║    Remove class or use "light" for warm parchment.           ║
+  ║                                                              ║
+  ║  GRAIN OVERLAY:                                              ║
+  ║    Enabled by default on light theme.                        ║
+  ║    Add class "no-grain" on <html> to disable.                ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<html lang="zh-CN" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>{{TITLE}}</title>
+<style>
+  /* ── Font Loading ────────────────────────────────────────── */
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('file://{{FONT_BASE}}/XiangcuiDengcusong.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ── Reset ───────────────────────────────────────────────── */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* ── CSS Variables — Light Theme (default) ───────────────── */
+  :root {
+    --bg:          #f5f0e8;
+    --surface-1:   #fbfaf6;
+    --surface-2:   #e9e1d4;
+    --accent:      #9b6048;
+    --ink:         #2c2418;
+    --ink-muted:   #6b6050;
+    --hairline:    #d8cdbc;
+    --radius:      6px;
+    --paper-shadow: rgba(44, 36, 24, 0.055);
+  }
+
+  /* ── CSS Variables — Dark Theme ──────────────────────────── */
+  html.dark {
+    --bg:          #151413;
+    --surface-1:   #1d1b18;
+    --surface-2:   #26231f;
+    --accent:      #a88868;
+    --ink:         #e8e2da;
+    --ink-muted:   #aaa297;
+    --hairline:    #353129;
+    --paper-shadow: rgba(0, 0, 0, 0.14);
+  }
+
+  /* ── Body ────────────────────────────────────────────────── */
+  body {
+    width: 1080px;
+    margin: 0 auto;
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(255, 248, 232, 0.38), transparent 58%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
+    font-size: 36px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  html.dark body {
+    background:
+      radial-gradient(ellipse at 30% 18%, rgba(232, 226, 218, 0.055), transparent 54%),
+      var(--bg);
+  }
+
+  /* ── SVG Grain Overlay (light theme only) ────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.16;
+    filter: url(#grain);
+  }
+
+  html.no-grain body::before,
+  html.dark body::before {
+    display: none;
+  }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  .page {
+    padding: 108px 76px 84px 76px;
+  }
+
+  /* ── Header / Title Area ─────────────────────────────────── */
+  .header {
+    margin-bottom: 72px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .header .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header .kicker::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0.82;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
+    font-size: 60px;
+    line-height: 1.18;
+    color: var(--ink);
+    font-weight: normal;
+    letter-spacing: 0;
+    margin-bottom: 20px;
+  }
+
+  .header h1 .accent-word {
+    color: var(--accent);
+  }
+
+  .header .subtitle {
+    font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
+    font-size: 36px;
+    color: var(--ink-muted);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* ── Body Content ────────────────────────────────────────── */
+  .body-content {
+    margin-bottom: 64px;
+  }
+
+  .body-content p {
+    margin-bottom: 34px;
+    text-align: justify;
+    hanging-punctuation: first;
+  }
+
+  /* ── Dropcap ─────────────────────────────────────────────── */
+  .body-content p.dropcap::first-letter,
+  .body-content > p:first-child.dropcap::first-letter {
+    font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
+    font-size: 104px;
+    float: left;
+    line-height: 0.78;
+    margin-right: 14px;
+    margin-top: 8px;
+    color: var(--ink);
+  }
+
+  /* ── Headings inside body ────────────────────────────────── */
+  .body-content h2 {
+    font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
+    font-size: 42px;
+    font-weight: normal;
+    line-height: 1.3;
+    color: var(--ink);
+    border-left: 3px solid var(--accent);
+    padding-left: 18px;
+    margin: 56px 0 28px 0;
+  }
+
+  .body-content h3 {
+    font-family: 'DM Sans', 'XiangcuiDengcusong', sans-serif;
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 44px 0 20px 0;
+  }
+
+  /* ── Highlight — golden-sentence with border accent ──────── */
+  .highlight {
+    font-family: 'DM Serif Display', 'XiangcuiDengcusong', serif;
+    font-size: 37px;
+    line-height: 1.6;
+    color: var(--ink);
+    text-align: left;
+    padding: 34px 0 34px 28px;
+    margin: 48px 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    border-left: 3px solid var(--accent);
+    position: relative;
+  }
+
+  .highlight.accent-highlight {
+    color: var(--accent);
+  }
+
+  .highlight::before {
+    content: '';
+    display: block;
+    display: none;
+  }
+
+  .highlight.accent-highlight::before {
+    background-color: var(--accent);
+  }
+
+  /* ── Section Break — 3-dot divider ──────────────────────── */
+  .section-break {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 56px 0;
+    color: var(--hairline);
+  }
+
+  .section-break .dot {
+    width: 28px;
+    height: 1px;
+    border-radius: 1px;
+    background-color: var(--hairline);
+  }
+
+  /* ── Layer Card — numbered card with label + text ────────── */
+  .layer-card {
+    background-color: var(--surface-1);
+    border-radius: var(--radius);
+    padding: 34px 38px;
+    margin: 36px 0;
+    border: 1px solid var(--hairline);
+    box-shadow: 0 10px 28px var(--paper-shadow);
+  }
+
+  .layer-card .layer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .layer-card .layer-text {
+    font-size: 36px;
+    line-height: 1.68;
+    color: var(--ink);
+    text-align: justify;
+  }
+
+  /* ── Blockquote ──────────────────────────────────────────── */
+  blockquote {
+    margin: 48px 0;
+    padding: 30px 36px;
+    border-left: 3px solid var(--accent);
+    background-color: var(--surface-1);
+    border-radius: var(--radius);
+    font-style: normal;
+    color: var(--ink-muted);
+    font-size: 36px;
+    line-height: 1.7;
+  }
+
+  blockquote p {
+    margin-bottom: 0;
+  }
+
+  /* ── Source Attribution ──────────────────────────────────── */
+  .source-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    opacity: 0.72;
+    margin-top: 24px;
+    text-align: right;
+  }
+
+  /* ── Colophon / Footer ───────────────────────────────────── */
+  .colophon {
+    margin-top: 80px;
+    padding-top: 36px;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .colophon .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .colophon .brand img {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius);
+  }
+
+  .colophon .brand .name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .colophon .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: var(--ink-muted);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG grain filter (for light-theme texture) -->
+<svg style="position:absolute;width:0;height:0;">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="kicker">{{KICKER}}</div>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">{{SUBTITLE}}</p>
+  </header>
+
+  <!-- Body Content -->
+  <div class="body-content">
+
+    {{BODY_HTML}}
+
+  </div>
+
+  <!-- Colophon -->
+  <footer class="colophon">
+    <div class="brand">
+      <img src="{{LOGO}}" alt="logo">
+      <span class="name">{{BRAND_NAME}}</span>
+    </div>
+    <div class="meta">Long</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

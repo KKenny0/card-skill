@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Font load failure fixture</title>
+  <style>
+    /* This @font-face src URL is intentionally invalid.
+       check-output.mjs should report font_load_failed ERROR. */
+    @font-face {
+      font-family: 'XiangcuiDengcusong';
+      src: url('/path/that/does/not/exist/XiangcuiDengcusong.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    html, body { margin: 0; padding: 0; background: #f6f4ee; }
+    .page { width: 1080px; height: 720px; padding: 80px; box-sizing: border-box; }
+    h1 {
+      font-family: 'XiangcuiDengcusong', serif;
+      font-size: 72px;
+      color: #172434;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Fixture: font load failure</h1>
+  </div>
+</body>
+</html>

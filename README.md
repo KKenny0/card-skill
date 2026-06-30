@@ -26,18 +26,30 @@
 
 ## 60 秒安装
 
-安装到 Claude Code：
+card-skill 需要完整安装包，因为渲染脚本、模板、字体和检查器都在 `scripts/`、`assets/`、`schemas/`、`references/` 里。不要裸装 `KKenny0/card-skill`；当前 `skills add` 会把仓库根目录的 `SKILL.md` 当成单文件 skill，agent 会看不到渲染脚本和模板。
+
+安装到 Codex：
 
 ```bash
-npx skills add KKenny0/card-skill -a claude-code -g -y
+codex plugin marketplace add KKenny0/card-skill
+codex plugin add card-skill@card-skill
 ```
 
-`skills add` 不会自动安装 Playwright 或 Chromium。首次出图前需完成一次环境设置：
+普通 agent 安装完整 skill 包：
 
 ```bash
-cd ~/.claude/skills/card-skill
+npx skills add KKenny0/card-skill/plugins/card-skill/skills/card-skill -a codex -g -y
+cd ~/.agents/skills/card-skill
 npm install
 npx playwright install chromium
+```
+
+Claude Code、OpenCode 或 Pi 用户把 `-a codex` 改为对应 agent ID，例如 `-a claude-code`、`-a opencode` 或 `-a pi`。
+
+如果只想临时用一次，不做长期安装，可以用：
+
+```bash
+npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill card-skill
 ```
 
 然后把一段内容或文章链接交给 agent，并直接说：
@@ -50,13 +62,7 @@ npx playwright install chromium
 
 完成一次性环境设置后，agent 会自动选择 `editorial-image` 模式和适合的视觉方向，渲染、检查并返回一张 PNG（默认写入 `~/Downloads/`）；默认不会先让你挑风格，也不会自动加入作者名或头像。
 
-使用 Codex：
-
-```bash
-npx skills add KKenny0/card-skill -a codex -g -y
-```
-
-OpenCode 或 Pi 用户把 agent ID 分别改为 `opencode` 或 `pi`。不要使用 `-a '*'`，它会为所有已知 agent 创建安装入口。不需要 slash command；中文、英文自然语言都可以触发。
+不需要 slash command；中文、英文自然语言都可以触发。
 
 ## 从你要发布的东西开始
 
