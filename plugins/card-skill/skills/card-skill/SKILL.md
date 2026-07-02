@@ -1,8 +1,8 @@
 ---
 name: card-skill
-description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, and editorial image. Supports 8 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, and editorial-image. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
+description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.2.10"
+version: "0.2.11"
 ---
 
 # card-skill
@@ -29,7 +29,7 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
 
-另有长文作者配图入口：给公众号/博客文章做头图、封面图或正文插图。这个入口不把文章再摘要一遍，而是提炼文章的视觉立场、情绪和隐喻。
+另有长文作者配图入口：给公众号/博客文章做头图、封面图、正文氛围插图或正文解释图。封面和氛围图提炼文章的视觉立场、情绪和隐喻；正文解释图用于关系、流程、边界和权限，不把文章再摘要一遍。
 
 ## 默认原则
 
@@ -40,11 +40,12 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | 用户任务 | 默认入口 |
 |----------|----------|
 | 公众号头图 / 封面 | `editorial-image` + `wechat-cover` |
-| 公众号正文配图 | `editorial-image` + `body-3-2` |
+| 正文氛围插图 / 段落视觉换气 | `editorial-image` + `body-3-2` |
+| 正文解释图 / 关系图 / 流程图 / 边界图 | `article-diagram` |
 | 小红书 / 社媒卡片 | 单一观点优先 `big`，多观点或系列优先 `poster`，结构化知识优先 `infograph` |
 | 推理过程 / 关系梳理 / 白板 | `whiteboard` |
 
-这些只是入口映射，不新增 mode；内容结构明显更适合其他现有 mode 时，自动改走更合适的路线。
+这些只是入口映射；内容结构明显更适合其他现有 mode 时，自动改走更合适的路线。
 
 ## 参数
 
@@ -55,28 +56,34 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | `--dpr` | 设备像素比 | 2（2× 像素密度） |
 | `brand_name` | 可选署名/品牌文字；只在用户明确提供时渲染 | 空 |
 | `logo` | 可选署名头像/品牌 logo 路径；只在用户明确提供时渲染 | 空 |
-| `source` | 可选来源文字；`long` 与 `editorial-image` 支持 | 空 |
+| `source` | 可选来源文字；`long`、`editorial-image` 与 `article-diagram` 支持 | 空 |
 
 ## 执行流程
 
 ### Step 0: 渲染路由
 
-card-skill 把 8 个 mode 分两层：
+card-skill 把 9 个 mode 分两层：
 
-- **Stable tier**（CLI-rendered）：`big`、`long`、`whiteboard`、`poster`、`editorial-image`。走结构化 renderer，schema 校验失败直接报错；输出确定性高，是产品主体。
+- **Stable tier**（CLI-rendered）：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。走结构化 renderer，schema 校验失败直接报错；输出确定性高，是产品主体。
 - **Creative tier**（AI-rendered）：`infograph`、`comic`、`sketchnote`。需要创意布局，无法 schema 化；每次产物有差异，依赖人工审美兜底。
 
 判断当前内容能否走 Stable tier 的 CLI 路径：
 
 判断逻辑：
 1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 Creative tier 的 AI 流程（Step 1）
-2. 如果 mode 是 editorial-image：
+2. 如果 mode 是 article-diagram：
+   - 先进入 Step 1.6 选择固定图型：`concept-map` / `process-flow` / `boundary-model`
+   - 如果输入是整篇文章，先逐章筛选；凡是值得画的章节都各出一张正文解释图，不要把整篇文章塞成一张节点清单
+   - 单张图只表达一个章节里的一个关系、流程或边界
+   - 提取 `nodes`，必要时提取 `links`；`boundary-model` 还必须提取 `zones`
+   - CLI 路径可直接渲染；schema 失败时先简化结构，不要改走开放自由画布
+3. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
    - 先把自然语言用途映射成结构化字段：`use` 只表示编辑任务（`cover` / `in-article` / `metaphor`），`aspect` 只表示画布比例（`wechat-cover` / `blog-hero` / `body-3-2` / `body-4-3` / `cinematic` / `square`）
    - 如果已有具体画面结构（`content_html` + `custom_css`）→ CLI 路径，作为高质量最终图的首选
    - 如果只有 `title/use/aspect/visual_metaphor/art_direction` → CLI 可渲染比例安全的 Quiet Paper scaffold，但这只是兜底；正式配图应优先补出自定义构图
    - 如果还没有视觉方向 → 默认自动选择 1 个最强方向并继续渲染；只有用户明确要求候选时，才先产出 2-3 个方向等待选择
-3. 如果 mode 是 big / long / whiteboard / poster：
+4. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
    - 内容结构清晰（有标题、段落分明、推理链线性）→ CLI 路径
    - 内容过于复杂（嵌套引用、多栏对比、特殊排版需求、不确定能 fit）→ 降级到 AI 路径
@@ -99,6 +106,7 @@ long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, th
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
 poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design?, editorial_tone? }`
+article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], links?, zones?, caption?, design? }`
 
 ### Step 0.5: 读取基础
 
@@ -119,7 +127,8 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
    - `references/mode-whiteboard.md` — 白板推理（逻辑链提取、4 种结构路线）
    - `references/mode-poster.md` — 多卡分割（视觉权重计算、贪婪分割算法）
    - `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
-   - `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文插图）
+   - `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文氛围插图）
+   - `references/mode-article-diagram.md` — 正文解释图（概念图、流程图、边界模型）
 
 ### Step 1: 获取 + 分析内容
 
@@ -144,9 +153,11 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 - 文案去 AI 腔：禁用"赋能/无缝/释放/下一代/深度赋能"等 AI 典型用词（完整清单见 `references/taste.md` 第 5 节）
 - 反翻译腔：禁用"是…的"/"在…的过程中"/"进行+名词"（完整规则见 `references/mode-sketchnote.md` 六条公理）
 
-### Step 1.5: 文章配图入口（editorial-image）
+### Step 1.5: 文章封面 / 氛围配图入口（editorial-image）
 
-当用户要求 `给文章配图` / `公众号头图` / `博客封面` / `正文配图` / `article cover` / `blog hero` / `editorial image` 时，进入 `editorial-image` 流程。
+当用户要求 `给文章配图` / `公众号头图` / `博客封面` / `article cover` / `blog hero` / `editorial image`，且目标是封面、氛围、隐喻或视觉立场时，进入 `editorial-image` 流程。
+
+如果用户要求的是 `正文解释图` / `关系图` / `流程图` / `边界图` / `权限边界` / `安全边界` / `article diagram` / `concept map` / `process flow`，或正文配图里明显出现节点、连线、嵌套框、步骤、区域、权限、信任边界，改走 Step 1.6 的 `article-diagram`，不要默认塞进 `editorial-image + body-3-2`。
 
 **核心区别**：文章配图不是摘要卡。不要把文章观点改写成 bullet points；要提炼文章的视觉立场、情绪、核心张力和隐喻。
 
@@ -158,7 +169,7 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 |--------------|-------|----------------|
 | 公众号头图 / 公众号封面 / 文章封面 | `cover` | `wechat-cover` |
 | 博客封面 / blog hero | `cover` | `blog-hero` |
-| 正文配图 / 段落配图 / section illustration | `in-article` | `body-3-2` |
+| 正文氛围插图 / 段落视觉换气 / quiet section image | `in-article` | `body-3-2` |
 | 概念隐喻图 / visual metaphor | `metaphor` | `blog-hero` |
 
 结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold，适合验证和简单封面，不应当作为复杂文章配图的默认终点。
@@ -178,13 +189,13 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 
 可用产物：
 - **公众号/博客封面图**：横版，少字，能撑住标题和分享预览
-- **正文插图**：安静、低干扰，用作段落之间的视觉换气
+- **正文氛围插图**：安静、低干扰，用作段落之间的视觉换气
 - **概念隐喻图**：用一个物、场景或动作承载文章的核心张力
 
 比例规则：
 - `公众号头图` / `公众号封面` 默认 `aspect: wechat-cover`（2.35:1，1080x460）
 - `博客封面` / `blog hero` 默认 `aspect: blog-hero`（16:9，1080x608）
-- `正文配图` / `段落配图` 默认 `aspect: body-3-2`（3:2，1080x720）
+- `正文氛围插图` / `段落视觉换气` 默认 `aspect: body-3-2`（3:2，1080x720）
 - 其他可选：`body-4-3`（4:3）、`cinematic`（21:9）、`square`（1:1）
 
 出图前自检：完整 Acceptance Check 见 `references/mode-editorial-image.md`。其中机器可查项（标题断行、技术词空格、用途标签、brief 泄露）已由 `scripts/check-output.mjs` 自动拦截；下列剩余项需要人工审美判断。
@@ -194,15 +205,51 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 - 如果文字占比过高、像摘要卡，失败
 - 如果是通用 AI 图、库存图、发光科技图，失败
 - 如果使用连线、箭头、路径或结构图，线条必须连接元素边界；如果线条穿过卡片、节点、文字内部，失败
-- 如果是正文插图，主体视觉必须有足够占比和重量；缩略图看起来主体偏小、画面没画完，失败。中间留白本身不是问题，问题是主体尺度太小或视觉重量撑不住画布
-- 正文插图默认不允许可读文字和主要视觉元素交叉、压叠或互相穿插；除非用户明确要 collage/overprint 效果，否则这属于失败
+- 如果是正文氛围插图，主体视觉必须有足够占比和重量；缩略图看起来主体偏小、画面没画完，失败。中间留白本身不是问题，问题是主体尺度太小或视觉重量撑不住画布
+- 正文氛围插图默认不允许可读文字和主要视觉元素交叉、压叠或互相穿插；除非用户明确要 collage/overprint 效果，否则这属于失败
 - 扫描每个可见文字（包括 kicker、subtitle、页脚）：有没有任何词在描述"这张图是什么"（封面 / 头图 / 插图 / cover / hero / 配图 / 章节标签），而不是"这张图在说什么"（文章内容、真实术语、视觉对象标签）？有则改写或删掉。`check-output.mjs` 只能拦截已登记的标签，新型措辞、其他语言变体、创意改写都靠这步自检兜底
+
+### Step 1.6: 正文解释图入口（article-diagram）
+
+当用户要求 `正文解释图` / `关系图` / `流程图` / `边界图` / `权限边界` / `安全边界` / `trust boundary` / `article diagram` / `concept map` / `process flow` 时，进入 `article-diagram` 流程。
+
+先读取 `references/mode-article-diagram.md`。默认选择 1 个固定图型并继续渲染；不要为了显得丰富而产出多个方向，除非用户明确要求先看方案。
+
+图型选择：
+
+| 用户意图 | `family` | 结构 |
+|----------|----------|------|
+| 2-5 个概念及其关系 | `concept-map` | `nodes` + 可选 `links` |
+| 顺序、循环、管线、交接路径 | `process-flow` | 按顺序排列的 `nodes` |
+| 内外边界、权限、信任、安全、沙箱 | `boundary-model` | `zones` + 带 `zone` 的 `nodes` |
+
+约束：
+- `concept-map` 最多 5 个节点；`process-flow` 和 `boundary-model` 最多 6 个节点
+- `boundary-model` 必须有 2-4 个 `zones`，每个 node 必须归属一个 zone
+- 节点标签短于 36 个字符；链接标签短于 24 个字符
+- 输入是整篇文章时，先按章节分组；有关系、流程、边界、权限、信任层、因果链或系统结构的章节都要各自生成一张图
+- 纯铺垫、纯情绪、纯结论、没有结构关系的章节跳过；不要为了覆盖所有标题机械出图
+- 每张正文解释图只服务一个章节，不混合多个章节；输出顺序跟随文章顺序
+- 可见文字默认跟随原文和用户请求：中文文章用中文标题、节点、连线、区域和说明；英文文章用英文；只有用户明确要求英文、双语或翻译时才改变语言
+- 标题描述关系，不写 `article diagram`、`正文解释图`、`concept map`、`process flow` 这类产物类型
+- 如果用户给了很多材料，按章节抽出最小关系；不要把文章所有观点都塞进同一张图里
+
+出图前自检：
+- 3 秒内能看出主关系吗？
+- 是否选对图型，而不是拿边界图画流程、拿流程图画概念网？
+- 整篇文章输入时，是否已经画出所有值得画的章节，并跳过不适合画的章节？
+- 每张图是否只对应一个章节？
+- 每个可见标签都在命名内容，不是在描述图片用途？
+- 节点、区域、连线有没有互相压住？
+- 缩略图里是否还看得出主结构？
 
 ### Step 2: 匹配设计系统
 
 **Comic mode 跳过此步**：comic mode 使用固定 Quiet Paper 单色调色板，设计系统的色彩 token 不生效。直接进入 Step 4，漫画风格由 `references/mode-comic.md` 的 5 种路线（大友克洋/井上雄彦/三浦建太郎/松本大洋/谷口治郎）决定，在 Step 4 渲染时根据内容气质选择。
 
 **editorial-image 跳过常规候选匹配**：先按 `references/mode-editorial-image.md` 确定视觉方向，再根据气质选择 Quiet Paper token。
+
+**article-diagram 跳过常规候选匹配**：先按 `references/mode-article-diagram.md` 确定 `family`，再用固定槽位渲染。设计系统只改变纸面气质，不改变图型。
 
 默认从 design-index.md 中直接选择 1 个最合适的品牌气质，不等待用户确认。先使用 Quiet Paper 审美骨架，再根据内容选择轻微偏向。
 
@@ -250,6 +297,7 @@ editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?
 | comic | `assets/comic_template.html` |
 | sketchnote | `assets/sketchnote_template.html` |
 | editorial-image | CLI 使用 `scripts/renderers/editorial-image.js` 生成固定比例画布；AI 流程可基于视觉方向扩展定制 HTML |
+| article-diagram | CLI 使用 `scripts/renderers/article-diagram.js` 生成固定槽位正文解释图 |
 
 用户选定后：
 
@@ -408,6 +456,8 @@ $output = Join-Path $env:TEMP 'smoke_big.png'
 生成后实际查看 PNG，确认画面不是只满足文件存在；检查完成后删除该 smoke PNG。
 
 涉及 `editorial-image` 设计选择时，还必须实际渲染并检查一组 PNG：`reflective`、`sharp`、`warm`、`technical`、显式 `design` 各 1 张。确认视觉气质确实不同、仍保持 Quiet Paper、无明显裁切/溢出/坏换行/主体过小。
+
+涉及 `article-diagram` 时，至少实际渲染并检查 `concept-map`、`process-flow`、`boundary-model` 各 1 张，确认缩略图里主关系清楚、节点和连线没有互相压住。
 
 ## 开发者工具（非 AI 流程使用）
 

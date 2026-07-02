@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "card-skill article-diagram mode input",
+  "description": "Structured input for in-article explanatory diagrams. Use this mode for compact concept maps, process flows, and boundary models that must be understood at first glance. Visible text should follow the source article or requested language unless the user explicitly asks for translation or bilingual output.",
+  "type": "object",
+  "required": ["mode", "family", "title", "nodes"],
+  "properties": {
+    "mode": { "type": "string", "const": "article-diagram" },
+    "family": {
+      "type": "string",
+      "enum": ["concept-map", "process-flow", "boundary-model"],
+      "description": "Diagram family. Pick the layout before writing labels."
+    },
+    "aspect": {
+      "type": "string",
+      "enum": ["body-3-2", "body-4-3"],
+      "description": "Canvas ratio for article body placement. Defaults to body-3-2."
+    },
+    "design": {
+      "type": "string",
+      "description": "Optional Quiet Paper design system name. Defaults to stripe."
+    },
+    "title": {
+      "type": "string",
+      "description": "Short diagram title. It should name the relationship, not the output format. Use the source or requested language for visible text.",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional short context line. Use the source or requested language for visible text."
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Visible concepts, steps, or entities. Keep labels short and in the source or requested language.",
+      "minItems": 2,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": {
+            "type": "string",
+            "description": "Visible node label. Use the source or requested language."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional visible node note. Use the source or requested language."
+          },
+          "zone": {
+            "type": "string",
+            "description": "Required for boundary-model nodes; must match a zone id."
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Optional relationships between nodes. Links must point to known node ids.",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "label": {
+            "type": "string",
+            "description": "Optional visible relationship label. Use the source or requested language."
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["one-way", "two-way", "none"]
+          }
+        }
+      }
+    },
+    "zones": {
+      "type": "array",
+      "description": "Required for boundary-model. Zones render as fixed nested regions.",
+      "minItems": 2,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": {
+            "type": "string",
+            "description": "Visible zone label. Use the source or requested language."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional visible zone description. Use the source or requested language."
+          }
+        }
+      }
+    },
+    "caption": {
+      "type": "string",
+      "description": "Optional one-sentence interpretation. Keep it short and in the source or requested language."
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional source line in the colophon."
+    },
+    "logo": {
+      "type": "string",
+      "description": "Optional path to a brand logo or avatar image. Omit for an unbranded output."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Optional brand or author name in the colophon footer. Omit for an unbranded output."
+    }
+  },
+  "examples": [
+    {
+      "mode": "article-diagram",
+      "family": "boundary-model",
+      "title": "Safety lives at the boundary",
+      "nodes": [
+        { "id": "user", "label": "User intent", "zone": "outside" },
+        { "id": "harness", "label": "Agent harness", "zone": "guarded" },
+        { "id": "tools", "label": "Tools", "zone": "guarded" },
+        { "id": "system", "label": "Filesystem", "zone": "restricted" }
+      ],
+      "zones": [
+        { "id": "outside", "label": "Outside request" },
+        { "id": "guarded", "label": "Guarded execution" },
+        { "id": "restricted", "label": "Restricted resources" }
+      ],
+      "caption": "The harness matters because it turns intent into controlled action."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Mode: editorial-image
 
-This mode creates article images for long-form authors: WeChat cover images, blog hero images, and quiet in-article illustrations.
+This mode creates article images for long-form authors: WeChat cover images, blog hero images, concept metaphors, and quiet in-article mood illustrations.
 
 It is not a summary-card mode. If the image explains the article point by point, it has failed. A good editorial image gives the article a visual stance: a mood, metaphor, tension, or scene that helps the reader decide how to enter the piece.
 
@@ -41,18 +41,20 @@ Default shape: horizontal cover, low text, generous crop-safe margin.
 
 Goal: the image can sit above the article and survive sharing previews.
 
-### 2. In-Article Illustration
+### 2. In-Article Mood Illustration
 
 Use when the user asks for:
 
-- `正文配图`
-- `给这一节配图`
-- `section illustration`
-- `in-article image`
+- `正文氛围插图`
+- `段落视觉换气`
+- `quiet section image`
+- `in-article mood image`
 
 Default shape: calmer and less title-driven than a cover.
 
 Goal: create a visual pause or transition without competing with the prose.
+
+If the user asks for a relationship, flow, boundary, trust model, nested boxes, connectors, or technical labels, use `article-diagram` instead.
 
 ### 3. Concept Metaphor
 
@@ -74,7 +76,7 @@ Examples:
 |--------------|-------|------------------|
 | `公众号头图`, `公众号封面`, article cover | `cover` | `wechat-cover` |
 | `博客封面`, `blog hero` | `cover` | `blog-hero` |
-| `正文配图`, `段落配图`, section illustration | `in-article` | `body-3-2` |
+| `正文氛围插图`, `段落视觉换气`, quiet section image | `in-article` | `body-3-2` |
 | concept metaphor or visual stance image | `metaphor` | `blog-hero` |
 
 Do not put an aspect value such as `body-3-2` or `wechat-cover` into `use`. If the user gives a destination in natural language, map it to both fields before rendering.
@@ -89,7 +91,7 @@ Aspect ratio is part of the editorial decision, not an export detail. Pick the r
 |-----|----------|-------|------------------|-------------|
 | WeChat cover | `wechat-cover` | `2.35:1` | `1080x460` | Default for `公众号头图` and share-first article covers |
 | Blog hero | `blog-hero` | `16:9` | `1080x608` | Default for blog headers and general article hero images |
-| Body illustration | `body-3-2` | `3:2` | `1080x720` | Default for in-article illustrations with a little narrative space |
+| Body mood illustration | `body-3-2` | `3:2` | `1080x720` | Default for quiet in-article mood images with a little narrative space |
 | Compact body image | `body-4-3` | `4:3` | `1080x810` | Use when the image needs more vertical breathing room |
 | Cinematic concept | `cinematic` | `21:9` | `1080x463` | Use for atmosphere, landscape metaphors, or very wide visual tension |
 | Square share | `square` | `1:1` | `1080x1080` | Optional share image, not the default for WeChat/blog longform |
@@ -98,15 +100,16 @@ Default selection:
 
 - If the user says `公众号头图`, `公众号封面`, or `WeChat cover`, use `wechat-cover`.
 - If the user says `博客封面`, `blog cover`, or `blog hero`, use `blog-hero`.
-- If the user says `正文配图`, `段落配图`, `in-article`, or `section illustration`, use `body-3-2`.
-- If the user does not specify a destination, use `blog-hero` for covers and `body-3-2` for in-article images.
+- If the user says `正文氛围插图`, `段落视觉换气`, `in-article mood image`, or `quiet section image`, use `body-3-2`.
+- If the user asks for a body image that explains structure, use `article-diagram` instead of this mode.
+- If the user does not specify a destination, use `blog-hero` for covers and choose between `editorial-image` and `article-diagram` by intent for in-article images.
 
 Composition rules:
 
 - Put important subjects inside the central 80% width and 76% height.
 - Avoid placing small text or faces near the edges.
 - For `wechat-cover`, reserve at least 18% empty space on one side for title overlay or platform crop.
-- For in-article images, prefer a quieter center of gravity; the image should help the prose breathe, not behave like a banner ad.
+- For in-article mood images, prefer a quieter center of gravity; the image should help the prose breathe, not behave like a banner ad.
 - For `body-3-2` and `body-4-3`, avoid cover-like left/right split layouts unless the middle space carries a clear relationship.
 - If a concept needs vertical hierarchy, do not force it into `wechat-cover`; use `body-4-3` or `blog-hero`.
 
@@ -200,7 +203,7 @@ The structured fields are guardrails, not the final visual language.
 
 Use fields like `use`, `aspect`, `title`, `visual_metaphor`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
 
-For final rendering, use a custom composition when the brief has a real article tension, concept metaphor, or in-article illustration job:
+For final rendering, use a custom composition when the brief has a real article tension, concept metaphor, or in-article mood illustration job:
 
 - `content_html` for the chosen visual structure
 - `custom_css` for the actual composition, spacing, symbolic objects, and atmosphere
@@ -254,7 +257,7 @@ Custom CSS should not create a separate visual universe. If the composition need
 - Visible text must belong to the artwork. It may be the article title, a section title, a real term, a short excerpt, a byline, or a label attached to a visual object.
 - A final image should have one concrete dominant subject. Do not let a safe scaffold or abstract paper stack stand in for the article's visual idea.
 - Do not print generation notes, usage notes, or internal rationale into the artwork. Avoid sentences like `给这一节使用`, `用作正文配图`, `安静、低干扰`, `像文章中间的一次停顿`, or `visual pause`.
-- For in-article images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
+- For in-article mood images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.
 - Prefer manual `<br>` breaks for cover titles and short hero phrases when automatic wrapping creates an awkward rhythm.
 - Never leave a single CJK character, a two-character orphan, or a very short final line as the last headline line.
@@ -266,7 +269,7 @@ Custom CSS should not create a separate visual universe. If the composition need
 - Preserve Quiet Paper: warm paper or deep card stock, restrained ink, small radius, little shadow, low-saturation accent.
 - Avoid stock-photo language: no smiling generic office people, floating dashboards, neon AI brains, glowing networks, or decorative abstract blobs.
 - If the article mentions real people, institutions, places, or events, do not invent factual visuals that imply unverified details.
-- For in-article illustrations, reduce contrast and text weight compared with cover images.
+- For in-article mood illustrations, reduce contrast and text weight compared with cover images.
 - Leave crop-safe space around important visual elements.
 - Do not add a default colophon or footnote. Editorial images should feel like article artwork, not branded cards.
 - When this mode changes design-selection behavior, render and inspect at least five PNGs before delivery: one each for `reflective`, `sharp`, `warm`, `technical`, and one explicit `design` override.
@@ -384,7 +387,7 @@ Diagram with a horizontal ceiling line spanning `x = 40..420` and a vertical ove
 - **Mode label leakage**: visible labels like `IN-ARTICLE IMAGE`, `BLOG HERO`, or `EDITORIAL IMAGE` that describe the output format instead of the article.
 - **Brief leakage**: visible explanatory text that describes how the image should be used instead of becoming part of the image.
 - **Broken connector diagram**: lines pass through boxes, labels, or nodes instead of connecting cleanly between their boundaries.
-- **Underdrawn body image**: an in-article image where the subject is too small or visually weak for the canvas, making the image feel unfinished.
+- **Underdrawn body image**: an in-article mood image where the subject is too small or visually weak for the canvas, making the image feel unfinished.
 - **Text-object collision**: readable text crosses into or sits on top of the main illustration, card stack, node, or diagram shape in a way that looks accidental.
 
 ## Acceptance Check
@@ -396,14 +399,14 @@ Before delivery, ask:
 - Is there one dominant visual idea?
 - Can it survive being cropped for a WeChat/blog preview?
 - Does it avoid generic AI or stock-image signals?
-- Is the amount of text appropriate for a cover or in-article image?
+- Is the amount of text appropriate for a cover or in-article mood image?
 - Does every visible sentence belong in the artwork, rather than describe how the image should be used?
 - Are headline and short text line breaks intentional, with no orphaned last line or awkward split?
 - Are technical and product terms preserving their real spacing and casing?
 - If there are connectors, do they connect cleanly at element boundaries without crossing text or box interiors?
 - Does the image avoid visible mode/destination labels such as `IN-ARTICLE IMAGE` or `BLOG HERO`?
-- For in-article images, does the subject have enough visual presence for the canvas, with purposeful negative space?
-- For in-article images, are readable text and the main visual object separated cleanly, with no accidental collision?
+- For in-article mood images, does the subject have enough visual presence for the canvas, with purposeful negative space?
+- For in-article mood images, are readable text and the main visual object separated cleanly, with no accidental collision?
 
 If the answer to any of these is no, revise the concept before rendering.
 

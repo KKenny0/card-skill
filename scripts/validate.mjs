@@ -20,6 +20,7 @@ const renderers = {
   whiteboard: require('./renderers/whiteboard'),
   poster: require('./renderers/poster'),
   'editorial-image': require('./renderers/editorial-image'),
+  'article-diagram': require('./renderers/article-diagram'),
 };
 
 const inputs = {
@@ -28,6 +29,61 @@ const inputs = {
   whiteboard: { mode: 'whiteboard', title: 'A model', steps: [{ type: 'annotation', text: 'Start here.' }] },
   poster: { mode: 'poster', title: 'A short series', cards: [{ body: [{ type: 'paragraph', text: 'One idea.' }] }] },
   'editorial-image': { mode: 'editorial-image', title: 'A visual argument' },
+  'article-diagram': {
+    mode: 'article-diagram',
+    family: 'concept-map',
+    title: 'A compact relationship',
+    nodes: [
+      { id: 'input', label: 'Input' },
+      { id: 'model', label: 'Model' },
+      { id: 'output', label: 'Output' },
+    ],
+  },
+};
+
+const articleDiagramFixtures = {
+  'concept-map': {
+    mode: 'article-diagram',
+    family: 'concept-map',
+    title: 'Three parts make the system',
+    nodes: [
+      { id: 'intent', label: 'Intent' },
+      { id: 'memory', label: 'Memory' },
+      { id: 'tools', label: 'Tools' },
+    ],
+    links: [
+      { from: 'intent', to: 'memory', label: 'selects' },
+      { from: 'memory', to: 'tools', label: 'guides' },
+    ],
+  },
+  'process-flow': {
+    mode: 'article-diagram',
+    family: 'process-flow',
+    title: 'Review before action',
+    nodes: [
+      { id: 'read', label: 'Read', note: 'Gather facts' },
+      { id: 'judge', label: 'Judge', note: 'Choose route' },
+      { id: 'act', label: 'Act', note: 'Make change' },
+      { id: 'check', label: 'Check', note: 'Verify result' },
+    ],
+  },
+  'boundary-model': {
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: 'Safety lives at the boundary',
+    nodes: [
+      { id: 'request', label: 'Request', zone: 'outside' },
+      { id: 'harness', label: 'Harness', zone: 'guarded' },
+      { id: 'tools', label: 'Tools', zone: 'guarded' },
+      { id: 'files', label: 'Filesystem', zone: 'restricted' },
+    ],
+    zones: [
+      { id: 'outside', label: 'Outside request' },
+      { id: 'guarded', label: 'Guarded execution' },
+      { id: 'restricted', label: 'Restricted resources' },
+    ],
+    caption: 'The boundary turns intent into controlled action.',
+  },
 };
 
 function assertVersionSources() {
@@ -55,10 +111,13 @@ function assertPackagedSkill() {
     path.join(skillRoot, 'package.json'),
     path.join(skillRoot, 'scripts', 'card.js'),
     path.join(skillRoot, 'scripts', 'check-output.mjs'),
+    path.join(skillRoot, 'scripts', 'renderers', 'article-diagram.js'),
     path.join(skillRoot, 'assets', 'big_template.html'),
     path.join(skillRoot, 'assets', 'fonts'),
     path.join(skillRoot, 'schemas', 'big.json'),
+    path.join(skillRoot, 'schemas', 'article-diagram.json'),
     path.join(skillRoot, 'references', 'design-index.md'),
+    path.join(skillRoot, 'references', 'mode-article-diagram.md'),
   ]) {
     assert.ok(fs.existsSync(requiredPath), `Packaged skill is missing ${path.relative(ROOT, requiredPath)}`);
   }
@@ -84,9 +143,13 @@ function assertPackagedSkill() {
     'scripts/card.js',
     'scripts/check-output.mjs',
     'scripts/validate.mjs',
+    'scripts/lib/schema.js',
+    'scripts/renderers/article-diagram.js',
     'schemas/big.json',
     'schemas/editorial-image.json',
+    'schemas/article-diagram.json',
     'references/design-index.md',
+    'references/mode-article-diagram.md',
     'assets/big_template.html',
   ]) {
     const rootContent = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -154,7 +217,7 @@ try {
       ...input,
       brand_name: 'Example Studio',
       logo: logoPath,
-      ...(mode === 'editorial-image' ? { source: 'Example source' } : {}),
+      ...(mode === 'editorial-image' || mode === 'article-diagram' ? { source: 'Example source' } : {}),
     }, target);
 
     for (const html of readOutputs(rendered)) {
@@ -162,7 +225,9 @@ try {
       assert.match(html, />Example Studio</, `${mode} dropped the brand name`);
       assert.ok(html.includes(logoUrl), `${mode} did not encode the logo as a file URL`);
       assert.doesNotMatch(html, /"\s+onerror=/i, `${mode} allowed logo-path attribute injection`);
-      if (mode === 'editorial-image') assert.match(html, />Example source</, 'editorial-image dropped the source');
+      if (mode === 'editorial-image' || mode === 'article-diagram') {
+        assert.match(html, />Example source</, `${mode} dropped the source`);
+      }
     }
   }
 
@@ -172,6 +237,13 @@ try {
   assert.match(sourceOnlyHtml, /class="colophon"/);
   assert.match(sourceOnlyHtml, />Source only</);
   assert.doesNotMatch(sourceOnlyHtml, /class="who"/);
+
+  const articleSourceOnlyPath = path.join(tmpDir, 'source-only-article-diagram.html');
+  renderers['article-diagram'].render({ ...inputs['article-diagram'], source: 'Source only' }, articleSourceOnlyPath);
+  const articleSourceOnlyHtml = stripComments(fs.readFileSync(articleSourceOnlyPath, 'utf8'));
+  assert.match(articleSourceOnlyHtml, /class="colophon"/);
+  assert.match(articleSourceOnlyHtml, />Source only</);
+  assert.doesNotMatch(articleSourceOnlyHtml, /class="who"/);
 
   const designNames = new Set(listDesigns().map(design => design.name));
   for (const [tone, pool] of Object.entries(EDITORIAL_TONE_DESIGNS)) {
@@ -420,6 +492,47 @@ try {
     `editorial visual-system drift failed for the wrong reason: ${rejectedVisualSystemCheck.result.stdout}\n${rejectedVisualSystemCheck.result.stderr}`,
   );
 
+  for (const [family, fixture] of Object.entries(articleDiagramFixtures)) {
+    const validation = validate(fixture);
+    assert.equal(validation.valid, true, `${family} article-diagram fixture failed validation: ${validation.errors.join(', ')}`);
+    const outputPath = path.join(tmpDir, `article-diagram-${family}.html`);
+    const output = renderers['article-diagram'].render(fixture, outputPath);
+    const html = stripComments(fs.readFileSync(outputPath, 'utf8'));
+    assert.match(html, /data-card-mode="article-diagram"/, `${family} did not mark article-diagram mode`);
+    assert.match(html, new RegExp(`data-diagram-family="${family}"`), `${family} did not mark its family`);
+    const check = runOutputCheck(outputPath, output);
+    assert.equal(check.result.status, 0, `${family} article-diagram failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, `${family} article-diagram did not pass`);
+  }
+
+  const invalidFamilyValidation = validate({
+    mode: 'article-diagram',
+    family: 'freeform-map',
+    title: 'Bad family',
+    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
+  });
+  assert.equal(invalidFamilyValidation.valid, false, 'invalid article-diagram family unexpectedly passed validation');
+  assert.match(invalidFamilyValidation.errors.join('\n'), /family must be one of: concept-map, process-flow, boundary-model/);
+
+  const missingZonesValidation = validate({
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: 'Missing zones',
+    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
+  });
+  assert.equal(missingZonesValidation.valid, false, 'boundary-model without zones unexpectedly passed validation');
+  assert.match(missingZonesValidation.errors.join('\n'), /boundary-model requires zones\[\]/);
+
+  const unknownLinkValidation = validate({
+    mode: 'article-diagram',
+    family: 'concept-map',
+    title: 'Unknown link',
+    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
+    links: [{ from: 'a', to: 'c' }],
+  });
+  assert.equal(unknownLinkValidation.valid, false, 'article-diagram link to unknown node unexpectedly passed validation');
+  assert.match(unknownLinkValidation.errors.join('\n'), /references unknown node "c"/);
+
   for (const templateName of ['infograph_template.html', 'sketchnote_template.html']) {
     const template = stripComments(fs.readFileSync(path.join(ROOT, 'assets', templateName), 'utf8'));
     assert.doesNotMatch(template, /<span>\s*card\s*<\/span>/i, `${templateName} hard-codes the card brand`);
@@ -428,7 +541,7 @@ try {
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
 
-  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image tone selector, field checks, custom composition, schema, and design registry.`);
+  console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image tone selector, article-diagram families, field checks, custom composition, schema, and design registry.`);
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }

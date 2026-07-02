@@ -359,7 +359,7 @@ async function inspectPage(opts, issues) {
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
-      const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"]'));
+      const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"], [data-card-mode="article-diagram"]'));
       const isBigMode = Boolean(document.querySelector('[data-card-mode="big"]'));
       const allowedPrimaryFonts = new Set([
         'dm sans',
@@ -906,12 +906,17 @@ async function inspectPage(opts, issues) {
       'WECHAT COVER',
       'ARTICLE COVER',
       'COVER IMAGE',
+      'ARTICLE DIAGRAM',
+      'CONCEPT MAP',
+      'PROCESS FLOW',
+      'BOUNDARY MODEL',
       // Chinese equivalents — same brief-leak class, just localized
       '公众号头图',
       '公众号封面',
       '博客封面',
       '博客头图',
       '正文配图',
+      '正文解释图',
       '段落配图',
       '文章封面',
       '封面图',

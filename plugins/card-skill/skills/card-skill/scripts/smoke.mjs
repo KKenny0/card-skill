@@ -77,6 +77,29 @@ try {
   assert.equal(editorial.stderr, '', 'editorial-image success wrote unexpected stderr output');
   assert.deepEqual(readPngSize(editorialOutputPath), { width: 2160, height: 1440 });
 
+  const articleDiagramOutputPath = path.join(harnessDir, 'article-diagram.png');
+  const articleDiagram = runCard({
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: 'Safety lives at the boundary',
+    nodes: [
+      { id: 'request', label: 'Request', zone: 'outside' },
+      { id: 'harness', label: 'Harness', zone: 'guarded' },
+      { id: 'tools', label: 'Tools', zone: 'guarded' },
+      { id: 'files', label: 'Filesystem', zone: 'restricted' },
+    ],
+    zones: [
+      { id: 'outside', label: 'Outside request' },
+      { id: 'guarded', label: 'Guarded execution' },
+      { id: 'restricted', label: 'Restricted resources' },
+    ],
+    caption: 'The boundary turns intent into controlled action.',
+  }, articleDiagramOutputPath);
+  assert.equal(articleDiagram.status, 0, articleDiagram.stderr || articleDiagram.stdout || 'article-diagram CLI failed');
+  assert.equal(articleDiagram.stdout.trim(), articleDiagramOutputPath, 'article-diagram stdout did not contain only the output path');
+  assert.equal(articleDiagram.stderr, '', 'article-diagram success wrote unexpected stderr output');
+  assert.deepEqual(readPngSize(articleDiagramOutputPath), { width: 2160, height: 1440 });
+
   const posterCard = text => ({ body: [{ type: 'paragraph', text }] });
   const overflowBase = path.join(harnessDir, 'overflow.png');
   const overflow = runCard({
@@ -108,7 +131,7 @@ try {
 
   assert.deepEqual(activeRunDirs(), beforeRunDirs, 'card CLI left a temporary run directory behind');
 
-  console.log('Runtime smoke passed: CLI, editorial-image field render, Chromium capture, PNG dimensions, stdout contract, poster transactions, and temp cleanup.');
+  console.log('Runtime smoke passed: CLI, editorial-image and article-diagram renders, Chromium capture, PNG dimensions, stdout contract, poster transactions, and temp cleanup.');
 } finally {
   fs.rmSync(harnessDir, { recursive: true, force: true });
 }

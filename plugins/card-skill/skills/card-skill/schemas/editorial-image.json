@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill editorial-image mode input",
-  "description": "Structured input for aspect-aware editorial images for WeChat/blog covers and in-article illustrations. The schema constrains purpose and canvas, while content_html/custom_css keep the composition open.",
+  "description": "Structured input for aspect-aware editorial images for WeChat/blog covers, concept metaphors, and quiet in-article mood illustrations. Use article-diagram for explanatory body diagrams.",
   "type": "object",
   "required": ["mode", "title"],
   "properties": {
@@ -9,7 +9,7 @@
     "use": {
       "type": "string",
       "enum": ["cover", "in-article", "metaphor"],
-      "description": "Editorial job, not a canvas ratio. Use cover for article covers, in-article for body illustrations, and metaphor for concept/stance images. Defaults to cover behavior when omitted."
+      "description": "Editorial job, not a canvas ratio. Use cover for article covers, in-article for quiet body mood illustrations, and metaphor for concept/stance images. Defaults to cover behavior when omitted."
     },
     "aspect": {
       "type": "string",

@@ -101,6 +101,36 @@ const SCHEMAS = {
       brand_name: 'string',
     },
   },
+  'article-diagram': {
+    required: ['mode', 'family', 'title', 'nodes'],
+    optional: [
+      'design',
+      'aspect',
+      'subtitle',
+      'caption',
+      'nodes',
+      'links',
+      'zones',
+      'source',
+      'logo',
+      'brand_name',
+    ],
+    types: {
+      mode: 'string',
+      family: 'string',
+      design: 'string',
+      aspect: 'string',
+      title: 'string',
+      subtitle: 'string',
+      caption: 'string',
+      nodes: 'array',
+      links: 'array',
+      zones: 'array',
+      source: 'string',
+      logo: 'string',
+      brand_name: 'string',
+    },
+  },
 };
 
 const LONG_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'blockquote', 'layer_card', 'section_break']);
@@ -108,6 +138,8 @@ const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider']);
 const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
 const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
+const ARTICLE_DIAGRAM_FAMILIES = new Set(['concept-map', 'process-flow', 'boundary-model']);
+const ARTICLE_DIAGRAM_ASPECTS = new Set(['body-3-2', 'body-4-3']);
 const DESIGN_NAMES = listDesigns().map(design => design.name);
 
 function validate(input) {
@@ -120,7 +152,7 @@ function validate(input) {
 
   const schema = SCHEMAS[mode];
   if (!schema) {
-    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image`] };
+    return { valid: false, errors: [`Unknown mode: "${mode}". CLI-eligible modes (Stable tier): big, long, whiteboard, poster, editorial-image, article-diagram`] };
   }
 
   if (input.author !== undefined) {
@@ -200,7 +232,107 @@ function validate(input) {
     }
   }
 
+  if (mode === 'article-diagram') {
+    if (input.family && !ARTICLE_DIAGRAM_FAMILIES.has(input.family)) {
+      errors.push(`family must be one of: ${[...ARTICLE_DIAGRAM_FAMILIES].join(', ')}`);
+    }
+    if (input.aspect && !ARTICLE_DIAGRAM_ASPECTS.has(input.aspect)) {
+      errors.push(`aspect must be one of: ${[...ARTICLE_DIAGRAM_ASPECTS].join(', ')}`);
+    }
+
+    const nodeIds = new Set();
+    if (Array.isArray(input.nodes)) {
+      const maxNodes = input.family === 'concept-map' ? 5 : 6;
+      if (input.nodes.length < 2) errors.push('nodes[] must have at least 2 nodes');
+      if (input.nodes.length > maxNodes) errors.push(`${input.family || 'article-diagram'} supports at most ${maxNodes} nodes`);
+
+      input.nodes.forEach((node, i) => {
+        if (!node || typeof node !== 'object' || Array.isArray(node)) {
+          errors.push(`nodes[${i}] must be an object`);
+          return;
+        }
+        if (!node.id || typeof node.id !== 'string') errors.push(`nodes[${i}]: missing string "id"`);
+        if (!node.label || typeof node.label !== 'string') errors.push(`nodes[${i}]: missing string "label"`);
+        if (node.note !== undefined && typeof node.note !== 'string') errors.push(`nodes[${i}].note must be string`);
+        if (node.zone !== undefined && typeof node.zone !== 'string') errors.push(`nodes[${i}].zone must be string`);
+        if (node.id) {
+          if (nodeIds.has(node.id)) errors.push(`nodes[${i}]: duplicate id "${node.id}"`);
+          nodeIds.add(node.id);
+        }
+        if (typeof node.label === 'string' && node.label.length > 36) {
+          errors.push(`nodes[${i}].label must be 36 characters or fewer`);
+        }
+      });
+    }
+
+    if (Array.isArray(input.links)) {
+      if (input.links.length > 6) errors.push('links[] supports at most 6 links');
+      input.links.forEach((link, i) => {
+        if (!link || typeof link !== 'object' || Array.isArray(link)) {
+          errors.push(`links[${i}] must be an object`);
+          return;
+        }
+        if (!link.from || typeof link.from !== 'string') errors.push(`links[${i}]: missing string "from"`);
+        if (!link.to || typeof link.to !== 'string') errors.push(`links[${i}]: missing string "to"`);
+        if (link.from && !nodeIds.has(link.from)) errors.push(`links[${i}].from references unknown node "${link.from}"`);
+        if (link.to && !nodeIds.has(link.to)) errors.push(`links[${i}].to references unknown node "${link.to}"`);
+        if (link.label !== undefined && typeof link.label !== 'string') errors.push(`links[${i}].label must be string`);
+        if (typeof link.label === 'string' && link.label.length > 24) errors.push(`links[${i}].label must be 24 characters or fewer`);
+        if (link.direction !== undefined && !['one-way', 'two-way', 'none'].includes(link.direction)) {
+          errors.push(`links[${i}].direction must be one of: one-way, two-way, none`);
+        }
+      });
+    }
+
+    if (input.family === 'boundary-model') {
+      if (!Array.isArray(input.zones) || input.zones.length < 2) {
+        errors.push('boundary-model requires zones[] with at least 2 zones');
+      } else {
+        if (input.zones.length > 4) errors.push('boundary-model supports at most 4 zones');
+        const zoneIds = new Set();
+        input.zones.forEach((zone, i) => {
+          if (!zone || typeof zone !== 'object' || Array.isArray(zone)) {
+            errors.push(`zones[${i}] must be an object`);
+            return;
+          }
+          if (!zone.id || typeof zone.id !== 'string') errors.push(`zones[${i}]: missing string "id"`);
+          if (!zone.label || typeof zone.label !== 'string') errors.push(`zones[${i}]: missing string "label"`);
+          if (zone.description !== undefined && typeof zone.description !== 'string') errors.push(`zones[${i}].description must be string`);
+          if (zone.id) {
+            if (zoneIds.has(zone.id)) errors.push(`zones[${i}]: duplicate id "${zone.id}"`);
+            zoneIds.add(zone.id);
+          }
+          if (typeof zone.label === 'string' && zone.label.length > 32) {
+            errors.push(`zones[${i}].label must be 32 characters or fewer`);
+          }
+        });
+        if (Array.isArray(input.nodes)) {
+          input.nodes.forEach((node, i) => {
+            if (!node || typeof node !== 'object') return;
+            if (!node.zone) errors.push(`nodes[${i}]: boundary-model nodes require "zone"`);
+            else if (!zoneIds.has(node.zone)) errors.push(`nodes[${i}].zone references unknown zone "${node.zone}"`);
+          });
+        }
+      }
+    }
+
+    if (input.family !== 'boundary-model' && input.zones !== undefined) {
+      errors.push('zones[] is only supported for boundary-model');
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
-module.exports = { validate, SCHEMAS, LONG_BODY_TYPES, WHITEBOARD_STEP_TYPES, POSTER_BODY_TYPES, EDITORIAL_ASPECTS, EDITORIAL_USES, EDITORIAL_TONES };
+module.exports = {
+  validate,
+  SCHEMAS,
+  LONG_BODY_TYPES,
+  WHITEBOARD_STEP_TYPES,
+  POSTER_BODY_TYPES,
+  EDITORIAL_ASPECTS,
+  EDITORIAL_USES,
+  EDITORIAL_TONES,
+  ARTICLE_DIAGRAM_FAMILIES,
+  ARTICLE_DIAGRAM_ASPECTS,
+};
