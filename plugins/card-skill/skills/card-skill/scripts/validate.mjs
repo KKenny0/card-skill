@@ -505,6 +505,80 @@ try {
     assert.equal(check.report?.pass, true, `${family} article-diagram did not pass`);
   }
 
+  const repeatedChineseLinkPath = path.join(tmpDir, 'article-diagram-repeated-chinese-link-labels.html');
+  const repeatedChineseLinkOutput = renderers['article-diagram'].render({
+    mode: 'article-diagram',
+    family: 'concept-map',
+    title: '五种不稳定因素逼出 Harness',
+    subtitle: '第 1 节：Harness 先解决什么问题',
+    nodes: [
+      { id: 'state', label: '状态盲区', note: '事实不完整' },
+      { id: 'action', label: '行动风险', note: '真实机器边界' },
+      { id: 'context', label: '上下文噪声', note: '长任务污染' },
+      { id: 'trace', label: '过程追溯', note: '改动要可查' },
+      { id: 'growth', label: '能力增长', note: '核心不能膨胀' },
+    ],
+    links: [
+      { from: 'state', to: 'action', label: '叠加' },
+      { from: 'state', to: 'context', label: '叠加' },
+      { from: 'state', to: 'trace', label: '叠加' },
+      { from: 'state', to: 'growth', label: '叠加' },
+    ],
+    caption: 'Pi 不是先相信模型，而是先把不稳定因素收进可验证的工作环境。',
+    source: 'Pi Agent Harness',
+  }, repeatedChineseLinkPath);
+  const repeatedChineseLinkHtml = stripComments(fs.readFileSync(repeatedChineseLinkPath, 'utf8'));
+  assert.doesNotMatch(repeatedChineseLinkHtml, /class="diagram-link-label"[\s\S]*?>\s*叠加\s*</, 'duplicated concept-map link labels should be hidden');
+  const repeatedChineseLinkCheck = runOutputCheck(repeatedChineseLinkPath, repeatedChineseLinkOutput);
+  assert.equal(repeatedChineseLinkCheck.result.status, 0, `repeated Chinese link-label concept-map failed output check: ${repeatedChineseLinkCheck.result.stdout}\n${repeatedChineseLinkCheck.result.stderr}`);
+  assert.equal(repeatedChineseLinkCheck.report?.pass, true, 'repeated Chinese link-label concept-map did not pass');
+
+  const labelCollisionPath = path.join(tmpDir, 'article-diagram-label-collision.html');
+  fs.writeFileSync(labelCollisionPath, `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --surface-1: #fbfaf6;
+    --surface-2: #e8e3d6;
+    --accent: #314d73;
+    --ink: #172434;
+    --ink-light: #59645e;
+    --hairline: #d8d1c2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1080px; height: 720px; font-family: "DM Sans", Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  .page { width: 1080px; height: 720px; padding: 60px; }
+  .diagram-stage { position: relative; width: 960px; height: 560px; border: 1px solid var(--hairline); background: var(--surface-1); }
+  .diagram-node { position: absolute; left: 420px; top: 240px; width: 220px; height: 120px; border: 1px solid var(--hairline); background: var(--surface-1); }
+  .diagram-node strong { display: block; padding: 34px 24px; font-size: 34px; line-height: 1; }
+  .diagram-link-label { position: absolute; left: 500px; top: 300px; transform: translate(-50%, -50%); padding: 4px 10px 5px; border: 1px solid var(--hairline); background: var(--surface-1); border-radius: 999px; font-size: 24px; font-weight: 700; line-height: 1; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="page" data-card-mode="article-diagram">
+    <section class="diagram-stage">
+      <div class="diagram-node"><strong>Node</strong></div>
+      <div class="diagram-link-label" data-diagram-link-label="true">overlap</div>
+    </section>
+  </div>
+</body>
+</html>`, 'utf8');
+  const labelCollisionCheck = runOutputCheck(labelCollisionPath, {
+    captureWidth: 1080,
+    captureHeight: 720,
+    fullpage: false,
+  });
+  assert.notEqual(labelCollisionCheck.result.status, 0, 'colliding article-diagram link label unexpectedly passed output check');
+  assert.equal(labelCollisionCheck.report?.pass, false, 'colliding article-diagram link label did not produce a failing report');
+  assert.match(
+    labelCollisionCheck.report?.issues?.map(item => item.code).join('\n') || '',
+    /article_diagram_label_collision/,
+    `colliding article-diagram link label failed for the wrong reason: ${labelCollisionCheck.result.stdout}\n${labelCollisionCheck.result.stderr}`,
+  );
+
   const invalidFamilyValidation = validate({
     mode: 'article-diagram',
     family: 'freeform-map',

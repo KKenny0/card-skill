@@ -2,7 +2,7 @@
 name: card-skill
 description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.2.11"
+version: "0.2.12"
 ---
 
 # card-skill
@@ -227,6 +227,7 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
 - `concept-map` 最多 5 个节点；`process-flow` 和 `boundary-model` 最多 6 个节点
 - `boundary-model` 必须有 2-4 个 `zones`，每个 node 必须归属一个 zone
 - 节点标签短于 36 个字符；链接标签短于 24 个字符
+- 链接标签是可选注释，不是必填结构；多条边使用同一个关系词时，不要逐条显示，把共同关系写进标题或 caption
 - 输入是整篇文章时，先按章节分组；有关系、流程、边界、权限、信任层、因果链或系统结构的章节都要各自生成一张图
 - 纯铺垫、纯情绪、纯结论、没有结构关系的章节跳过；不要为了覆盖所有标题机械出图
 - 每张正文解释图只服务一个章节，不混合多个章节；输出顺序跟随文章顺序

@@ -96,6 +96,33 @@ function linkList(input, positionsById) {
   })).filter(link => positionsById.has(link.from) && positionsById.has(link.to));
 }
 
+function visibleLinkLabels(links) {
+  const labelCounts = new Map();
+  for (const link of links) {
+    const label = String(link.label || '').trim();
+    if (!label) continue;
+    labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
+  }
+
+  return links
+    .map((link, index) => ({ link, index, label: String(link.label || '').trim() }))
+    .filter(item => item.label && labelCounts.get(item.label) === 1)
+    .slice(0, 4);
+}
+
+function linkLabelPosition(x1, y1, x2, y2, index) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const offset = (index % 2 === 0 ? 1 : -1) * 2.4;
+  const x = x1 + dx * 0.5 + (-dy / length) * offset;
+  const y = y1 + dy * 0.5 + (dx / length) * offset;
+  return [
+    Math.min(92, Math.max(8, x)),
+    Math.min(90, Math.max(10, y)),
+  ];
+}
+
 function renderConceptMap(input) {
   const nodes = input.nodes.slice(0, 5);
   const positions = CONCEPT_POSITIONS[nodes.length];
@@ -105,12 +132,18 @@ function renderConceptMap(input) {
   const lineSvg = links.map((link, i) => {
     const [x1, y1] = positionsById.get(link.from);
     const [x2, y2] = positionsById.get(link.to);
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const label = link.label && i < 4
-      ? `<text x="${midX}" y="${midY - 2}" text-anchor="middle">${escapeHtml(truncate(link.label, 18))}</text>`
-      : '';
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />${label}`;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+  }).join('\n');
+
+  const linkLabelHtml = visibleLinkLabels(links).map(({ link, index, label }) => {
+    const [x1, y1] = positionsById.get(link.from);
+    const [x2, y2] = positionsById.get(link.to);
+    const [x, y] = linkLabelPosition(x1, y1, x2, y2, index);
+    return `
+      <div class="diagram-link-label" data-diagram-link-label="true" style="left:${x}%; top:${y}%;">
+        ${escapeHtml(truncate(label, 14))}
+      </div>
+    `;
   }).join('\n');
 
   const nodeHtml = nodes.map((node, i) => {
@@ -125,9 +158,12 @@ function renderConceptMap(input) {
 
   return `
     <section class="diagram-stage concept-map">
-      <svg class="diagram-connectors" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        ${lineSvg}
-      </svg>
+      <div class="diagram-connectors-plane" aria-hidden="true">
+        <svg class="diagram-connectors" viewBox="0 0 100 100" preserveAspectRatio="none">
+          ${lineSvg}
+        </svg>
+        ${linkLabelHtml}
+      </div>
       ${nodeHtml}
     </section>
   `;
@@ -239,7 +275,7 @@ function baseCss(input, design, aspect) {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto;
       gap: ${isTall ? '24px' : '18px'};
-      font-family: "DM Sans", Arial, sans-serif;
+      font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink);
     }
 
@@ -251,7 +287,7 @@ function baseCss(input, design, aspect) {
     }
 
     .diagram-header h1 {
-      font-family: "DM Sans", Arial, sans-serif;
+      font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       font-size: ${isTall ? '54px' : '50px'};
       line-height: 1.02;
       letter-spacing: 0;
@@ -260,7 +296,7 @@ function baseCss(input, design, aspect) {
     }
 
     .diagram-header p {
-      font: 500 24px/1.28 "DM Sans", Arial, sans-serif;
+      font: 500 24px/1.28 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
       text-wrap: balance;
     }
@@ -286,16 +322,23 @@ function baseCss(input, design, aspect) {
 
     .diagram-caption {
       max-width: 820px;
-      font: 500 26px/1.3 "DM Sans", Arial, sans-serif;
+      font: 500 26px/1.3 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
       text-wrap: balance;
     }
 
-    .diagram-connectors {
+    .diagram-connectors-plane {
       position: absolute;
       inset: 42px 56px;
-      width: calc(100% - 112px);
-      height: calc(100% - 84px);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .diagram-connectors {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       overflow: visible;
     }
 
@@ -305,14 +348,18 @@ function baseCss(input, design, aspect) {
       vector-effect: non-scaling-stroke;
     }
 
-    .diagram-connectors text {
-      font: 600 3.1px/1 "DM Sans", Arial, sans-serif;
-      fill: var(--ink-light);
-      paint-order: stroke;
-      stroke: var(--surface-1);
-      stroke-width: 1.8px;
-      stroke-linejoin: round;
+    .diagram-link-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 4px 10px 5px;
+      border: 1px solid color-mix(in srgb, var(--hairline) 74%, var(--surface-1));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface-1) 96%, var(--bg));
+      color: var(--ink-light);
+      font: 700 24px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       letter-spacing: 0;
+      white-space: nowrap;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface-1) 82%, transparent);
     }
 
     .diagram-node {
@@ -333,7 +380,7 @@ function baseCss(input, design, aspect) {
     .diagram-node strong,
     .process-step strong,
     .boundary-node strong {
-      font: 700 30px/1.04 "DM Sans", Arial, sans-serif;
+      font: 700 30px/1.04 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink);
       letter-spacing: 0;
       text-wrap: balance;
@@ -342,7 +389,7 @@ function baseCss(input, design, aspect) {
     .diagram-node p,
     .process-step p,
     .boundary-node p {
-      font: 500 24px/1.22 "DM Sans", Arial, sans-serif;
+      font: 500 24px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
       letter-spacing: 0;
       text-wrap: balance;
@@ -405,7 +452,7 @@ function baseCss(input, design, aspect) {
 
     .boundary-zone strong {
       display: block;
-      font: 700 26px/1 "DM Sans", Arial, sans-serif;
+      font: 700 26px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--accent);
       letter-spacing: 0;
     }
@@ -414,7 +461,7 @@ function baseCss(input, design, aspect) {
       display: block;
       margin-top: 6px;
       max-width: 320px;
-      font: 500 24px/1.16 "DM Sans", Arial, sans-serif;
+      font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
     }
 

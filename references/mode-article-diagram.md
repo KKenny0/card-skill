@@ -138,6 +138,7 @@ Rules:
 - `nodes[].label` is visible. Keep it short.
 - `nodes[].note` is optional and must be shorter than the label in visual weight.
 - `links[]` must point to existing node ids.
+- `links[].label` is optional annotation, not required structure. Use it only when the relation word changes the reader's understanding.
 - `zones[]` is only for `boundary-model`.
 - `boundary-model` nodes require `zone`.
 - `aspect` defaults to `body-3-2`; use `body-4-3` only when vertical space improves clarity.
@@ -168,6 +169,7 @@ Avoid:
 
 - More than five concepts
 - Long relationship labels
+- Repeating the same relationship label on several links; move the shared relation into the title or caption instead
 - A complete article outline disguised as a map
 
 ### process-flow
@@ -207,6 +209,8 @@ Avoid:
 
 - Use fixed slots. Do not free-position labels by taste.
 - One visible label per node.
+- Relationship labels are optional. If several links share the same label, hide the repeated labels and state the shared relation in the title or caption.
+- Visible relationship labels must stay outside node boxes and away from the stage boundary; if they cannot fit cleanly, remove the label before shrinking the text.
 - Text must not overlap connectors, boxes, zones, or other text.
 - Connectors should sit behind nodes and stop visually at node boundaries.
 - Zone labels should name the area, not the output format.

@@ -356,10 +356,12 @@ async function inspectPage(opts, issues) {
       const editorialVisualSystemErrors = [];
       const editorialVisualSystemWarnings = [];
       const bigPhraseMetrics = [];
+      const articleDiagramLabelCollisions = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
       const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"], [data-card-mode="article-diagram"]'));
+      const isArticleDiagram = Boolean(document.querySelector('[data-card-mode="article-diagram"]'));
       const isBigMode = Boolean(document.querySelector('[data-card-mode="big"]'));
       const allowedPrimaryFonts = new Set([
         'dm sans',
@@ -420,6 +422,13 @@ async function inspectPage(opts, issues) {
           return parent;
         }
         return null;
+      }
+
+      function rectsIntersect(a, b, gap = 0) {
+        return a.left < b.right + gap
+          && a.right > b.left - gap
+          && a.top < b.bottom + gap
+          && a.bottom > b.top - gap;
       }
 
       function parseRgb(value) {
@@ -678,17 +687,38 @@ async function inspectPage(opts, issues) {
         // XiangcuiDazijiti but only renders XiangcuiDengcusong). Browsers
         // don't load unused families, so document.fonts.check() returns
         // false for them — a false positive that fails the build.
-        const appliedFamilies = new Set();
+        //
+        // Computed font-family returns the whole fallback stack, not the
+        // per-glyph font that was actually used. Check declared primary fonts
+        // directly, and check declared fallback CJK fonts only when the element
+        // has CJK text that may need that fallback.
+        const declaredByNormalized = new Map([...new Set(declaredFonts)]
+          .map(family => [normalizeFontFamily(family), family]));
+        const appliedFontSamples = new Map();
         for (const el of document.querySelectorAll('*')) {
-          const families = window.getComputedStyle(el).fontFamily || '';
-          for (const f of families.split(',')) {
-            appliedFamilies.add(f.trim().replace(/['"]/g, '').toLowerCase());
+          const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!text) continue;
+          const families = splitFontFamilies(window.getComputedStyle(el).fontFamily || '')
+            .map(normalizeFontFamily)
+            .filter(Boolean);
+          const primary = families[0] || '';
+          if (declaredByNormalized.has(primary)) {
+            appliedFontSamples.set(primary, text.slice(0, 40));
+          }
+          if (/[\u3400-\u9fff]/.test(text)) {
+            for (const family of families.slice(1)) {
+              if (declaredByNormalized.has(family)) {
+                appliedFontSamples.set(family, text.slice(0, 40));
+              }
+            }
           }
         }
         for (const family of [...new Set(declaredFonts)]) {
-          if (!appliedFamilies.has(family.toLowerCase())) continue;
+          const normalizedFamily = normalizeFontFamily(family);
+          const sampleText = appliedFontSamples.get(normalizedFamily);
+          if (!sampleText) continue;
           let ok = false;
-          try { ok = document.fonts.check(`16px "${family}"`); } catch (e) { continue; }
+          try { ok = document.fonts.check(`16px "${family}"`, sampleText); } catch (e) { continue; }
           if (ok) continue;
           // Find actual fallback by inspecting elements that requested this family
           let fallback = 'unknown';
@@ -746,6 +776,67 @@ async function inspectPage(opts, issues) {
         }
       }
 
+      // ===== Article diagram link-label collision =====
+      // Concept-map relationship labels are small annotations; if they touch
+      // node frames or sit against the stage boundary, the diagram stops
+      // reading as a relationship map. Treat that as a hard failure.
+      if (isArticleDiagram) {
+        const labels = [...document.querySelectorAll('.diagram-link-label, [data-diagram-link-label="true"]')]
+          .filter(isVisible);
+        const blockers = [...document.querySelectorAll('.diagram-node, .process-step, .boundary-node, .boundary-zone')]
+          .filter(isVisible);
+        const stage = document.querySelector('.diagram-stage');
+        const stageBox = stage && isVisible(stage) ? stage.getBoundingClientRect() : null;
+        const STAGE_PAD = 6;
+        const COLLISION_GAP = 3;
+
+        for (const label of labels) {
+          const labelBox = label.getBoundingClientRect();
+          const labelText = (label.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+          if (stageBox && (
+            labelBox.left < stageBox.left + STAGE_PAD ||
+            labelBox.right > stageBox.right - STAGE_PAD ||
+            labelBox.top < stageBox.top + STAGE_PAD ||
+            labelBox.bottom > stageBox.bottom - STAGE_PAD
+          )) {
+            articleDiagramLabelCollisions.push({
+              type: 'stage_boundary',
+              text: labelText,
+              labelRect: {
+                left: Math.round(labelBox.left),
+                top: Math.round(labelBox.top),
+                right: Math.round(labelBox.right),
+                bottom: Math.round(labelBox.bottom),
+              },
+            });
+          }
+
+          for (const blocker of blockers) {
+            const blockerBox = blocker.getBoundingClientRect();
+            if (!rectsIntersect(labelBox, blockerBox, COLLISION_GAP)) continue;
+            articleDiagramLabelCollisions.push({
+              type: 'node_overlap',
+              text: labelText,
+              blockerClassName: typeof blocker.className === 'string' ? blocker.className : '',
+              blockerText: (blocker.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+            });
+          }
+        }
+
+        for (let i = 0; i < labels.length; i++) {
+          for (let j = i + 1; j < labels.length; j++) {
+            const a = labels[i].getBoundingClientRect();
+            const b = labels[j].getBoundingClientRect();
+            if (!rectsIntersect(a, b, COLLISION_GAP)) continue;
+            articleDiagramLabelCollisions.push({
+              type: 'label_overlap',
+              text: (labels[i].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+              otherText: (labels[j].textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+            });
+          }
+        }
+      }
+
       if (isBigMode) {
         const phrase = document.querySelector('[data-card-mode="big"] .phrase');
         if (phrase && isVisible(phrase)) {
@@ -781,6 +872,7 @@ async function inspectPage(opts, issues) {
         svgTextOverflows: svgTextOverflows.slice(0, 10),
         fontLoadFailures: fontLoadFailures.slice(0, 10),
         svgTextOutsideViewbox: svgTextOutsideViewbox.slice(0, 10),
+        articleDiagramLabelCollisions: articleDiagramLabelCollisions.slice(0, 10),
         bigPhraseMetrics: bigPhraseMetrics.slice(0, 3),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
@@ -851,6 +943,12 @@ async function inspectPage(opts, issues) {
       issues.push(issue('error', 'svg_text_outside_viewbox',
         'SVG text bounding box exceeds the viewBox rectangle. Every <text> must render fully inside its SVG viewBox. Fix by widening the viewBox, moving the text inward, or shortening the string.',
         { elements: report.svgTextOutsideViewbox }));
+    }
+
+    if (report.articleDiagramLabelCollisions.length > 0) {
+      issues.push(issue('error', 'article_diagram_label_collision',
+        'Article-diagram relationship labels overlap nodes, other labels, or the stage boundary. Hide repeated labels, move the label, or simplify the links.',
+        { elements: report.articleDiagramLabelCollisions }));
     }
 
     if (report.bigPhraseMetrics.length === 0) {
