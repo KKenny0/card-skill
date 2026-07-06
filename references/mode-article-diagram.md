@@ -236,8 +236,8 @@ concept-map and boundary-model run a two-pass measure-then-place pipeline. proce
 
 **Known limitations** (do not promise users these will just work):
 - concept-map with 5 nodes + 5 links + long notes may still report `article_diagram_label_collision`. The layout engine places node anchors but does not yet iteratively relocate link labels to avoid node bboxes. Simplify the input first.
-- boundary-model with 3+ nested zones where the middle zone's "ring" around the inner zone is narrower than the node (218px wide) will fail with a clear error like `node "X" in zone "Y" overlaps inner zone "Z" (29% of node area) and no in-zone position avoids it`. The error names the node, the zone, and the inner zone, and recommends using fewer zones or simplifying the diagram. This is a geometry constraint, not a bug — the nested-box paradigm cannot fit a 218px node in a ring narrower than 218px.
-- boundary-model with descriptions on every nested zone may fail because the innermost zone is genuinely too small to hold header + node. Drop the description on the innermost zone only.
+- boundary-model with 3+ zones uses a **horizontal indented band** paradigm (not centered nested boxes) because nested-box geometry mathematically cannot fit 218px-wide nodes in all zone rings on a 960px stage. Bands have no ring constraint but have a **vertical space constraint**: total content height (zone headers + node heights + paddings) must fit within the stage height (~599px on body-4-3, the default for 3+ zones). Keep zone descriptions and node notes short — label-only content fits comfortably; adding descriptions or long notes across all zones may exceed capacity and fail with a clear error naming the total vs available height.
+- boundary-model with 2 zones uses centered nested boxes (the original paradigm) and has no ring constraint (2-zone geometry provides enough room).
 
 ## Anti-Patterns
 

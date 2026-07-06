@@ -50,7 +50,11 @@ const BOUNDARY_NODE_SLOTS = [
 ];
 
 function defaultAspect(input) {
-  return input.aspect || 'body-3-2';
+  if (input.aspect) return input.aspect;
+  // 3+ zone boundary-model uses indented bands which need more vertical
+  // space for stacked zone headers + nodes. Default to body-4-3.
+  if (input.family === 'boundary-model' && (input.zones || []).length >= 3) return 'body-4-3';
+  return 'body-3-2';
 }
 
 function truncate(value, max) {
@@ -203,8 +207,62 @@ function renderProcessFlow(input) {
   `;
 }
 
+function buildBandsHtml(input, nodePositions, zones) {
+  // 3+ zone boundary-model: horizontal indented bands instead of centered
+  // nested boxes. Each zone = one band. Indent expresses nesting level.
+  // Band heights come from layoutBands via nodePositions.__bandGeometries__
+  // so visual bands and node positions stay in sync.
+  const bands = (nodePositions && nodePositions.__bandGeometries__) || [];
+
+  const zoneBandHtml = zones.map((zone, zi) => {
+    const g = bands[zi] || {
+      topPct: zi * 34,
+      heightPct: 32,
+      indentPx: 36 * zi,
+    };
+    return `
+      <div class="boundary-band" data-level="${zi}" style="left:${g.indentPx}px; right:${g.indentPx}px; top:${g.topPct}%; height:${g.heightPct}%;">
+        <div class="band-header">
+          <strong>${escapeHtml(truncate(zone.label, 28))}</strong>
+          ${zone.description ? `<span class="band-caption">${escapeHtml(truncate(zone.description, 42))}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('\n');
+
+  const nodes = (input.nodes || []).slice(0, 6);
+  const nodeHtml = nodes.map((node) => {
+    let left = 50, top = 50;
+    if (nodePositions && nodePositions[node.id]) {
+      [left, top] = nodePositions[node.id];
+    }
+    return `
+      <div class="boundary-node band-node" style="left:${left}%; top:${top}%;">
+        <strong>${nodeTitle(node)}</strong>
+        ${nodeNote(node)}
+      </div>
+    `;
+  }).join('\n');
+
+  return `
+    <section class="diagram-stage boundary-model boundary-bands">
+      ${zoneBandHtml}
+      ${nodeHtml}
+    </section>
+  `;
+}
+
 function buildBoundaryModelHtml(input, nodePositions) {
   const zones = input.zones.slice(0, 4);
+
+  // 3+ zones: switch to indented bands paradigm. Centered nested boxes
+  // mathematically cannot fit 218px nodes in all zone rings on a 960px
+  // stage (4 × 218 = 872px consumed by rings alone, leaving 88px for the
+  // innermost zone). Bands avoid the ring constraint entirely.
+  if (zones.length >= 3) {
+    return buildBandsHtml(input, nodePositions, zones);
+  }
+
   const nodes = input.nodes.slice(0, 6);
   const boxes = BOUNDARY_ZONE_BOXES[zones.length];
   const zoneIndex = new Map(zones.map((zone, i) => [zone.id, i]));
@@ -512,6 +570,42 @@ function baseCss(input, design, aspect) {
       z-index: 3;
       transform: translate(-50%, -50%);
     }
+
+    .boundary-band {
+      position: absolute;
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--hairline));
+      border-left: 2px solid color-mix(in srgb, var(--accent) 55%, var(--hairline));
+      border-radius: calc(var(--radius) + 2px);
+      background: color-mix(in srgb, var(--surface-1) 22%, transparent);
+      padding: 14px 18px;
+    }
+
+    .boundary-band[data-level="1"] {
+      background: color-mix(in srgb, var(--surface-1) 36%, transparent);
+    }
+
+    .boundary-band[data-level="2"] {
+      background: color-mix(in srgb, var(--surface-1) 50%, transparent);
+    }
+
+    .band-header strong {
+      display: block;
+      font: 700 26px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      color: var(--accent);
+      letter-spacing: 0;
+    }
+
+    .band-caption {
+      display: block;
+      margin-top: 6px;
+      max-width: 620px;
+      font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      color: var(--ink-light);
+    }
+
+    .band-node {
+      z-index: 3;
+    }
   `;
 }
 
@@ -764,9 +858,135 @@ ${nodeItemsHtml}
   };
 }
 
+function layoutBands(input, bboxes, aspect, zones) {
+  // 3+ zone boundary-model: vertical bands with indent. Band heights are
+  // content-based (not equal split): each zone gets at least its header +
+  // node stack, then leftover space is distributed evenly.
+  const stage = stageBox(aspect);
+  const INDENT_PX = 36;
+  const PADDING_PX = 16;
+  const BAND_GAP_PX = 8;
+
+  const zoneHeaderHeightPx = new Map();
+  for (const zone of zones) {
+    const measured = bboxes[`zone-header-${zone.id}`];
+    zoneHeaderHeightPx.set(zone.id, measured ? measured.height : (zone.description ? 76 : 42));
+  }
+
+  const nodesByZone = new Map();
+  for (const node of input.nodes || []) {
+    if (!nodesByZone.has(node.zone)) nodesByZone.set(node.zone, []);
+    nodesByZone.get(node.zone).push(node);
+  }
+
+  // Compute each zone's minimum content height.
+  const zoneMinHeights = zones.map((zone) => {
+    const headerPx = zoneHeaderHeightPx.get(zone.id);
+    const zoneNodes = nodesByZone.get(zone.id) || [];
+    if (zoneNodes.length === 0) return headerPx + PADDING_PX * 2;
+
+    const zi = zones.indexOf(zone);
+    const zoneIndentPx = INDENT_PX * zi;
+    const nodeAreaWidthPx = stage.width - zoneIndentPx * 2 - PADDING_PX * 2;
+
+    const cols = Math.max(1, Math.min(zoneNodes.length,
+      Math.floor((nodeAreaWidthPx + 16) / (218 + 16))));
+    const rows = Math.ceil(zoneNodes.length / cols);
+    const maxNodeHeight = Math.max(...zoneNodes.map(n =>
+      (bboxes[`node-${n.id}`] || { height: 110 }).height));
+    const nodesHeight = rows * (maxNodeHeight + 16);
+    return headerPx + PADDING_PX * 2 + nodesHeight;
+  });
+
+  const totalMin = zoneMinHeights.reduce((a, b) => a + b, 0);
+  const totalGaps = BAND_GAP_PX * (zones.length - 1);
+  const totalNeeded = totalMin + totalGaps;
+
+  if (totalNeeded > stage.height + 0.5) {
+    throw new Error(
+      `boundary-model bands: total content height ${Math.round(totalNeeded)}px (min per zone: ${zoneMinHeights.map(h => Math.round(h)).join('+')}px + gaps) exceeds stage height ${Math.round(stage.height)}px. Shorten notes, drop zone descriptions, or reduce the zone count.`
+    );
+  }
+
+  // Distribute leftover space evenly across bands.
+  const leftover = stage.height - totalNeeded;
+  const extraPerBand = leftover / zones.length;
+
+  const positions = {};
+
+  let currentTopPx = 0;
+  const bandGeometries = [];
+  zones.forEach((zone, zi) => {
+    const bandHeightPx = zoneMinHeights[zi] + extraPerBand;
+    const bandTopPx = currentTopPx;
+    bandGeometries.push({
+      topPct: (bandTopPx / stage.height) * 100,
+      heightPct: (bandHeightPx / stage.height) * 100,
+      indentPx: INDENT_PX * zi,
+    });
+
+    const zoneNodes = nodesByZone.get(zone.id) || [];
+    const headerPx = zoneHeaderHeightPx.get(zone.id);
+
+    const innerTopPx = bandTopPx + headerPx + PADDING_PX;
+    const innerBottomPx = bandTopPx + bandHeightPx - PADDING_PX;
+
+    const zoneIndentPx = INDENT_PX * zi;
+    const nodeAreaLeftPx = zoneIndentPx + PADDING_PX;
+    const nodeAreaRightPx = stage.width - zoneIndentPx - PADDING_PX;
+    const nodeAreaWidthPx = nodeAreaRightPx - nodeAreaLeftPx;
+
+    zoneNodes.forEach((node, order) => {
+      const nodeBbox = bboxes[`node-${node.id}`] || { width: 218, height: 110 };
+      const halfWidthPx = nodeBbox.width / 2;
+      const halfHeightPx = nodeBbox.height / 2;
+
+      const gapPx = 16;
+      const cols = Math.max(1, Math.min(zoneNodes.length,
+        Math.floor((nodeAreaWidthPx + gapPx) / (nodeBbox.width + gapPx))));
+      const col = order % cols;
+      const row = Math.floor(order / cols);
+      const cellWidth = nodeAreaWidthPx / cols;
+      const cellHeight = nodeBbox.height + gapPx;
+
+      let cx = nodeAreaLeftPx + cellWidth * (col + 0.5);
+      let cy = innerTopPx + halfHeightPx + row * cellHeight;
+
+      if (cx - halfWidthPx < nodeAreaLeftPx) cx = nodeAreaLeftPx + halfWidthPx;
+      if (cx + halfWidthPx > nodeAreaRightPx) cx = nodeAreaRightPx - halfWidthPx;
+      if (cy + halfHeightPx > innerBottomPx) cy = innerBottomPx - halfHeightPx;
+
+      if (cy - halfHeightPx < innerTopPx - 0.5) {
+        throw new Error(
+          `boundary-model bands: zone "${zone.id}" cannot fit node "${node.id}" in its band.`
+        );
+      }
+
+      positions[node.id] = [
+        Math.round((cx / stage.width) * 1000) / 10,
+        Math.round((cy / stage.height) * 1000) / 10,
+      ];
+    });
+
+    currentTopPx += bandHeightPx + BAND_GAP_PX;
+  });
+
+  // Attach band geometries for buildBandsHtml to read (same file, same
+  // process — avoids threading geometry through the render chain).
+  positions.__bandGeometries__ = bandGeometries;
+
+  return positions;
+}
+
 function layoutBoundaryModel(input, bboxes, aspect) {
   const stage = stageBox(aspect);
   const zones = (input.zones || []).slice(0, 4);
+
+  // 3+ zones: dispatch to band layout (indented horizontal bands).
+  if (zones.length >= 3) {
+    return layoutBands(input, bboxes, aspect, zones);
+  }
+
   const boxes = BOUNDARY_ZONE_BOXES[zones.length];
   if (!boxes) throw new Error(`No zone box geometry for ${zones.length} zones`);
 
