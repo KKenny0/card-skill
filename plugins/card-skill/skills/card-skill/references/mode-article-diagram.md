@@ -207,7 +207,8 @@ Avoid:
 
 ## Visual Rules
 
-- Use fixed slots. Do not free-position labels by taste.
+- concept-map and boundary-model positions are computed by the layout engine from measured node and zone-header sizes; do not free-position labels by taste.
+- process-flow uses CSS grid (auto-layout); do not override its column rhythm.
 - One visible label per node.
 - Relationship labels are optional. If several links share the same label, hide the repeated labels and state the shared relation in the title or caption.
 - Visible relationship labels must stay outside node boxes and away from the stage boundary; if they cannot fit cleanly, remove the label before shrinking the text.
@@ -219,6 +220,24 @@ Avoid:
 - Prefer fewer nodes over smaller text.
 - Do not add page chrome, toolbar headers, fake UI panels, or decorative frames.
 - Preserve Quiet Paper: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
+
+## Layout Engine
+
+concept-map and boundary-model run a two-pass measure-then-place pipeline. process-flow stays single-pass because CSS grid already adapts to content.
+
+**Measure pass** (`scripts/renderers/article-diagram.js` `renderMeasure`):
+- A hidden DOM is rendered with each node at its family-specific width (concept-map 220 / boundary-model 218) and `visibility: hidden` stack flow.
+- For boundary-model, each zone's header (label + optional description) is also rendered at the zone's real inner width so description wrapping and thus header height are accurate.
+- `assets/capture4k.js --measure` returns each `[data-measure-id]` element's bbox as JSON.
+
+**Layout pass** (`layoutConceptMap` / `layoutBoundaryModel`):
+- concept-map: geometric anchors (2=horizontal / 3=triangle / 4=rectangle / 5=pentagon) clamped to stage bounds using measured half-width and half-height so nodes with long notes do not drift into each other or off-stage.
+- boundary-model: legacy `BOUNDARY_NODE_SLOTS` provide base anchors (which already encode inner-zone avoidance), then each node is pushed below the measured zone-header band and clamped in both x and y to stay inside its zone. If a zone genuinely cannot fit a node below its header, the renderer fails with a clear error naming the zone, the node, and the dimensions — the AI should then shorten the note, drop the description, or simplify the diagram.
+
+**Known limitations** (do not promise users these will just work):
+- concept-map with 5 nodes + 5 links + long notes may still report `article_diagram_label_collision`. The layout engine places node anchors but does not yet iteratively relocate link labels to avoid node bboxes. Simplify the input first.
+- boundary-model outer-zone nodes are clamped to stay inside their own zone but the layout does not yet detect overlap with sibling inner zones when a base slot lands near an inner-zone edge. Visually this is usually a few-pixel edge touch; if it reads as a real collision, move the node to a different slot or shrink the inner zone.
+- boundary-model with descriptions on every nested zone may fail because the innermost zone is genuinely too small to hold header + node. Drop the description on the innermost zone only.
 
 ## Anti-Patterns
 
