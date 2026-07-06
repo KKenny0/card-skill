@@ -203,12 +203,12 @@ function renderProcessFlow(input) {
   `;
 }
 
-function renderBoundaryModel(input) {
+function buildBoundaryModelHtml(input, nodePositions) {
   const zones = input.zones.slice(0, 4);
   const nodes = input.nodes.slice(0, 6);
   const boxes = BOUNDARY_ZONE_BOXES[zones.length];
   const zoneIndex = new Map(zones.map((zone, i) => [zone.id, i]));
-  const zoneCounts = new Map();
+
   const zoneHtml = zones.map((zone, i) => {
     const box = boxes[i];
     return `
@@ -219,12 +219,25 @@ function renderBoundaryModel(input) {
     `;
   }).join('\n');
 
-  const nodeHtml = nodes.map((node, i) => {
+  // Legacy slot fallback (used when positions are not provided, e.g. if
+  // measure pass is skipped). Same logic as before: count nodes per zone,
+  // pull from BOUNDARY_NODE_SLOTS[zIndex].
+  const zoneCounts = new Map();
+  const legacySlotFor = (node) => {
     const zIndex = zoneIndex.get(node.zone);
     const order = zoneCounts.get(node.zone) || 0;
     zoneCounts.set(node.zone, order + 1);
     const slotPool = BOUNDARY_NODE_SLOTS[zIndex] || [[50, 52]];
-    const [left, top] = slotPool[Math.min(order, slotPool.length - 1)];
+    return slotPool[Math.min(order, slotPool.length - 1)];
+  };
+
+  const nodeHtml = nodes.map((node) => {
+    let left, top;
+    if (nodePositions && nodePositions[node.id]) {
+      [left, top] = nodePositions[node.id];
+    } else {
+      [left, top] = legacySlotFor(node);
+    }
     return `
       <div class="boundary-node" style="left:${left}%; top:${top}%;">
         <strong>${nodeTitle(node)}</strong>
@@ -241,10 +254,14 @@ function renderBoundaryModel(input) {
   `;
 }
 
+function renderBoundaryModel(input, positions) {
+  return buildBoundaryModelHtml(input, positions);
+}
+
 function renderDiagram(input, positions) {
   if (input.family === 'concept-map') return renderConceptMap(input, positions);
   if (input.family === 'process-flow') return renderProcessFlow(input);
-  if (input.family === 'boundary-model') return renderBoundaryModel(input);
+  if (input.family === 'boundary-model') return renderBoundaryModel(input, positions);
   throw new Error(`Unknown article-diagram family: ${input.family}`);
 }
 
@@ -607,9 +624,9 @@ function layoutConceptMap(input, bboxes, aspect) {
 }
 
 function renderMeasure(input, outputHtmlPath) {
-  // Only concept-map uses two-pass for now. Return null signals caller to
-  // fall back to single-pass render().
-  if (input.family !== 'concept-map') return null;
+  // concept-map and boundary-model use two-pass measure-then-place.
+  // process-flow is CSS grid (no absolute positioning) and stays single-pass.
+  if (input.family !== 'concept-map' && input.family !== 'boundary-model') return null;
 
   const designName = input.design || 'stripe';
   const design = getDesign(designName);
@@ -619,14 +636,43 @@ function renderMeasure(input, outputHtmlPath) {
   const aspect = ASPECTS[aspectKey];
   if (!aspect) throw new Error(`Unknown article-diagram aspect: ${aspectKey}`);
 
-  const nodes = (input.nodes || []).slice(0, 5);
   const fontBaseUrl = pathToFileURL(FONT_DIR).href;
-  const nodeMeasureHtml = nodes.map(n => `
-    <div class="measure-node" data-measure-id="node-${escapeHtml(n.id)}">
+  const nodes = (input.nodes || []).slice(0, 6);
+
+  // Measure node dimensions must match the final render CSS for each family.
+  // .diagram-node (concept-map): width 220, padding 20/22
+  // .boundary-node (boundary-model): width 218, padding 17/18
+  const nodeMeasureClass = input.family === 'boundary-model'
+    ? 'measure-node-boundary'
+    : 'measure-node';
+
+  const nodeItemsHtml = nodes.map(n => `
+    <div class="${nodeMeasureClass}" data-measure-id="node-${escapeHtml(n.id)}">
       <strong>${nodeTitle(n)}</strong>
       ${nodeNote(n)}
     </div>
   `).join('\n');
+
+  // For boundary-model, also measure each zone's header band (label +
+  // optional description). Width is set to the zone's real inner width so
+  // description wrapping matches the final render and the measured height
+  // is the true header band height.
+  let zoneHeaderItemsHtml = '';
+  if (input.family === 'boundary-model') {
+    const zones = (input.zones || []).slice(0, 4);
+    const zoneBoxes = BOUNDARY_ZONE_BOXES[zones.length];
+    const stageWidth = aspect.width - 120; // matches stageBox()
+    zones.forEach((z, i) => {
+      const box = zoneBoxes[i];
+      const innerWidthPx = (box.width / 100) * stageWidth - 36; // padding 18 each side
+      zoneHeaderItemsHtml += `
+        <div class="measure-zone-header" data-measure-id="zone-header-${escapeHtml(z.id)}" style="width: ${innerWidthPx}px;">
+          <strong>${escapeHtml(truncate(z.label, 28))}</strong>
+          ${z.description ? `<span>${escapeHtml(truncate(z.description, 42))}</span>` : ''}
+        </div>
+      `;
+    });
+  }
 
   // Inline @font-face so measure DOM uses real XiangcuiDengcusong. DM Sans
   // falls back to system sans for measure (Latin chars are close enough in
@@ -656,21 +702,55 @@ function renderMeasure(input, outputHtmlPath) {
     background: color-mix(in srgb, ${design.surface1} 94%, ${design.canvas});
     border-radius: ${design.radius};
   }
-  .measure-node strong {
+  .measure-node-boundary {
+    visibility: hidden;
+    display: block;
+    width: 218px;
+    margin-bottom: 16px;
+    padding: 17px 18px;
+    border: 1px solid ${design.hairline};
+    background: color-mix(in srgb, ${design.surface1} 95%, ${design.canvas});
+    border-radius: ${design.radius};
+  }
+  .measure-node strong,
+  .measure-node-boundary strong {
     font: 700 30px/1.04 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     display: block;
     margin-bottom: 7px;
     color: ${design.ink};
   }
-  .measure-node p {
+  .measure-node p,
+  .measure-node-boundary p {
     font: 500 24px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     margin: 0;
+    color: ${design.inkMuted};
+  }
+  .measure-zone-header {
+    visibility: hidden;
+    display: block;
+    margin-bottom: 16px;
+    padding: 16px 18px;
+    border: 1px solid ${design.hairline};
+    background: color-mix(in srgb, ${design.surface1} 34%, transparent);
+    border-radius: calc(${design.radius} + 2px);
+  }
+  .measure-zone-header strong {
+    font: 700 26px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    display: block;
+    color: ${design.accent};
+  }
+  .measure-zone-header span {
+    display: block;
+    margin-top: 6px;
+    max-width: 320px;
+    font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     color: ${design.inkMuted};
   }
 </style>
 </head><body>
 <div class="measure-stage">
-${nodeMeasureHtml}
+${zoneHeaderItemsHtml}
+${nodeItemsHtml}
 </div>
 </body></html>`;
 
@@ -684,4 +764,97 @@ ${nodeMeasureHtml}
   };
 }
 
-module.exports = { render, renderMeasure, layoutConceptMap, ASPECTS, defaultAspect };
+function layoutBoundaryModel(input, bboxes, aspect) {
+  const stage = stageBox(aspect);
+  const zones = (input.zones || []).slice(0, 4);
+  const boxes = BOUNDARY_ZONE_BOXES[zones.length];
+  if (!boxes) throw new Error(`No zone box geometry for ${zones.length} zones`);
+
+  const zoneIndex = new Map(zones.map((z, i) => [z.id, i]));
+
+  // Measured header band height per zone, falling back to estimate if the
+  // measure pass didn't return a value (e.g. AI didn't fill description).
+  const zoneHeaderHeightPx = new Map();
+  for (const zone of zones) {
+    const measured = bboxes[`zone-header-${zone.id}`];
+    zoneHeaderHeightPx.set(zone.id, measured ? measured.height : (zone.description ? 76 : 42));
+  }
+
+  // Group nodes by zone, preserving input order.
+  const nodesByZone = new Map();
+  for (const node of input.nodes || []) {
+    if (!nodesByZone.has(node.zone)) nodesByZone.set(node.zone, []);
+    nodesByZone.get(node.zone).push(node);
+  }
+
+  const positions = {};
+  const PADDING_PX = 16; // matches .boundary-zone padding in baseCss
+
+  for (const zone of zones) {
+    const zoneNodes = nodesByZone.get(zone.id) || [];
+    if (zoneNodes.length === 0) continue;
+
+    const zi = zoneIndex.get(zone.id);
+    const zoneBox = boxes[zi];
+    const zoneTopPx = (zoneBox.top / 100) * stage.height;
+    const zoneBottomPx = zoneTopPx + (zoneBox.height / 100) * stage.height;
+    const zoneLeftPx = (zoneBox.left / 100) * stage.width;
+    const zoneRightPx = zoneLeftPx + (zoneBox.width / 100) * stage.width;
+    const headerPx = zoneHeaderHeightPx.get(zone.id);
+
+    // Node's center y must be at least headerPx + padding + half_node height
+    // below zone top, so the node sits below the header band.
+    const slotPool = BOUNDARY_NODE_SLOTS[zi] || [[50, 52]];
+
+    zoneNodes.forEach((node, order) => {
+      const [baseX, baseY] = slotPool[Math.min(order, slotPool.length - 1)];
+      const nodeBbox = bboxes[`node-${node.id}`] || { width: MEASURE_NODE_WIDTH, height: 110 };
+      const halfHeightPx = nodeBbox.height / 2;
+      const halfWidthPx = nodeBbox.width / 2;
+
+      const innerTopPx = zoneTopPx + headerPx + PADDING_PX;
+      const innerBottomPx = zoneBottomPx - PADDING_PX;
+      const innerLeftPx = zoneLeftPx + PADDING_PX;
+      const innerRightPx = zoneRightPx - PADDING_PX;
+
+      // Y: push below header band, then clamp above zone bottom.
+      let nodeCenterYPx = (baseY / 100) * stage.height;
+      if (nodeCenterYPx - halfHeightPx < innerTopPx) {
+        nodeCenterYPx = innerTopPx + halfHeightPx;
+      }
+      if (nodeCenterYPx + halfHeightPx > innerBottomPx) {
+        nodeCenterYPx = innerBottomPx - halfHeightPx;
+      }
+      if (nodeCenterYPx - halfHeightPx < innerTopPx) {
+        throw new Error(
+          `boundary-model: zone "${zone.id}" cannot fit node "${node.id}" (height ${nodeBbox.height}px) below its ${headerPx}px header. Shorten the note, remove the zone description, or simplify the diagram.`
+        );
+      }
+
+      // X: clamp so node stays horizontally inside the zone box.
+      let nodeCenterXPx = (baseX / 100) * stage.width;
+      if (nodeCenterXPx - halfWidthPx < innerLeftPx) {
+        nodeCenterXPx = innerLeftPx + halfWidthPx;
+      }
+      if (nodeCenterXPx + halfWidthPx > innerRightPx) {
+        nodeCenterXPx = innerRightPx - halfWidthPx;
+      }
+      // ponytail: 0.5px tolerance for float comparison so a clamp that lands
+      // exactly on innerLeft doesn't false-trigger the throw.
+      if (nodeCenterXPx - halfWidthPx < innerLeftPx - 0.5) {
+        throw new Error(
+          `boundary-model: zone "${zone.id}" is too narrow (width ${zoneBox.width}%) to fit node "${node.id}" (width ${nodeBbox.width}px).`
+        );
+      }
+
+      positions[node.id] = [
+        Math.round((nodeCenterXPx / stage.width) * 1000) / 10,
+        Math.round((nodeCenterYPx / stage.height) * 1000) / 10,
+      ];
+    });
+  }
+
+  return positions;
+}
+
+module.exports = { render, renderMeasure, layoutConceptMap, layoutBoundaryModel, ASPECTS, defaultAspect };

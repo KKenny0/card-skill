@@ -276,12 +276,14 @@ try {
     const htmlFileName = `card_${input.mode}.html`;
     const htmlPath = path.join(runTmpDir, htmlFileName);
 
-    // Two-pass measure-then-place for article-diagram concept-map: render
-    // hidden measure HTML, capture actual node bboxes, compute positions
-    // from measured sizes, then write final HTML. Other families/modes
-    // stay single-pass.
+    // Two-pass measure-then-place for article-diagram concept-map and
+    // boundary-model: render hidden measure HTML, capture actual node and
+    // zone-header bboxes, compute positions from measured sizes, then write
+    // final HTML. process-flow stays single-pass (it uses CSS grid).
     let out;
-    if (input.mode === 'article-diagram' && input.family === 'concept-map' && typeof renderer.renderMeasure === 'function') {
+    if (input.mode === 'article-diagram'
+        && (input.family === 'concept-map' || input.family === 'boundary-model')
+        && typeof renderer.renderMeasure === 'function') {
       const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
       const measureOut = renderer.renderMeasure(input, measureHtmlPath);
       if (measureOut) {
@@ -307,7 +309,12 @@ try {
 
         const aspectKey = renderer.defaultAspect(input);
         const aspect = renderer.ASPECTS[aspectKey];
-        const positions = renderer.layoutConceptMap(input, bboxes, aspect);
+        let positions;
+        if (input.family === 'concept-map') {
+          positions = renderer.layoutConceptMap(input, bboxes, aspect);
+        } else if (input.family === 'boundary-model') {
+          positions = renderer.layoutBoundaryModel(input, bboxes, aspect);
+        }
 
         out = renderer.render(input, htmlPath, positions);
       } else {
