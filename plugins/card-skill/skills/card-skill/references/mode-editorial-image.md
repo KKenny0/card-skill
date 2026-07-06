@@ -25,6 +25,18 @@ It should answer one of these questions:
 | Success | The idea is clear | The article feels worth entering |
 | Failure | Too shallow or incomplete | Too literal, generic, or detached |
 
+## Tier Commitments by Sub-scenario
+
+editorial-image 不是单一稳定性承诺。它的 3 个子场景按不同 tier 对待：
+
+| Sub-scenario | `use` | Tier | Renderer path |
+|--------------|-------|------|---------------|
+| 公众号封面 / 博客 hero | `cover` | Stable | CLI scaffold（kicker + title + subtitle + 静态 paper-stack）足够 |
+| 正文氛围插图 | `in-article` | Creative | 必须由 AI 写 `content_html` + `custom_css`；scaffold 只用于验证 |
+| 概念隐喻图 | `metaphor` | Creative | 必须由 AI 写 `content_html` + `custom_css`；scaffold 不应作为最终产出 |
+
+判断规则：如果 scaffold 拿掉 `content_html` 也能撑住这张图，说明是 Stable 子场景；否则是 Creative 子场景。`use=cover` 默认 Stable，`use=in-article` / `metaphor` 默认 Creative。
+
 ## Supported Outputs
 
 ### 1. WeChat / Blog Cover
@@ -255,7 +267,7 @@ Custom CSS should not create a separate visual universe. If the composition need
 
 - Text should usually take less than 20% of the image.
 - Visible text must belong to the artwork. It may be the article title, a section title, a real term, a short excerpt, a byline, or a label attached to a visual object.
-- A final image should have one concrete dominant subject. Do not let a safe scaffold or abstract paper stack stand in for the article's visual idea.
+- For `use=in-article` and `metaphor` sub-scenarios (Creative), the final image should have one concrete dominant subject; do not let a safe scaffold or abstract paper stack stand in for the article's visual idea. For `use=cover` (Stable), the CLI scaffold (kicker + title + subtitle + paper-stack) is the expected final output and does not need a custom dominant subject unless the user explicitly asks for one.
 - Do not print generation notes, usage notes, or internal rationale into the artwork. Avoid sentences like `给这一节使用`, `用作正文配图`, `安静、低干扰`, `像文章中间的一次停顿`, or `visual pause`.
 - For in-article mood images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.

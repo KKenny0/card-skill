@@ -64,8 +64,8 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 
 card-skill 把 9 个 mode 分两层：
 
-- **Stable tier**（CLI-rendered）：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。走结构化 renderer，schema 校验失败直接报错；输出确定性高，是产品主体。
-- **Creative tier**（AI-rendered）：`infograph`、`comic`、`sketchnote`。需要创意布局，无法 schema 化；每次产物有差异，依赖人工审美兜底。
+- **Stable tier**（CLI-rendered）：`big`、`long`、`whiteboard`、`poster`、`article-diagram`，以及 `editorial-image` 的封面 / hero 子场景（`use=cover`）。走结构化 renderer，schema 校验失败直接报错；输出确定性高，是产品主体。
+- **Creative tier**（AI-rendered）：`infograph`、`comic`、`sketchnote`，以及 `editorial-image` 的正文氛围 / 概念隐喻子场景（`use=in-article` / `metaphor`）。Schema 只锁基本字段（title / aspect / use），实际产出靠 AI 写 `content_html` + `custom_css`；每次产物有差异，依赖人工审美兜底。
 
 判断当前内容能否走 Stable tier 的 CLI 路径：
 
@@ -80,8 +80,10 @@ card-skill 把 9 个 mode 分两层：
 3. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
    - 先把自然语言用途映射成结构化字段：`use` 只表示编辑任务（`cover` / `in-article` / `metaphor`），`aspect` 只表示画布比例（`wechat-cover` / `blog-hero` / `body-3-2` / `body-4-3` / `cinematic` / `square`）
+   - 按 `use` 分流 tier：
+     - `use=cover` → Stable 子场景。CLI scaffold（kicker + title + subtitle + 静态 paper-stack）即最终产出，不需要 `content_html`
+     - `use=in-article` / `metaphor` → Creative 子场景。必须由 AI 写 `content_html` + `custom_css`；只有 `title/use/aspect/visual_metaphor/art_direction` 时，CLI 可渲染 scaffold 但仅用于比例验证，不作为最终产出
    - 如果已有具体画面结构（`content_html` + `custom_css`）→ CLI 路径，作为高质量最终图的首选
-   - 如果只有 `title/use/aspect/visual_metaphor/art_direction` → CLI 可渲染比例安全的 Quiet Paper scaffold，但这只是兜底；正式配图应优先补出自定义构图
    - 如果还没有视觉方向 → 默认自动选择 1 个最强方向并继续渲染；只有用户明确要求候选时，才先产出 2-3 个方向等待选择
 4. 如果 mode 是 big / long / whiteboard / poster：
    - 评估内容结构能否 fit 进对应 mode 的 schema（见 `schemas/{mode}.json`）
@@ -157,6 +159,8 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
 
 当用户要求 `给文章配图` / `公众号头图` / `博客封面` / `article cover` / `blog hero` / `editorial image`，且目标是封面、氛围、隐喻或视觉立场时，进入 `editorial-image` 流程。
 
+**子场景 tier 提示**：封面 / hero 请求（`use=cover`）走 Stable CLI scaffold，scaffold 即最终产出；正文氛围 / 概念隐喻请求（`use=in-article` / `metaphor`）走 Creative 流程，必须由 AI 写 `content_html` + `custom_css`，schema 只锁基本字段。详细区别见 `references/mode-editorial-image.md` 的 Tier Commitments 章节。
+
 如果用户要求的是 `正文解释图` / `关系图` / `流程图` / `边界图` / `权限边界` / `安全边界` / `article diagram` / `concept map` / `process flow`，或正文配图里明显出现节点、连线、嵌套框、步骤、区域、权限、信任边界，改走 Step 1.6 的 `article-diagram`，不要默认塞进 `editorial-image + body-3-2`。
 
 **核心区别**：文章配图不是摘要卡。不要把文章观点改写成 bullet points；要提炼文章的视觉立场、情绪、核心张力和隐喻。
@@ -174,7 +178,7 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
 
 结构化字段只负责约束：用途、比例、标题、视觉隐喻、裁切上下文。不要把这些字段当成完整模板。高质量配图应在方向确认后使用 `content_html` + `custom_css` 做开放构图；默认 CLI renderer 只是比例安全的 Quiet Paper scaffold，适合验证和简单封面，不应当作为复杂文章配图的默认终点。
 
-正式配图必须有一个具体主视觉对象或场景，例如桌面、抽屉、纸页、窗口、手势、路径、容器、仪表、地图、阴影关系等。不要只用纸片、线条、抽象框和留白来替代视觉隐喻；如果拿掉标题后画面与文章关系消失，就需要重做 `content_html` + `custom_css`。
+`use=in-article` / `metaphor` 子场景（Creative）的正式配图必须有一个具体主视觉对象或场景，例如桌面、抽屉、纸页、窗口、手势、路径、容器、仪表、地图、阴影关系等。不要只用纸片、线条、抽象框和留白来替代视觉隐喻；如果拿掉标题后画面与文章关系消失，就需要重做 `content_html` + `custom_css`。`use=cover` 子场景（Stable）的 CLI scaffold（kicker + title + subtitle + 静态 paper-stack）不需要额外主视觉对象，除非用户明确要求。
 
 `editorial-image` 支持 `design` 和 `editorial_tone` 字段。`design` 是显式设计系统，优先级最高；`editorial_tone` 是自动选择入口，只能是 `reflective` / `sharp` / `warm` / `technical`。设计系统只控制气质层：纸面颜色、墨色、accent、边框和整体温度；不决定视觉隐喻、构图对象或文章立场。用户未指定 `design` 时，必须根据文章情绪给出 `editorial_tone`，让 CLI 落到真实存在的 Quiet Paper design。
 

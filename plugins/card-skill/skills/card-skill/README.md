@@ -113,7 +113,7 @@ card-skill 把 9 个 mode 分两层，承诺不同：
 
 | Mode | Tier | 最适合 |
 |---|---|---|
-| `editorial-image` | Stable | 公众号头图、博客封面、正文氛围插图与概念隐喻 |
+| `editorial-image` | Stable（封面）/ Creative（正文） | 公众号头图与博客封面走 Stable CLI scaffold；正文氛围插图与概念隐喻需 AI 写 `content_html`，归 Creative |
 | `article-diagram` | Stable | 正文解释图、关系图、流程图与边界模型 |
 | `poster` | Stable | 小红书、社媒系列卡片、章节拆分 |
 | `whiteboard` | Stable | 论证、因果链、系统关系与技术决策 |
