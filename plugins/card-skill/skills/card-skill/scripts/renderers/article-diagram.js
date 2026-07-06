@@ -847,6 +847,93 @@ function layoutBoundaryModel(input, bboxes, aspect) {
         );
       }
 
+      // V2.2: inner-zone avoidance. Detect significant bbox overlap with
+      // any nested inner zone. If overlap > 25% of node area, try shifting
+      // x (then y) to escape. If no escape keeps node in zone, fail with a
+      // specific error naming the inner zone and the overlap percent.
+      // Threshold 25% lets minor edge-touching (visually acceptable, where
+      // a corner of the node crosses an inner-zone edge) pass while
+      // catching severe collisions where the node visually sits on top of
+      // an inner zone. Tuned against 2-zone (≈11% corner overlap, passes)
+      // and 3-zone middle-on-inner (≈33% body overlap, fails).
+      const INNER_MARGIN_PX = 8;
+      const OVERLAP_THRESHOLD = 0.25;
+      const innerZones = zones.slice(zi + 1);
+      const nodeArea = nodeBbox.width * nodeBbox.height;
+
+      const rectOverlap = (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2) => {
+        const ox = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
+        const oy = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
+        return ox * oy;
+      };
+
+      const findWorstOverlap = (cx, cy) => {
+        let worst = { pct: 0, zoneId: null, box: null };
+        for (const innerZ of innerZones) {
+          const innerZoneIdx = zoneIndex.get(innerZ.id);
+          const ib = boxes[innerZoneIdx];
+          const ix1 = (ib.left / 100) * stage.width;
+          const iy1 = (ib.top / 100) * stage.height;
+          const ix2 = ix1 + (ib.width / 100) * stage.width;
+          const iy2 = iy1 + (ib.height / 100) * stage.height;
+          const ov = rectOverlap(
+            cx - halfWidthPx, cy - halfHeightPx, cx + halfWidthPx, cy + halfHeightPx,
+            ix1, iy1, ix2, iy2,
+          );
+          const pct = ov / nodeArea;
+          if (pct > worst.pct) worst = { pct, zoneId: innerZ.id, box: ib };
+        }
+        return worst;
+      };
+
+      let worst = findWorstOverlap(nodeCenterXPx, nodeCenterYPx);
+      if (worst.pct > OVERLAP_THRESHOLD) {
+        // Try x shift first (most common escape), then y shift.
+        const ib = worst.box;
+        const innerLeftPx = (ib.left / 100) * stage.width;
+        const innerRightPx = innerLeftPx + (ib.width / 100) * stage.width;
+        const innerTopPx = (ib.top / 100) * stage.height;
+        const innerBottomPx = innerTopPx + (ib.height / 100) * stage.height;
+
+        const candidates = [];
+        const xShiftLeft = innerLeftPx - INNER_MARGIN_PX - halfWidthPx;
+        const xShiftRight = innerRightPx + INNER_MARGIN_PX + halfWidthPx;
+        if (xShiftLeft - halfWidthPx >= zoneLeftPx + PADDING_PX - 0.5
+            && xShiftLeft + halfWidthPx <= zoneRightPx - PADDING_PX + 0.5) {
+          candidates.push([xShiftLeft, nodeCenterYPx]);
+        }
+        if (xShiftRight - halfWidthPx >= zoneLeftPx + PADDING_PX - 0.5
+            && xShiftRight + halfWidthPx <= zoneRightPx - PADDING_PX + 0.5) {
+          candidates.push([xShiftRight, nodeCenterYPx]);
+        }
+        const yShiftUp = innerTopPx - INNER_MARGIN_PX - halfHeightPx;
+        const yShiftDown = innerBottomPx + INNER_MARGIN_PX + halfHeightPx;
+        if (yShiftUp - halfHeightPx >= innerTopPx - 0.5
+            && yShiftUp + halfHeightPx <= innerBottomPx + 0.5) {
+          candidates.push([nodeCenterXPx, yShiftUp]);
+        }
+        if (yShiftDown - halfHeightPx >= innerTopPx - 0.5
+            && yShiftDown + halfHeightPx <= innerBottomPx + 0.5) {
+          candidates.push([nodeCenterXPx, yShiftDown]);
+        }
+
+        // Pick candidate with lowest residual overlap.
+        let best = null;
+        for (const [cx, cy] of candidates) {
+          const ov = findWorstOverlap(cx, cy);
+          if (!best || ov.pct < best.ov.pct) best = { cx, cy, ov };
+        }
+
+        if (best && best.ov.pct <= OVERLAP_THRESHOLD) {
+          nodeCenterXPx = best.cx;
+          nodeCenterYPx = best.cy;
+        } else {
+          throw new Error(
+            `boundary-model: node "${node.id}" in zone "${zone.id}" overlaps inner zone "${worst.zoneId}" (${Math.round(worst.pct * 100)}% of node area) and no in-zone position avoids it. Reduce the note length, simplify the diagram, or use fewer zones so each zone's ring is wider than the node.`
+          );
+        }
+      }
+
       positions[node.id] = [
         Math.round((nodeCenterXPx / stage.width) * 1000) / 10,
         Math.round((nodeCenterYPx / stage.height) * 1000) / 10,

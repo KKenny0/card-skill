@@ -236,7 +236,7 @@ concept-map and boundary-model run a two-pass measure-then-place pipeline. proce
 
 **Known limitations** (do not promise users these will just work):
 - concept-map with 5 nodes + 5 links + long notes may still report `article_diagram_label_collision`. The layout engine places node anchors but does not yet iteratively relocate link labels to avoid node bboxes. Simplify the input first.
-- boundary-model outer-zone nodes are clamped to stay inside their own zone but the layout does not yet detect overlap with sibling inner zones when a base slot lands near an inner-zone edge. Visually this is usually a few-pixel edge touch; if it reads as a real collision, move the node to a different slot or shrink the inner zone.
+- boundary-model with 3+ nested zones where the middle zone's "ring" around the inner zone is narrower than the node (218px wide) will fail with a clear error like `node "X" in zone "Y" overlaps inner zone "Z" (29% of node area) and no in-zone position avoids it`. The error names the node, the zone, and the inner zone, and recommends using fewer zones or simplifying the diagram. This is a geometry constraint, not a bug — the nested-box paradigm cannot fit a 218px node in a ring narrower than 218px.
 - boundary-model with descriptions on every nested zone may fail because the innermost zone is genuinely too small to hold header + node. Drop the description on the innermost zone only.
 
 ## Anti-Patterns
