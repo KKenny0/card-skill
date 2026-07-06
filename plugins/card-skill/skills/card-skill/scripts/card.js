@@ -275,7 +275,48 @@ try {
   } else {
     const htmlFileName = `card_${input.mode}.html`;
     const htmlPath = path.join(runTmpDir, htmlFileName);
-    const out = renderer.render(input, htmlPath);
+
+    // Two-pass measure-then-place for article-diagram concept-map: render
+    // hidden measure HTML, capture actual node bboxes, compute positions
+    // from measured sizes, then write final HTML. Other families/modes
+    // stay single-pass.
+    let out;
+    if (input.mode === 'article-diagram' && input.family === 'concept-map' && typeof renderer.renderMeasure === 'function') {
+      const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
+      const measureOut = renderer.renderMeasure(input, measureHtmlPath);
+      if (measureOut) {
+        const measureResult = spawnSync(process.execPath, [
+          CAPTURE_SCRIPT,
+          measureOut.htmlPath,
+          '--measure',
+          String(measureOut.captureWidth),
+          String(measureOut.captureHeight),
+          String(DPR),
+        ], { encoding: 'utf-8' });
+
+        if (measureResult.status !== 0) {
+          throw new Error(`Measure pass failed: ${measureResult.stderr || measureResult.stdout}`);
+        }
+
+        let bboxes;
+        try {
+          bboxes = JSON.parse(measureResult.stdout);
+        } catch (e) {
+          throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
+        }
+
+        const aspectKey = renderer.defaultAspect(input);
+        const aspect = renderer.ASPECTS[aspectKey];
+        const positions = renderer.layoutConceptMap(input, bboxes, aspect);
+
+        out = renderer.render(input, htmlPath, positions);
+      } else {
+        out = renderer.render(input, htmlPath);
+      }
+    } else {
+      out = renderer.render(input, htmlPath);
+    }
+
     const stagedPath = path.join(runTmpDir, 'card.png');
 
     captureWithOutputCheck(out, stagedPath);

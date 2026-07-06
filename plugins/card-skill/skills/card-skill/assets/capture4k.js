@@ -5,14 +5,21 @@ const { pathToFileURL } = require('url');
 
 async function main() {
   const args = process.argv.slice(2);
-  const htmlPath = args[0];
-  const outputPath = args[1];
-  const width = parseInt(args[2]) || 1080;
-  const height = parseInt(args[3]) || 800;
-  const dpr = parseFloat(args[4]) || 2;
-  const fullpage = args[5] === 'fullpage';
+  const measureMode = args.includes('--measure');
+  const positional = args.filter(a => a !== '--measure');
+  const htmlPath = positional[0];
+  const outputPath = positional[1];
+  const width = parseInt(positional[2]) || 1080;
+  const height = parseInt(positional[3]) || 800;
+  const dpr = parseFloat(positional[4]) || 2;
+  const fullpage = positional[5] === 'fullpage';
 
-  if (!htmlPath || !outputPath) {
+  if (!htmlPath) {
+    console.error('Usage: node capture4k.js <html> <png> [width] [height] [dpr] [fullpage]');
+    console.error('       node capture4k.js <html> --measure [width] [height] [dpr]');
+    process.exit(1);
+  }
+  if (!measureMode && !outputPath) {
     console.error('Usage: node capture4k.js <html> <png> [width] [height] [dpr] [fullpage]');
     process.exit(1);
   }
@@ -41,6 +48,26 @@ async function main() {
   // XiangcuiDengcusong TTF can still be mid-decode at 800ms, producing a
   // silent fallback to system CJK fonts.
   await page.evaluate(() => document.fonts.ready);
+
+  if (measureMode) {
+    // For article-diagram two-pass layout: return rendered bbox of every
+    // [data-measure-id] element as JSON on stdout. Caller computes positions
+    // from these sizes and writes final HTML for the screenshot pass.
+    const bboxes = await page.evaluate(() => {
+      const result = {};
+      document.querySelectorAll('[data-measure-id]').forEach(el => {
+        const r = el.getBoundingClientRect();
+        result[el.dataset.measureId] = {
+          width: Math.round(r.width),
+          height: Math.round(r.height)
+        };
+      });
+      return result;
+    });
+    await browser.close();
+    console.log(JSON.stringify(bboxes));
+    return;
+  }
 
   if (fullpage) {
     // Measure actual content height

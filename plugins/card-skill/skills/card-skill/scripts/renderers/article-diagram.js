@@ -123,13 +123,11 @@ function linkLabelPosition(x1, y1, x2, y2, index) {
   ];
 }
 
-function renderConceptMap(input) {
+function buildConceptMapHtml(input, positionsById) {
   const nodes = input.nodes.slice(0, 5);
-  const positions = CONCEPT_POSITIONS[nodes.length];
-  const positionsById = new Map(nodes.map((node, i) => [node.id, positions[i]]));
   const links = linkList(input, positionsById).filter(link => positionsById.has(link.from) && positionsById.has(link.to)).slice(0, 6);
 
-  const lineSvg = links.map((link, i) => {
+  const lineSvg = links.map((link) => {
     const [x1, y1] = positionsById.get(link.from);
     const [x2, y2] = positionsById.get(link.to);
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
@@ -146,8 +144,8 @@ function renderConceptMap(input) {
     `;
   }).join('\n');
 
-  const nodeHtml = nodes.map((node, i) => {
-    const [x, y] = positions[i];
+  const nodeHtml = nodes.map((node) => {
+    const [x, y] = positionsById.get(node.id);
     return `
       <div class="diagram-node concept-node" style="left:${x}%; top:${y}%;">
         <strong>${nodeTitle(node)}</strong>
@@ -167,6 +165,20 @@ function renderConceptMap(input) {
       ${nodeHtml}
     </section>
   `;
+}
+
+function renderConceptMap(input, positions) {
+  // positions: optional { [nodeId]: [x, y] } from layoutConceptMap.
+  // If absent, fall back to legacy CONCEPT_POSITIONS hardcoded anchors.
+  const nodes = input.nodes.slice(0, 5);
+  let positionsById;
+  if (positions) {
+    positionsById = new Map(nodes.map(node => [node.id, positions[node.id]]));
+  } else {
+    const anchors = CONCEPT_POSITIONS[nodes.length];
+    positionsById = new Map(nodes.map((node, i) => [node.id, anchors[i]]));
+  }
+  return buildConceptMapHtml(input, positionsById);
 }
 
 function renderProcessFlow(input) {
@@ -225,8 +237,8 @@ function renderBoundaryModel(input) {
   `;
 }
 
-function renderDiagram(input) {
-  if (input.family === 'concept-map') return renderConceptMap(input);
+function renderDiagram(input, positions) {
+  if (input.family === 'concept-map') return renderConceptMap(input, positions);
   if (input.family === 'process-flow') return renderProcessFlow(input);
   if (input.family === 'boundary-model') return renderBoundaryModel(input);
   throw new Error(`Unknown article-diagram family: ${input.family}`);
@@ -482,7 +494,7 @@ function baseCss(input, design, aspect) {
   `;
 }
 
-function render(input, outputHtmlPath) {
+function render(input, outputHtmlPath, positions) {
   const designName = input.design || 'stripe';
   const design = getDesign(designName);
   if (!design) throw new Error(`Design not found: ${input.design}`);
@@ -498,7 +510,7 @@ function render(input, outputHtmlPath) {
   const contentHtml = `
     <article class="article-diagram article-diagram-${input.family}">
       ${renderHeader(input)}
-      ${renderDiagram(input)}
+      ${renderDiagram(input, positions)}
       ${renderCaption(input)}
     </article>
   `;
@@ -535,4 +547,137 @@ function render(input, outputHtmlPath) {
   };
 }
 
-module.exports = { render, ASPECTS, defaultAspect };
+// ── Two-pass measure-then-place (concept-map only for Phase 1) ──
+//
+// Legacy render() takes hardcoded positions from CONCEPT_POSITIONS. For
+// concept-map, card.js calls renderMeasure() → capture4k --measure →
+// layoutConceptMap() → render(positions=) to compute positions from actual
+// node sizes. Boundary-model and process-flow keep the legacy path for now.
+
+const MEASURE_NODE_WIDTH = 220; // matches .diagram-node width in baseCss
+
+// Stage geometry estimate for body-3-2 (1080x720): padding 42/60/28 + header
+// ~70 + caption ~35 + gap 36 → stage ≈ 960 × 509. body-4-3 (1080x810) gives
+// stage ≈ 960 × 599. Both fit the same anchor percentages.
+function stageBox(aspect) {
+  return {
+    width: aspect.width - 120,
+    height: aspect.height - 42 - 28 - 70 - 35 - 36,
+  };
+}
+
+// Geometric anchor centers per node count (percent of diagram-stage).
+// Spread enough that two adjacent nodes with note lines cannot collide.
+const CONCEPT_ANCHORS = {
+  2: [[30, 50], [70, 50]],
+  3: [[50, 25], [25, 75], [75, 75]],
+  4: [[25, 30], [75, 30], [25, 75], [75, 75]],
+  5: [[50, 20], [20, 50], [80, 50], [30, 80], [70, 80]],
+};
+
+function layoutConceptMap(input, bboxes, aspect) {
+  const stage = stageBox(aspect);
+  const nodes = (input.nodes || []).slice(0, 5);
+  const count = nodes.length;
+  const anchors = CONCEPT_ANCHORS[count] || CONCEPT_ANCHORS[5];
+  const margin = 4; // percent from stage edge, half a node can extend safely
+
+  const positions = {};
+  for (let i = 0; i < count; i++) {
+    const node = nodes[i];
+    const [ax, ay] = anchors[i];
+    const bbox = bboxes[`node-${node.id}`] || { width: MEASURE_NODE_WIDTH, height: 110 };
+
+    const wPct = (bbox.width / stage.width) * 100;
+    const hPct = (bbox.height / stage.height) * 100;
+    const halfW = wPct / 2;
+    const halfH = hPct / 2;
+
+    const cx = Math.max(margin + halfW, Math.min(100 - margin - halfW, ax));
+    const cy = Math.max(margin + halfH, Math.min(100 - margin - halfH, ay));
+
+    positions[node.id] = [Math.round(cx * 10) / 10, Math.round(cy * 10) / 10];
+  }
+
+  return positions;
+}
+
+function renderMeasure(input, outputHtmlPath) {
+  // Only concept-map uses two-pass for now. Return null signals caller to
+  // fall back to single-pass render().
+  if (input.family !== 'concept-map') return null;
+
+  const designName = input.design || 'stripe';
+  const design = getDesign(designName);
+  if (!design) throw new Error(`Design not found: ${input.design}`);
+
+  const aspectKey = defaultAspect(input);
+  const aspect = ASPECTS[aspectKey];
+  if (!aspect) throw new Error(`Unknown article-diagram aspect: ${aspectKey}`);
+
+  const nodes = (input.nodes || []).slice(0, 5);
+  const fontBaseUrl = pathToFileURL(FONT_DIR).href;
+  const nodeMeasureHtml = nodes.map(n => `
+    <div class="measure-node" data-measure-id="node-${escapeHtml(n.id)}">
+      <strong>${nodeTitle(n)}</strong>
+      ${nodeNote(n)}
+    </div>
+  `).join('\n');
+
+  // Inline @font-face so measure DOM uses real XiangcuiDengcusong. DM Sans
+  // falls back to system sans for measure (Latin chars are close enough in
+  // proportional width; CJK measurement is the load-bearing case).
+  const measureHtml = `<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('${fontBaseUrl}/XiangcuiDengcusong.ttf') format('truetype');
+    font-display: block;
+  }
+  body {
+    margin: 0;
+    font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    background: ${design.canvas};
+  }
+  .measure-stage { width: ${aspect.width}px; padding: 0 60px; }
+  .measure-node {
+    visibility: hidden;
+    display: block;
+    width: ${MEASURE_NODE_WIDTH}px;
+    margin-bottom: 16px;
+    padding: 20px 22px;
+    border: 1px solid ${design.hairline};
+    background: color-mix(in srgb, ${design.surface1} 94%, ${design.canvas});
+    border-radius: ${design.radius};
+  }
+  .measure-node strong {
+    font: 700 30px/1.04 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    display: block;
+    margin-bottom: 7px;
+    color: ${design.ink};
+  }
+  .measure-node p {
+    font: 500 24px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    margin: 0;
+    color: ${design.inkMuted};
+  }
+</style>
+</head><body>
+<div class="measure-stage">
+${nodeMeasureHtml}
+</div>
+</body></html>`;
+
+  fs.writeFileSync(outputHtmlPath, measureHtml, 'utf-8');
+
+  return {
+    htmlPath: outputHtmlPath,
+    captureWidth: aspect.width,
+    captureHeight: 800,
+    fullpage: false,
+  };
+}
+
+module.exports = { render, renderMeasure, layoutConceptMap, ASPECTS, defaultAspect };
