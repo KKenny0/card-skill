@@ -2,6 +2,7 @@
 card-workspace/
 tmp/
 /gallery/
+.lode/tmp-*.json
 
 # Dependencies
 node_modules/

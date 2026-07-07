@@ -357,6 +357,8 @@ async function inspectPage(opts, issues) {
       const editorialVisualSystemWarnings = [];
       const bigPhraseMetrics = [];
       const articleDiagramLabelCollisions = [];
+      const articleDiagramCaptionIssues = [];
+      const articleDiagramBandHeaderOverlaps = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
@@ -429,6 +431,23 @@ async function inspectPage(opts, issues) {
           && a.right > b.left - gap
           && a.top < b.bottom + gap
           && a.bottom > b.top - gap;
+      }
+
+      function textContentRect(el) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const rects = [...range.getClientRects()]
+          .filter(rect => rect.width > 1 && rect.height > 1);
+        range.detach();
+        if (rects.length === 0) return el.getBoundingClientRect();
+        return rects.reduce((acc, rect) => ({
+          left: Math.min(acc.left, rect.left),
+          top: Math.min(acc.top, rect.top),
+          right: Math.max(acc.right, rect.right),
+          bottom: Math.max(acc.bottom, rect.bottom),
+          width: Math.max(acc.right, rect.right) - Math.min(acc.left, rect.left),
+          height: Math.max(acc.bottom, rect.bottom) - Math.min(acc.top, rect.top),
+        }), rects[0]);
       }
 
       function parseRgb(value) {
@@ -781,12 +800,78 @@ async function inspectPage(opts, issues) {
       // node frames or sit against the stage boundary, the diagram stops
       // reading as a relationship map. Treat that as a hard failure.
       if (isArticleDiagram) {
+        const caption = document.querySelector('.diagram-caption');
+        const stage = document.querySelector('.diagram-stage');
+        const stageBox = stage && isVisible(stage) ? stage.getBoundingClientRect() : null;
+        if (caption && isVisible(caption)) {
+          const captionBox = caption.getBoundingClientRect();
+          const captionStyle = window.getComputedStyle(caption);
+          const captionLineHeight = parseFloat(captionStyle.lineHeight)
+            || ((parseFloat(captionStyle.fontSize) || 24) * 1.25);
+          const estimatedLineCount = Math.max(1, Math.round(captionBox.height / captionLineHeight));
+          const lines = getLineBreaks(caption, 12);
+          const lineCount = lines && lines.length > 0 ? lines.length : estimatedLineCount;
+          if (lineCount > 0) {
+            const maxLineWidth = lines && lines.length > 0
+              ? Math.max(...lines.map(line => line.width))
+              : captionBox.width;
+            const captionText = (caption.textContent || '').replace(/\s+/g, ' ').trim();
+            if (lineCount > 2) {
+              articleDiagramCaptionIssues.push({
+                type: 'too_many_lines',
+                text: captionText.slice(0, 100),
+                lineCount,
+              });
+            }
+            if (lineCount > 1
+                && captionText.length < 90
+                && stageBox
+                && maxLineWidth < stageBox.width * 0.72) {
+              articleDiagramCaptionIssues.push({
+                type: 'narrow_wrap',
+                text: captionText.slice(0, 100),
+                lineCount,
+                maxLineWidth: Math.round(maxLineWidth),
+                stageWidth: Math.round(stageBox.width),
+              });
+            }
+          }
+        }
+
+        const bandHeaderTexts = [...document.querySelectorAll('.boundary-bands .band-header strong, .boundary-bands .band-caption')]
+          .filter(isVisible);
+        const bandNodes = [...document.querySelectorAll('.boundary-bands .band-node')]
+          .filter(isVisible);
+        const BAND_TEXT_GAP = 2;
+        for (const textEl of bandHeaderTexts) {
+          const textBox = textContentRect(textEl);
+          const text = (textEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+          for (const node of bandNodes) {
+            const nodeBox = node.getBoundingClientRect();
+            if (!rectsIntersect(textBox, nodeBox, BAND_TEXT_GAP)) continue;
+            articleDiagramBandHeaderOverlaps.push({
+              text,
+              nodeText: (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 100),
+              textRect: {
+                left: Math.round(textBox.left),
+                top: Math.round(textBox.top),
+                right: Math.round(textBox.right),
+                bottom: Math.round(textBox.bottom),
+              },
+              nodeRect: {
+                left: Math.round(nodeBox.left),
+                top: Math.round(nodeBox.top),
+                right: Math.round(nodeBox.right),
+                bottom: Math.round(nodeBox.bottom),
+              },
+            });
+          }
+        }
+
         const labels = [...document.querySelectorAll('.diagram-link-label, [data-diagram-link-label="true"]')]
           .filter(isVisible);
         const blockers = [...document.querySelectorAll('.diagram-node, .process-step, .boundary-node, .boundary-zone')]
           .filter(isVisible);
-        const stage = document.querySelector('.diagram-stage');
-        const stageBox = stage && isVisible(stage) ? stage.getBoundingClientRect() : null;
         const STAGE_PAD = 6;
         const COLLISION_GAP = 3;
 
@@ -873,6 +958,8 @@ async function inspectPage(opts, issues) {
         fontLoadFailures: fontLoadFailures.slice(0, 10),
         svgTextOutsideViewbox: svgTextOutsideViewbox.slice(0, 10),
         articleDiagramLabelCollisions: articleDiagramLabelCollisions.slice(0, 10),
+        articleDiagramCaptionIssues: articleDiagramCaptionIssues.slice(0, 10),
+        articleDiagramBandHeaderOverlaps: articleDiagramBandHeaderOverlaps.slice(0, 10),
         bigPhraseMetrics: bigPhraseMetrics.slice(0, 3),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
@@ -949,6 +1036,18 @@ async function inspectPage(opts, issues) {
       issues.push(issue('error', 'article_diagram_label_collision',
         'Article-diagram relationship labels overlap nodes, other labels, or the stage boundary. Hide repeated labels, move the label, or simplify the links.',
         { elements: report.articleDiagramLabelCollisions }));
+    }
+
+    if (report.articleDiagramCaptionIssues.length > 0) {
+      issues.push(issue('error', 'article_diagram_caption_layout',
+        'Article-diagram captions must read as a compact explanation strip, not a narrow paragraph. Keep captions to one or two balanced lines across the diagram width.',
+        { elements: report.articleDiagramCaptionIssues }));
+    }
+
+    if (report.articleDiagramBandHeaderOverlaps.length > 0) {
+      issues.push(issue('error', 'article_diagram_band_header_overlap',
+        'Article-diagram boundary band labels and descriptions must not overlap node cards. Move nodes below the band header or reduce density.',
+        { elements: report.articleDiagramBandHeaderOverlaps }));
     }
 
     if (report.bigPhraseMetrics.length === 0) {

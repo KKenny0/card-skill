@@ -16,6 +16,8 @@ const ASPECTS = {
   'body-3-2': { width: 1080, height: 720 },
   'body-4-3': { width: 1080, height: 810 },
 };
+const BOUNDARY_NODE_WIDTH = 218;
+const BAND_NODE_WIDTH = 282;
 
 const CONCEPT_POSITIONS = {
   2: [[30, 52], [70, 52]],
@@ -51,10 +53,87 @@ const BOUNDARY_NODE_SLOTS = [
 
 function defaultAspect(input) {
   if (input.aspect) return input.aspect;
-  // 3+ zone boundary-model uses indented bands which need more vertical
-  // space for stacked zone headers + nodes. Default to body-4-3.
-  if (input.family === 'boundary-model' && (input.zones || []).length >= 3) return 'body-4-3';
+  // 3+ zone boundary-model only needs the taller canvas when the diagram
+  // content itself is dense. Sparse bands read better in the normal body
+  // aspect because the header, stage, and caption stay balanced.
+  if (boundaryModelNeedsTallAspect(input)) return 'body-4-3';
   return 'body-3-2';
+}
+
+function visualTextLength(value) {
+  const text = String(value || '').trim();
+  let weight = 0;
+  for (const ch of text) {
+    if (/\s/.test(ch)) {
+      weight += 0.4;
+    } else if (/[\u3400-\u9fff]/.test(ch)) {
+      weight += 2;
+    } else {
+      weight += 1;
+    }
+  }
+  return weight;
+}
+
+function boundaryModelNeedsTallAspect(input) {
+  if (input.family !== 'boundary-model') return false;
+  const zones = (input.zones || []).slice(0, 4);
+  if (zones.length < 3) return false;
+  if (isSparseBoundaryBandModel(input)) return false;
+
+  const nodes = (input.nodes || []).slice(0, 6);
+  const nodesByZone = new Map();
+  for (const node of nodes) {
+    if (!nodesByZone.has(node.zone)) nodesByZone.set(node.zone, []);
+    nodesByZone.get(node.zone).push(node);
+  }
+
+  const zoneDescriptionWeight = zones.reduce((sum, zone) => sum + visualTextLength(zone.description), 0);
+  const nodeNoteWeight = nodes.reduce((sum, node) => sum + visualTextLength(node.note), 0);
+  const hasStackedZone = [...nodesByZone.values()].some(zoneNodes => zoneNodes.length > 1);
+
+  return zones.length >= 4
+    || nodes.length >= 5
+    || hasStackedZone
+    || zoneDescriptionWeight >= 44
+    || nodeNoteWeight >= 44;
+}
+
+function isSparseBoundaryBandModel(input) {
+  if (input.family !== 'boundary-model') return false;
+  const zones = (input.zones || []).slice(0, 4);
+  if (zones.length !== 3) return false;
+
+  const nodes = (input.nodes || []).slice(0, 6);
+  if (nodes.length > zones.length) return false;
+  if (zones.some(zone => zone.description)) return false;
+  if (nodes.some(node => node.note)) return false;
+
+  const zoneCounts = new Map();
+  for (const node of nodes) {
+    zoneCounts.set(node.zone, (zoneCounts.get(node.zone) || 0) + 1);
+  }
+  return [...zoneCounts.values()].every(count => count <= 1);
+}
+
+function boundaryNodeWidth(input) {
+  const zones = (input.zones || []).slice(0, 4);
+  if (input.family !== 'boundary-model' || zones.length < 3) return BOUNDARY_NODE_WIDTH;
+  const compactLevel = boundaryCompactLevel(input);
+  if (compactLevel >= 2) return 260;
+  if (compactLevel >= 1) return 270;
+  return BAND_NODE_WIDTH;
+}
+
+function articleDiagramOptions(input) {
+  return input && typeof input.__articleDiagramSalvage === 'object'
+    ? input.__articleDiagramSalvage
+    : {};
+}
+
+function boundaryCompactLevel(input) {
+  const level = Number(articleDiagramOptions(input).boundaryCompactLevel || 0);
+  return Number.isFinite(level) ? Math.max(0, Math.min(2, level)) : 0;
 }
 
 function truncate(value, max) {
@@ -100,7 +179,12 @@ function linkList(input, positionsById) {
   })).filter(link => positionsById.has(link.from) && positionsById.has(link.to));
 }
 
-function visibleLinkLabels(links) {
+function visibleLinkLabels(links, input = {}) {
+  const options = articleDiagramOptions(input);
+  if (options.hideLinkLabels) return [];
+  const maxLabels = Number.isFinite(options.linkLabelLimit)
+    ? Math.max(0, Math.min(4, Math.floor(options.linkLabelLimit)))
+    : 4;
   const labelCounts = new Map();
   for (const link of links) {
     const label = String(link.label || '').trim();
@@ -111,7 +195,7 @@ function visibleLinkLabels(links) {
   return links
     .map((link, index) => ({ link, index, label: String(link.label || '').trim() }))
     .filter(item => item.label && labelCounts.get(item.label) === 1)
-    .slice(0, 4);
+    .slice(0, maxLabels);
 }
 
 function linkLabelPosition(x1, y1, x2, y2, index) {
@@ -131,6 +215,104 @@ function linkLabelPosition(x1, y1, x2, y2, index) {
   ];
 }
 
+function rectsOverlap(a, b, pad = 0) {
+  return !(
+    a.right + pad <= b.left ||
+    a.left - pad >= b.right ||
+    a.bottom + pad <= b.top ||
+    a.top - pad >= b.bottom
+  );
+}
+
+function linkLabelRectInStage(x, y, label, stage) {
+  const centerXPct = x;
+  const centerYPct = y;
+  const widthPx = Math.max(62, Math.min(210, 26 + visualTextLength(label) * 15));
+  const heightPx = 34;
+  const halfWPct = ((widthPx / stage.width) * 100) / 2;
+  const halfHPct = ((heightPx / stage.height) * 100) / 2;
+  return {
+    left: centerXPct - halfWPct,
+    right: centerXPct + halfWPct,
+    top: centerYPct - halfHPct,
+    bottom: centerYPct + halfHPct,
+  };
+}
+
+function linkLabelCandidates(x1, y1, x2, y2, index, hubBias = 'none') {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const normalX = -dy / length;
+  const normalY = dx / length;
+  const tValues = hubBias === 'from'
+    ? [0.72, 0.62, 0.82, 0.5, 0.42, 0.58, 0.34, 0.66]
+    : hubBias === 'to'
+      ? [0.28, 0.38, 0.18, 0.5, 0.58, 0.42, 0.66, 0.34]
+      : [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74];
+  const offsets = [7, -7, 11, -11, 15, -15, 4, -4, 0];
+  const preferredSign = index % 2 === 0 ? 1 : -1;
+  const candidates = [];
+
+  for (const t of tValues) {
+    for (const offset of offsets.map(value => value * preferredSign)) {
+      candidates.push([
+        Math.min(94, Math.max(6, x1 + dx * t + normalX * offset)),
+        Math.min(92, Math.max(8, y1 + dy * t + normalY * offset)),
+      ]);
+    }
+  }
+
+  return candidates;
+}
+
+function placeConceptLinkLabels(labelItems, positionsById) {
+  const meta = positionsById.layoutMeta;
+  if (!meta) {
+    return labelItems.map(({ link, index, label }) => {
+      const [x1, y1] = positionsById.get(link.from);
+      const [x2, y2] = positionsById.get(link.to);
+      const [x, y] = linkLabelPosition(x1, y1, x2, y2, index);
+      return { link, index, label, x, y };
+    });
+  }
+
+  const placed = [];
+  const placedRects = [];
+  const blockers = meta.nodeRects || [];
+  const endpointCounts = new Map();
+  for (const item of labelItems) {
+    endpointCounts.set(item.link.from, (endpointCounts.get(item.link.from) || 0) + 1);
+    endpointCounts.set(item.link.to, (endpointCounts.get(item.link.to) || 0) + 1);
+  }
+  const hasHub = [...endpointCounts.values()].some(count => count >= 3);
+  const itemsToPlace = hasHub ? labelItems.slice(0, 2) : labelItems;
+
+  for (const item of itemsToPlace) {
+    const { link, index, label } = item;
+    const [x1, y1] = positionsById.get(link.from);
+    const [x2, y2] = positionsById.get(link.to);
+    const hubBias = endpointCounts.get(link.from) >= 3
+      ? 'from'
+      : endpointCounts.get(link.to) >= 3
+        ? 'to'
+        : 'none';
+
+    for (const [x, y] of linkLabelCandidates(x1, y1, x2, y2, index, hubBias)) {
+      const rect = linkLabelRectInStage(x, y, label, meta.stage);
+      const insideStage = rect.left >= 2 && rect.right <= 98 && rect.top >= 3 && rect.bottom <= 97;
+      if (!insideStage) continue;
+      if (blockers.some(blocker => rectsOverlap(rect, blocker, 3))) continue;
+      if (placedRects.some(other => rectsOverlap(rect, other, 2.2))) continue;
+      placed.push({ ...item, x, y });
+      placedRects.push(rect);
+      break;
+    }
+  }
+
+  return placed;
+}
+
 function buildConceptMapHtml(input, positionsById) {
   const nodes = input.nodes.slice(0, 5);
   const links = linkList(input, positionsById).filter(link => positionsById.has(link.from) && positionsById.has(link.to)).slice(0, 6);
@@ -141,10 +323,7 @@ function buildConceptMapHtml(input, positionsById) {
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
   }).join('\n');
 
-  const linkLabelHtml = visibleLinkLabels(links).map(({ link, index, label }) => {
-    const [x1, y1] = positionsById.get(link.from);
-    const [x2, y2] = positionsById.get(link.to);
-    const [x, y] = linkLabelPosition(x1, y1, x2, y2, index);
+  const linkLabelHtml = placeConceptLinkLabels(visibleLinkLabels(links, input), positionsById).map(({ label, x, y }) => {
     return `
       <div class="diagram-link-label" data-diagram-link-label="true" style="left:${x}%; top:${y}%;">
         ${escapeHtml(truncate(label, 14))}
@@ -182,6 +361,7 @@ function renderConceptMap(input, positions) {
   let positionsById;
   if (positions) {
     positionsById = new Map(nodes.map(node => [node.id, positions[node.id]]));
+    positionsById.layoutMeta = positions.__layoutMeta__;
   } else {
     const anchors = CONCEPT_POSITIONS[nodes.length];
     positionsById = new Map(nodes.map((node, i) => [node.id, anchors[i]]));
@@ -325,6 +505,33 @@ function renderDiagram(input, positions) {
 
 function baseCss(input, design, aspect) {
   const isTall = aspect.height > 720;
+  const options = articleDiagramOptions(input);
+  const compactLevel = boundaryCompactLevel(input);
+  const captionCompact = Boolean(options.captionCompact);
+  const titleWeight = visualTextLength(input.title);
+  const titleFontSize = titleWeight > 34
+    ? (isTall ? 44 : 42)
+    : titleWeight > 22
+      ? (isTall ? 48 : 46)
+      : (isTall ? 52 : 50);
+  const titleMaxWidth = titleWeight > 34 ? 650 : 700;
+  const headerColumns = input.subtitle
+    ? 'minmax(0, 1fr) minmax(250px, 300px)'
+    : 'minmax(0, 1fr)';
+  const captionFontSize = captionCompact ? 22 : (isTall ? 24 : 23);
+  const captionMaxWidth = captionCompact ? 956 : 920;
+  const captionTextWrap = captionCompact ? 'wrap' : 'pretty';
+  const boundaryNodeWidthPx = boundaryNodeWidth(input);
+  const bandCaptionFontSize = compactLevel >= 2 ? 21 : compactLevel >= 1 ? 22 : 23;
+  const bandCaptionLineHeight = compactLevel >= 2 ? 1.08 : compactLevel >= 1 ? 1.1 : 1.12;
+  const bandCaptionMaxWidth = compactLevel >= 2 ? 270 : compactLevel >= 1 ? 285 : 300;
+  const bandNodeMinHeight = compactLevel >= 2 ? 64 : compactLevel >= 1 ? 68 : 72;
+  const bandNodePadding = compactLevel >= 2 ? '7px 14px' : compactLevel >= 1 ? '8px 15px' : '10px 16px';
+  const bandNodeGap = compactLevel >= 2 ? 2 : compactLevel >= 1 ? 3 : 4;
+  const bandNodeTitleSize = compactLevel >= 2 ? 26 : compactLevel >= 1 ? 27 : 28;
+  const bandNodeNoteSize = compactLevel >= 2 ? 21 : compactLevel >= 1 ? 22 : 23;
+  const processStepCount = (input.nodes || []).slice(0, 6).length;
+  const denseProcessFlow = input.family === 'process-flow' && processStepCount >= 5;
   return `
     :root {
       --bg: ${design.canvas};
@@ -372,22 +579,25 @@ function baseCss(input, design, aspect) {
 
     .diagram-header {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
-      gap: 34px;
-      align-items: end;
+      grid-template-columns: ${headerColumns};
+      gap: ${isTall ? '30px' : '28px'};
+      align-items: center;
     }
 
     .diagram-header h1 {
       font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
-      font-size: ${isTall ? '54px' : '50px'};
-      line-height: 1.02;
+      max-width: ${titleMaxWidth}px;
+      font-size: ${titleFontSize}px;
+      line-height: 1.04;
       letter-spacing: 0;
       color: var(--ink);
       text-wrap: balance;
     }
 
     .diagram-header p {
-      font: 500 24px/1.28 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      justify-self: end;
+      max-width: 300px;
+      font: 500 23px/1.24 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
       text-wrap: balance;
     }
@@ -412,10 +622,13 @@ function baseCss(input, design, aspect) {
     }
 
     .diagram-caption {
-      max-width: 820px;
-      font: 500 26px/1.3 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      width: 100%;
+      max-width: ${captionMaxWidth}px;
+      justify-self: center;
+      margin: 0 auto;
+      font: 500 ${captionFontSize}px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
-      text-wrap: balance;
+      text-wrap: ${captionTextWrap};
     }
 
     .diagram-connectors-plane {
@@ -489,9 +702,9 @@ function baseCss(input, design, aspect) {
     .process-flow {
       display: grid;
       grid-template-columns: repeat(var(--step-count), minmax(0, 1fr));
-      gap: 18px;
+      gap: ${denseProcessFlow ? '14px' : '18px'};
       align-items: center;
-      padding: 64px 48px;
+      padding: ${denseProcessFlow ? '58px 36px' : '64px 48px'};
     }
 
     .process-rail {
@@ -510,10 +723,10 @@ function baseCss(input, design, aspect) {
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
       background: color-mix(in srgb, var(--surface-1) 94%, var(--bg));
-      padding: 26px 20px 22px;
+      padding: ${denseProcessFlow ? '24px 16px 20px' : '26px 20px 22px'};
       display: grid;
       align-content: start;
-      gap: 12px;
+      gap: ${denseProcessFlow ? '10px' : '12px'};
       z-index: 2;
     }
 
@@ -558,7 +771,7 @@ function baseCss(input, design, aspect) {
 
     .boundary-node {
       position: absolute;
-      width: 218px;
+      width: ${boundaryNodeWidthPx}px;
       min-height: 86px;
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
@@ -597,14 +810,28 @@ function baseCss(input, design, aspect) {
 
     .band-caption {
       display: block;
-      margin-top: 6px;
-      max-width: 620px;
-      font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      margin-top: 5px;
+      max-width: ${bandCaptionMaxWidth}px;
+      font: 500 ${bandCaptionFontSize}px/${bandCaptionLineHeight} "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
       color: var(--ink-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .band-node {
       z-index: 3;
+      min-height: ${bandNodeMinHeight}px;
+      padding: ${bandNodePadding};
+      gap: ${bandNodeGap}px;
+    }
+
+    .band-node strong {
+      font: 700 ${bandNodeTitleSize}px/1.02 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    }
+
+    .band-node p {
+      font: 500 ${bandNodeNoteSize}px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     }
   `;
 }
@@ -673,11 +900,12 @@ const MEASURE_NODE_WIDTH = 220; // matches .diagram-node width in baseCss
 
 // Stage geometry estimate for body-3-2 (1080x720): padding 42/60/28 + header
 // ~70 + caption ~35 + gap 36 → stage ≈ 960 × 509. body-4-3 (1080x810) gives
-// stage ≈ 960 × 599. Both fit the same anchor percentages.
-function stageBox(aspect) {
+// stage ≈ 960 × 599 before the optional source/brand colophon is present.
+function stageBox(aspect, input = {}) {
+  const colophonHeightPx = input.logo || input.brand_name || input.source ? 70 : 0;
   return {
     width: aspect.width - 120,
-    height: aspect.height - 42 - 28 - 70 - 35 - 36,
+    height: aspect.height - 42 - 28 - 70 - 35 - 36 - colophonHeightPx,
   };
 }
 
@@ -691,13 +919,14 @@ const CONCEPT_ANCHORS = {
 };
 
 function layoutConceptMap(input, bboxes, aspect) {
-  const stage = stageBox(aspect);
+  const stage = stageBox(aspect, input);
   const nodes = (input.nodes || []).slice(0, 5);
   const count = nodes.length;
   const anchors = CONCEPT_ANCHORS[count] || CONCEPT_ANCHORS[5];
   const margin = 4; // percent from stage edge, half a node can extend safely
 
   const positions = {};
+  const nodeRects = [];
   for (let i = 0; i < count; i++) {
     const node = nodes[i];
     const [ax, ay] = anchors[i];
@@ -711,9 +940,18 @@ function layoutConceptMap(input, bboxes, aspect) {
     const cx = Math.max(margin + halfW, Math.min(100 - margin - halfW, ax));
     const cy = Math.max(margin + halfH, Math.min(100 - margin - halfH, ay));
 
-    positions[node.id] = [Math.round(cx * 10) / 10, Math.round(cy * 10) / 10];
+    const roundedCx = Math.round(cx * 10) / 10;
+    const roundedCy = Math.round(cy * 10) / 10;
+    positions[node.id] = [roundedCx, roundedCy];
+    nodeRects.push({
+      left: roundedCx - halfW,
+      right: roundedCx + halfW,
+      top: roundedCy - halfH,
+      bottom: roundedCy + halfH,
+    });
   }
 
+  positions.__layoutMeta__ = { stage, nodeRects };
   return positions;
 }
 
@@ -732,12 +970,26 @@ function renderMeasure(input, outputHtmlPath) {
 
   const fontBaseUrl = pathToFileURL(FONT_DIR).href;
   const nodes = (input.nodes || []).slice(0, 6);
+  const boundaryZonesForMeasure = input.family === 'boundary-model'
+    ? (input.zones || []).slice(0, 4)
+    : [];
+  const usesBoundaryBands = boundaryZonesForMeasure.length >= 3;
+  const boundaryNodeWidthPx = boundaryNodeWidth(input);
+  const compactLevel = boundaryCompactLevel(input);
+  const bandCaptionFontSize = compactLevel >= 2 ? 21 : compactLevel >= 1 ? 22 : 23;
+  const bandCaptionLineHeight = compactLevel >= 2 ? 1.08 : compactLevel >= 1 ? 1.1 : 1.12;
+  const bandCaptionMaxWidth = compactLevel >= 2 ? 270 : compactLevel >= 1 ? 285 : 300;
+  const bandNodeMinHeight = compactLevel >= 2 ? 64 : compactLevel >= 1 ? 68 : 72;
+  const bandNodePadding = compactLevel >= 2 ? '7px 14px' : compactLevel >= 1 ? '8px 15px' : '10px 16px';
+  const bandNodeGap = compactLevel >= 2 ? 2 : compactLevel >= 1 ? 3 : 4;
+  const bandNodeTitleSize = compactLevel >= 2 ? 26 : compactLevel >= 1 ? 27 : 28;
+  const bandNodeNoteSize = compactLevel >= 2 ? 21 : compactLevel >= 1 ? 22 : 23;
 
   // Measure node dimensions must match the final render CSS for each family.
   // .diagram-node (concept-map): width 220, padding 20/22
-  // .boundary-node (boundary-model): width 218, padding 17/18
+  // .boundary-node (boundary-model): width 218 for nested 2-zone, 282 for bands
   const nodeMeasureClass = input.family === 'boundary-model'
-    ? 'measure-node-boundary'
+    ? `measure-node-boundary${usesBoundaryBands ? ' measure-node-band' : ''}`
     : 'measure-node';
 
   const nodeItemsHtml = nodes.map(n => `
@@ -753,14 +1005,16 @@ function renderMeasure(input, outputHtmlPath) {
   // is the true header band height.
   let zoneHeaderItemsHtml = '';
   if (input.family === 'boundary-model') {
-    const zones = (input.zones || []).slice(0, 4);
+    const zones = boundaryZonesForMeasure;
     const zoneBoxes = BOUNDARY_ZONE_BOXES[zones.length];
     const stageWidth = aspect.width - 120; // matches stageBox()
+    const usesBands = usesBoundaryBands;
     zones.forEach((z, i) => {
-      const box = zoneBoxes[i];
-      const innerWidthPx = (box.width / 100) * stageWidth - 36; // padding 18 each side
+      const innerWidthPx = usesBands
+        ? stageWidth - (36 * i) * 2 - 36
+        : (zoneBoxes[i].width / 100) * stageWidth - 36; // padding 18 each side
       zoneHeaderItemsHtml += `
-        <div class="measure-zone-header" data-measure-id="zone-header-${escapeHtml(z.id)}" style="width: ${innerWidthPx}px;">
+        <div class="measure-zone-header${usesBands ? ' measure-zone-header-band' : ''}" data-measure-id="zone-header-${escapeHtml(z.id)}" style="width: ${innerWidthPx}px;">
           <strong>${escapeHtml(truncate(z.label, 28))}</strong>
           ${z.description ? `<span>${escapeHtml(truncate(z.description, 42))}</span>` : ''}
         </div>
@@ -787,6 +1041,7 @@ function renderMeasure(input, outputHtmlPath) {
   }
   .measure-stage { width: ${aspect.width}px; padding: 0 60px; }
   .measure-node {
+    box-sizing: border-box;
     visibility: hidden;
     display: block;
     width: ${MEASURE_NODE_WIDTH}px;
@@ -797,14 +1052,23 @@ function renderMeasure(input, outputHtmlPath) {
     border-radius: ${design.radius};
   }
   .measure-node-boundary {
+    box-sizing: border-box;
     visibility: hidden;
     display: block;
-    width: 218px;
+    width: ${boundaryNodeWidthPx}px;
     margin-bottom: 16px;
     padding: 17px 18px;
     border: 1px solid ${design.hairline};
     background: color-mix(in srgb, ${design.surface1} 95%, ${design.canvas});
     border-radius: ${design.radius};
+  }
+  .measure-node-band {
+    box-sizing: border-box;
+    display: grid;
+    align-content: center;
+    gap: ${bandNodeGap}px;
+    min-height: ${bandNodeMinHeight}px;
+    padding: ${bandNodePadding};
   }
   .measure-node strong,
   .measure-node-boundary strong {
@@ -840,6 +1104,26 @@ function renderMeasure(input, outputHtmlPath) {
     font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     color: ${design.inkMuted};
   }
+  .measure-node-band strong {
+    font: 700 ${bandNodeTitleSize}px/1.02 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    margin-bottom: 0;
+  }
+  .measure-node-band p {
+    font: 500 ${bandNodeNoteSize}px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+  }
+  .measure-zone-header-band {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .measure-zone-header-band span {
+    max-width: ${bandCaptionMaxWidth}px;
+    margin-top: 5px;
+    font: 500 ${bandCaptionFontSize}px/${bandCaptionLineHeight} "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 </style>
 </head><body>
 <div class="measure-stage">
@@ -862,10 +1146,17 @@ function layoutBands(input, bboxes, aspect, zones) {
   // 3+ zone boundary-model: vertical bands with indent. Band heights are
   // content-based (not equal split): each zone gets at least its header +
   // node stack, then leftover space is distributed evenly.
-  const stage = stageBox(aspect);
+  const stage = stageBox(aspect, input);
+  const sparseBands = isSparseBoundaryBandModel(input);
+  const compactLevel = boundaryCompactLevel(input);
+  const nodeWidthPx = boundaryNodeWidth(input);
   const INDENT_PX = 36;
-  const PADDING_PX = 16;
-  const BAND_GAP_PX = 8;
+  const PADDING_X_PX = sparseBands ? 10 : compactLevel >= 2 ? 10 : compactLevel >= 1 ? 12 : 16;
+  const BAND_PADDING_TOP_PX = compactLevel >= 2 ? 10 : compactLevel >= 1 ? 12 : 14;
+  const BAND_PADDING_BOTTOM_PX = compactLevel >= 2 ? 6 : compactLevel >= 1 ? 7 : 8;
+  const HEADER_NODE_GAP_PX = compactLevel >= 2 ? 5 : compactLevel >= 1 ? 6 : 8;
+  const NODE_ROW_GAP_PX = compactLevel >= 2 ? 10 : compactLevel >= 1 ? 12 : 16;
+  const BAND_GAP_PX = 6;
 
   const zoneHeaderHeightPx = new Map();
   for (const zone of zones) {
@@ -883,19 +1174,19 @@ function layoutBands(input, bboxes, aspect, zones) {
   const zoneMinHeights = zones.map((zone) => {
     const headerPx = zoneHeaderHeightPx.get(zone.id);
     const zoneNodes = nodesByZone.get(zone.id) || [];
-    if (zoneNodes.length === 0) return headerPx + PADDING_PX * 2;
+    if (zoneNodes.length === 0) return BAND_PADDING_TOP_PX + headerPx + BAND_PADDING_BOTTOM_PX;
 
     const zi = zones.indexOf(zone);
     const zoneIndentPx = INDENT_PX * zi;
-    const nodeAreaWidthPx = stage.width - zoneIndentPx * 2 - PADDING_PX * 2;
+    const nodeAreaWidthPx = stage.width - zoneIndentPx * 2 - PADDING_X_PX * 2;
 
     const cols = Math.max(1, Math.min(zoneNodes.length,
-      Math.floor((nodeAreaWidthPx + 16) / (218 + 16))));
+      Math.floor((nodeAreaWidthPx + NODE_ROW_GAP_PX) / (nodeWidthPx + NODE_ROW_GAP_PX))));
     const rows = Math.ceil(zoneNodes.length / cols);
     const maxNodeHeight = Math.max(...zoneNodes.map(n =>
       (bboxes[`node-${n.id}`] || { height: 110 }).height));
-    const nodesHeight = rows * (maxNodeHeight + 16);
-    return headerPx + PADDING_PX * 2 + nodesHeight;
+    const nodesHeight = rows * maxNodeHeight + Math.max(0, rows - 1) * NODE_ROW_GAP_PX;
+    return BAND_PADDING_TOP_PX + headerPx + HEADER_NODE_GAP_PX + nodesHeight + BAND_PADDING_BOTTOM_PX;
   });
 
   const totalMin = zoneMinHeights.reduce((a, b) => a + b, 0);
@@ -908,13 +1199,20 @@ function layoutBands(input, bboxes, aspect, zones) {
     );
   }
 
-  // Distribute leftover space evenly across bands.
+  // Distribute leftover space evenly across bands. Sparse 3-zone diagrams get
+  // only a small amount of breathing room and stay centered instead of filling
+  // the entire stage with low-density content.
   const leftover = stage.height - totalNeeded;
-  const extraPerBand = leftover / zones.length;
+  const extraPerBand = sparseBands
+    ? Math.min(leftover / zones.length, 16)
+    : leftover / zones.length;
+  const topOffsetPx = sparseBands
+    ? Math.max(0, (leftover - (extraPerBand * zones.length)) / 2)
+    : 0;
 
   const positions = {};
 
-  let currentTopPx = 0;
+  let currentTopPx = topOffsetPx;
   const bandGeometries = [];
   zones.forEach((zone, zi) => {
     const bandHeightPx = zoneMinHeights[zi] + extraPerBand;
@@ -928,20 +1226,20 @@ function layoutBands(input, bboxes, aspect, zones) {
     const zoneNodes = nodesByZone.get(zone.id) || [];
     const headerPx = zoneHeaderHeightPx.get(zone.id);
 
-    const innerTopPx = bandTopPx + headerPx + PADDING_PX;
-    const innerBottomPx = bandTopPx + bandHeightPx - PADDING_PX;
+    const innerTopPx = bandTopPx + BAND_PADDING_TOP_PX + headerPx + HEADER_NODE_GAP_PX;
+    const innerBottomPx = bandTopPx + bandHeightPx - BAND_PADDING_BOTTOM_PX;
 
     const zoneIndentPx = INDENT_PX * zi;
-    const nodeAreaLeftPx = zoneIndentPx + PADDING_PX;
-    const nodeAreaRightPx = stage.width - zoneIndentPx - PADDING_PX;
+    const nodeAreaLeftPx = zoneIndentPx + PADDING_X_PX;
+    const nodeAreaRightPx = stage.width - zoneIndentPx - PADDING_X_PX;
     const nodeAreaWidthPx = nodeAreaRightPx - nodeAreaLeftPx;
 
     zoneNodes.forEach((node, order) => {
-      const nodeBbox = bboxes[`node-${node.id}`] || { width: 218, height: 110 };
+      const nodeBbox = bboxes[`node-${node.id}`] || { width: nodeWidthPx, height: 110 };
       const halfWidthPx = nodeBbox.width / 2;
       const halfHeightPx = nodeBbox.height / 2;
 
-      const gapPx = 16;
+      const gapPx = NODE_ROW_GAP_PX;
       const cols = Math.max(1, Math.min(zoneNodes.length,
         Math.floor((nodeAreaWidthPx + gapPx) / (nodeBbox.width + gapPx))));
       const col = order % cols;
@@ -951,6 +1249,9 @@ function layoutBands(input, bboxes, aspect, zones) {
 
       let cx = nodeAreaLeftPx + cellWidth * (col + 0.5);
       let cy = innerTopPx + halfHeightPx + row * cellHeight;
+      if (!sparseBands && zone.description && zoneNodes.length === 1) {
+        cx = nodeAreaLeftPx + nodeAreaWidthPx * 0.62;
+      }
 
       if (cx - halfWidthPx < nodeAreaLeftPx) cx = nodeAreaLeftPx + halfWidthPx;
       if (cx + halfWidthPx > nodeAreaRightPx) cx = nodeAreaRightPx - halfWidthPx;
@@ -979,7 +1280,7 @@ function layoutBands(input, bboxes, aspect, zones) {
 }
 
 function layoutBoundaryModel(input, bboxes, aspect) {
-  const stage = stageBox(aspect);
+  const stage = stageBox(aspect, input);
   const zones = (input.zones || []).slice(0, 4);
 
   // 3+ zones: dispatch to band layout (indented horizontal bands).
@@ -1028,7 +1329,7 @@ function layoutBoundaryModel(input, bboxes, aspect) {
 
     zoneNodes.forEach((node, order) => {
       const [baseX, baseY] = slotPool[Math.min(order, slotPool.length - 1)];
-      const nodeBbox = bboxes[`node-${node.id}`] || { width: MEASURE_NODE_WIDTH, height: 110 };
+      const nodeBbox = bboxes[`node-${node.id}`] || { width: BOUNDARY_NODE_WIDTH, height: 110 };
       const halfHeightPx = nodeBbox.height / 2;
       const halfWidthPx = nodeBbox.width / 2;
 

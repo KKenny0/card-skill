@@ -194,6 +194,22 @@ function runOutputCheck(htmlPath, output) {
   return { result, report };
 }
 
+function runCardCli(input, outputName) {
+  const inputPath = path.join(tmpDir, `${outputName}.json`);
+  const outputPath = path.join(tmpDir, `${outputName}.png`);
+  fs.writeFileSync(inputPath, JSON.stringify(input, null, 2), 'utf8');
+  const result = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts', 'card.js'),
+    '--input', inputPath,
+    '--output', outputPath,
+  ], { encoding: 'utf8' });
+
+  assert.equal(result.status, 0, `${outputName} CLI render failed:\n${result.stdout}\n${result.stderr}`);
+  assert.ok(fs.existsSync(outputPath), `${outputName} CLI render did not create a PNG`);
+  assert.ok(fs.statSync(outputPath).size > 1000, `${outputName} CLI render created an empty-looking PNG`);
+  return outputPath;
+}
+
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
 
 try {
@@ -532,6 +548,196 @@ try {
   const repeatedChineseLinkCheck = runOutputCheck(repeatedChineseLinkPath, repeatedChineseLinkOutput);
   assert.equal(repeatedChineseLinkCheck.result.status, 0, `repeated Chinese link-label concept-map failed output check: ${repeatedChineseLinkCheck.result.stdout}\n${repeatedChineseLinkCheck.result.stderr}`);
   assert.equal(repeatedChineseLinkCheck.report?.pass, true, 'repeated Chinese link-label concept-map did not pass');
+
+  runCardCli({
+    mode: 'article-diagram',
+    family: 'concept-map',
+    title: '压缩策略分成三派',
+    subtitle: 'Claude、Codex、Cursor 对上下文溢出的答案不同',
+    nodes: [
+      { id: 'overflow', label: '窗口满了', note: '长任务必然遇到' },
+      { id: 'claude', label: 'Claude Code', note: '同步压缩，预防溢出' },
+      { id: 'codex', label: 'Codex CLI', note: 'handoff 给下一个 LLM' },
+      { id: 'cursor', label: 'Cursor', note: '变成文件，按需回溯' },
+    ],
+    links: [
+      { from: 'overflow', to: 'claude', label: '分区管理', direction: 'one-way' },
+      { from: 'overflow', to: 'codex', label: '传承式压缩', direction: 'one-way' },
+      { from: 'overflow', to: 'cursor', label: '文件化', direction: 'one-way' },
+    ],
+    caption: 'summary 是地图；原始记录、隐状态或规则重注入决定它能不能继续工作。',
+    source: 'Context 工程',
+  }, 'hub-spoke-concept-labels');
+
+  const sparseBoundaryFixture = {
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: 'Project Trust 只是入口控制',
+    subtitle: '真正隔离仍在外层系统边界',
+    design: 'stripe',
+    zones: [
+      { id: 'external', label: 'External isolation' },
+      { id: 'local', label: 'Local user process' },
+      { id: 'trust', label: 'Project Trust' },
+    ],
+    nodes: [
+      { id: 'container', label: '容器 / VM 边界', zone: 'external' },
+      { id: 'pi', label: 'pi + tools + shell', zone: 'local' },
+      { id: 'gate', label: '加载闸门', zone: 'trust' },
+    ],
+    caption: 'Project Trust 是加载闸门，不是 sandbox；强隔离要交给外部环境。',
+  };
+  assert.equal(renderers['article-diagram'].defaultAspect(sparseBoundaryFixture), 'body-3-2', 'sparse 3-zone boundary-model should use the compact body aspect');
+  runCardCli(sparseBoundaryFixture, 'sparse-boundary-model');
+
+  const denseBoundaryFixture = {
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: 'Project Trust 只是入口控制',
+    subtitle: '真正隔离仍在外层系统边界',
+    zones: [
+      { id: 'external', label: 'External isolation', description: '容器、VM、远程环境或系统 sandbox' },
+      { id: 'process', label: 'Local user process', description: 'agent loop、shell、tools 和工作目录' },
+      { id: 'trust', label: 'Project Trust', description: '决定是否加载项目级能力' },
+    ],
+    nodes: [
+      { id: 'container', label: '容器 / VM 边界', note: '隔离副作用', zone: 'external' },
+      { id: 'shell', label: 'pi + tools + shell', note: '实际执行命令', zone: 'process' },
+      { id: 'gate', label: '加载闸门', note: '信任后才启用', zone: 'trust' },
+    ],
+    caption: 'Project Trust 是加载闸门，不是 sandbox；强隔离要交给外部环境。',
+  };
+  assert.equal(renderers['article-diagram'].defaultAspect(denseBoundaryFixture), 'body-4-3', 'dense 3-zone boundary-model should use the tall body aspect');
+  runCardCli(denseBoundaryFixture, 'dense-boundary-model');
+  runCardCli({ ...denseBoundaryFixture, aspect: 'body-3-2' }, 'dense-boundary-model-auto-rescue');
+
+  const multiAgentBoundaryFixture = {
+    mode: 'article-diagram',
+    family: 'boundary-model',
+    title: '多 Agent 的写入边界',
+    subtitle: '写入保持单线程，其他 agent 只贡献智能',
+    zones: [
+      { id: 'shared', label: 'Shared trace', description: '完整决策过程和可审计历史' },
+      { id: 'writer', label: 'Single writer', description: '唯一修改工作区的执行线' },
+      { id: 'helpers', label: 'Helper agents', description: '并行探索、验证、检索、总结' },
+    ],
+    nodes: [
+      { id: 'trace', label: '共享上下文', note: '避免碎片化', zone: 'shared' },
+      { id: 'commit', label: '单线程写入', note: '避免冲突修改', zone: 'writer' },
+      { id: 'search', label: '检索 / 验证', note: '贡献判断', zone: 'helpers' },
+      { id: 'summary', label: '摘要回流', note: '进入主线', zone: 'helpers' },
+    ],
+    caption: '多 agent 不是多条线同时乱写，而是主线写入、旁路线贡献智能。',
+    source: 'Context 工程',
+  };
+  assert.equal(renderers['article-diagram'].defaultAspect(multiAgentBoundaryFixture), 'body-4-3', 'multi-node described boundary-model should use the tall body aspect');
+  runCardCli(multiAgentBoundaryFixture, 'multi-agent-boundary-model');
+
+  const processFlowCaptionFixture = {
+    mode: 'article-diagram',
+    family: 'process-flow',
+    title: 'Agent loop 保持很小',
+    subtitle: '工具、界面、会话和扩展围绕它工作',
+    design: 'claude',
+    nodes: [
+      { id: 'user', label: '用户请求', note: 'steering / follow-up' },
+      { id: 'model', label: '模型决策', note: '请求工具或返回' },
+      { id: 'tool', label: '工具执行', note: '并发跑、按序写' },
+      { id: 'next', label: '下一轮', note: '结果回写为 tool result' },
+    ],
+    caption: '工具结果按请求顺序写入 transcript；同一事件也分流到 UI、session 与 extension。',
+  };
+  const processFlowCaptionPath = path.join(tmpDir, 'process-flow-caption.html');
+  const processFlowCaptionOutput = renderers['article-diagram'].render(processFlowCaptionFixture, processFlowCaptionPath);
+  const processFlowCaptionCheck = runOutputCheck(processFlowCaptionPath, processFlowCaptionOutput);
+  assert.equal(processFlowCaptionCheck.result.status, 0, `process-flow caption fixture failed output check: ${processFlowCaptionCheck.result.stdout}\n${processFlowCaptionCheck.result.stderr}`);
+  assert.equal(processFlowCaptionCheck.report?.pass, true, 'process-flow caption fixture did not pass');
+  runCardCli(processFlowCaptionFixture, 'process-flow-caption');
+
+  const badCaptionPath = path.join(tmpDir, 'article-diagram-bad-caption.html');
+  fs.writeFileSync(badCaptionPath, `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1080px; height: 720px; font-family: "DM Sans", Arial, sans-serif; }
+  .page { width: 1080px; height: 720px; padding: 60px; }
+  .diagram-stage { width: 960px; height: 420px; border: 1px solid #d8d1c2; }
+  .diagram-caption { width: 360px; font: 500 26px/1.3 "DM Sans", Arial, sans-serif; text-wrap: balance; }
+</style>
+</head>
+<body>
+  <div class="page" data-card-mode="article-diagram">
+    <section class="diagram-stage"></section>
+    <p class="diagram-caption">工具结果按请求顺序写入 transcript；<br>同一事件也分流到 UI、session 与 extension。</p>
+  </div>
+</body>
+</html>`, 'utf8');
+  const badCaptionCheck = runOutputCheck(badCaptionPath, {
+    captureWidth: 1080,
+    captureHeight: 720,
+    fullpage: false,
+  });
+  assert.notEqual(badCaptionCheck.result.status, 0, 'narrow article-diagram caption unexpectedly passed output check');
+  assert.equal(badCaptionCheck.report?.pass, false, 'narrow article-diagram caption did not produce a failing report');
+  assert.match(
+    badCaptionCheck.report?.issues?.map(item => item.code).join('\n') || '',
+    /article_diagram_caption_layout/,
+    `narrow article-diagram caption failed for the wrong reason: ${badCaptionCheck.result.stdout}\n${badCaptionCheck.result.stderr}`,
+  );
+
+  const badBandHeaderPath = path.join(tmpDir, 'article-diagram-band-header-overlap.html');
+  fs.writeFileSync(badBandHeaderPath, `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --surface-1: #fbfaf6;
+    --accent: #314d73;
+    --ink: #172434;
+    --ink-light: #59645e;
+    --hairline: #d8d1c2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1080px; height: 720px; font-family: "DM Sans", Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  .page { width: 1080px; height: 720px; padding: 60px; }
+  .diagram-stage { position: relative; width: 960px; height: 560px; border: 1px solid var(--hairline); background: var(--surface-1); }
+  .boundary-band { position: absolute; left: 72px; right: 72px; top: 330px; height: 160px; padding: 14px 18px; border: 1px solid var(--hairline); }
+  .band-header strong { display: block; font: 700 26px/1 "DM Sans", Arial, sans-serif; color: var(--accent); }
+  .band-caption { display: block; margin-top: 6px; max-width: 300px; font: 500 24px/1.16 "DM Sans", Arial, sans-serif; color: var(--ink-light); white-space: nowrap; }
+  .band-node { position: absolute; left: 250px; top: 405px; width: 316px; min-height: 95px; padding: 13px 16px; border: 1px solid var(--hairline); background: var(--surface-1); }
+  .band-node strong { display: block; font: 700 30px/1.04 "DM Sans", Arial, sans-serif; }
+</style>
+</head>
+<body>
+  <div class="page" data-card-mode="article-diagram">
+    <section class="diagram-stage boundary-model boundary-bands">
+      <div class="boundary-band">
+        <div class="band-header">
+          <strong>Helper agents</strong>
+          <span class="band-caption">并行探索、验证、检索、总结</span>
+        </div>
+      </div>
+      <div class="boundary-node band-node"><strong>检索 / 验证</strong></div>
+    </section>
+  </div>
+</body>
+</html>`, 'utf8');
+  const badBandHeaderCheck = runOutputCheck(badBandHeaderPath, {
+    captureWidth: 1080,
+    captureHeight: 720,
+    fullpage: false,
+  });
+  assert.notEqual(badBandHeaderCheck.result.status, 0, 'overlapping article-diagram band header unexpectedly passed output check');
+  assert.equal(badBandHeaderCheck.report?.pass, false, 'overlapping article-diagram band header did not produce a failing report');
+  assert.match(
+    badBandHeaderCheck.report?.issues?.map(item => item.code).join('\n') || '',
+    /article_diagram_band_header_overlap/,
+    `overlapping article-diagram band header failed for the wrong reason: ${badBandHeaderCheck.result.stdout}\n${badBandHeaderCheck.result.stderr}`,
+  );
 
   const labelCollisionPath = path.join(tmpDir, 'article-diagram-label-collision.html');
   fs.writeFileSync(labelCollisionPath, `<!doctype html>

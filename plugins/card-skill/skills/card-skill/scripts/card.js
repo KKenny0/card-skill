@@ -171,7 +171,11 @@ function runOutputCheck(out, pngPath, options = {}) {
       || result.stderr
       || result.stdout
       || 'unknown output-check failure';
-    throw new Error(`Output check failed:\n${details}`);
+    const error = new Error(`Output check failed:\n${details}`);
+    error.isOutputCheckFailure = true;
+    error.report = report;
+    error.outputCheckResult = result;
+    throw error;
   }
 
   return report;
@@ -186,6 +190,136 @@ function captureWithOutputCheck(out, pngPath) {
     runCapture(out, pngPath);
     runOutputCheck(out, pngPath);
   }
+}
+
+function issueCodes(error) {
+  return new Set((error?.report?.issues || []).map(item => item.code));
+}
+
+function isArticleDiagramSalvageable(error) {
+  const codes = issueCodes(error);
+  return codes.has('article_diagram_label_collision')
+    || codes.has('article_diagram_caption_layout')
+    || codes.has('article_diagram_band_header_overlap')
+    || /boundary-model bands:|cannot fit node/i.test(error?.message || '');
+}
+
+function cloneArticleDiagramInput(baseInput, options = {}) {
+  const { aspect, salvage = {} } = options;
+  const clone = JSON.parse(JSON.stringify(baseInput));
+  if (aspect) clone.aspect = aspect;
+  if (Object.keys(salvage).length > 0) clone.__articleDiagramSalvage = salvage;
+  return clone;
+}
+
+function articleDiagramFallbackPlan(baseInput) {
+  const family = baseInput.family;
+  const hasTallAspect = baseInput.aspect === 'body-4-3';
+  const attempts = [{ label: 'base', input: cloneArticleDiagramInput(baseInput) }];
+
+  if (family === 'concept-map') {
+    attempts.push(
+      { label: 'concept-one-label', input: cloneArticleDiagramInput(baseInput, { salvage: { linkLabelLimit: 1 } }) },
+      { label: 'concept-no-labels', input: cloneArticleDiagramInput(baseInput, { salvage: { hideLinkLabels: true } }) },
+    );
+    if (!hasTallAspect) {
+      attempts.push(
+        { label: 'concept-tall-one-label', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { linkLabelLimit: 1 } }) },
+        { label: 'concept-tall-no-labels', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { hideLinkLabels: true } }) },
+      );
+    }
+  } else if (family === 'boundary-model') {
+    attempts.push(
+      { label: 'boundary-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { boundaryCompactLevel: 1 } }) },
+      { label: 'boundary-more-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { boundaryCompactLevel: 2 } }) },
+    );
+    if (!hasTallAspect) {
+      attempts.push(
+        { label: 'boundary-tall-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 1 } }) },
+        { label: 'boundary-tall-more-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 2 } }) },
+      );
+    }
+  } else if (family === 'process-flow') {
+    attempts.push({ label: 'process-caption-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { captionCompact: true } }) });
+    if (!hasTallAspect) {
+      attempts.push({ label: 'process-tall-caption-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { captionCompact: true } }) });
+    }
+  }
+
+  const seen = new Set();
+  return attempts.filter((attempt) => {
+    const key = JSON.stringify({
+      aspect: attempt.input.aspect || '',
+      salvage: attempt.input.__articleDiagramSalvage || {},
+    });
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function renderSingleOutput(cardInput, htmlPath, measureHtmlPath) {
+  if (cardInput.mode === 'article-diagram'
+      && (cardInput.family === 'concept-map' || cardInput.family === 'boundary-model')
+      && typeof renderer.renderMeasure === 'function') {
+    const measureOut = renderer.renderMeasure(cardInput, measureHtmlPath);
+    if (measureOut) {
+      const measureResult = spawnSync(process.execPath, [
+        CAPTURE_SCRIPT,
+        measureOut.htmlPath,
+        '--measure',
+        String(measureOut.captureWidth),
+        String(measureOut.captureHeight),
+        String(DPR),
+      ], { encoding: 'utf-8' });
+
+      if (measureResult.status !== 0) {
+        throw new Error(`Measure pass failed: ${measureResult.stderr || measureResult.stdout}`);
+      }
+
+      let bboxes;
+      try {
+        bboxes = JSON.parse(measureResult.stdout);
+      } catch (e) {
+        throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
+      }
+
+      const aspectKey = renderer.defaultAspect(cardInput);
+      const aspect = renderer.ASPECTS[aspectKey];
+      let positions;
+      if (cardInput.family === 'concept-map') {
+        positions = renderer.layoutConceptMap(cardInput, bboxes, aspect);
+      } else if (cardInput.family === 'boundary-model') {
+        positions = renderer.layoutBoundaryModel(cardInput, bboxes, aspect);
+      }
+
+      return renderer.render(cardInput, htmlPath, positions);
+    }
+  }
+
+  return renderer.render(cardInput, htmlPath);
+}
+
+function renderArticleDiagramWithFallbacks(baseInput, tmpDir, stagedPath) {
+  let lastError = null;
+  const attempts = articleDiagramFallbackPlan(baseInput);
+
+  for (const [index, attempt] of attempts.entries()) {
+    const suffix = index === 0 ? '' : `_${index}`;
+    const htmlPath = path.join(tmpDir, `card_${baseInput.mode}${suffix}.html`);
+    const measureHtmlPath = path.join(tmpDir, `card_${baseInput.mode}_measure${suffix}.html`);
+
+    try {
+      const out = renderSingleOutput(attempt.input, htmlPath, measureHtmlPath);
+      captureWithOutputCheck(out, stagedPath);
+      return out;
+    } catch (error) {
+      lastError = error;
+      if (!isArticleDiagramSalvageable(error)) throw error;
+    }
+  }
+
+  throw lastError;
 }
 
 function publishPngs(entries) {
@@ -275,58 +409,15 @@ try {
   } else {
     const htmlFileName = `card_${input.mode}.html`;
     const htmlPath = path.join(runTmpDir, htmlFileName);
-
-    // Two-pass measure-then-place for article-diagram concept-map and
-    // boundary-model: render hidden measure HTML, capture actual node and
-    // zone-header bboxes, compute positions from measured sizes, then write
-    // final HTML. process-flow stays single-pass (it uses CSS grid).
-    let out;
-    if (input.mode === 'article-diagram'
-        && (input.family === 'concept-map' || input.family === 'boundary-model')
-        && typeof renderer.renderMeasure === 'function') {
-      const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
-      const measureOut = renderer.renderMeasure(input, measureHtmlPath);
-      if (measureOut) {
-        const measureResult = spawnSync(process.execPath, [
-          CAPTURE_SCRIPT,
-          measureOut.htmlPath,
-          '--measure',
-          String(measureOut.captureWidth),
-          String(measureOut.captureHeight),
-          String(DPR),
-        ], { encoding: 'utf-8' });
-
-        if (measureResult.status !== 0) {
-          throw new Error(`Measure pass failed: ${measureResult.stderr || measureResult.stdout}`);
-        }
-
-        let bboxes;
-        try {
-          bboxes = JSON.parse(measureResult.stdout);
-        } catch (e) {
-          throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
-        }
-
-        const aspectKey = renderer.defaultAspect(input);
-        const aspect = renderer.ASPECTS[aspectKey];
-        let positions;
-        if (input.family === 'concept-map') {
-          positions = renderer.layoutConceptMap(input, bboxes, aspect);
-        } else if (input.family === 'boundary-model') {
-          positions = renderer.layoutBoundaryModel(input, bboxes, aspect);
-        }
-
-        out = renderer.render(input, htmlPath, positions);
-      } else {
-        out = renderer.render(input, htmlPath);
-      }
-    } else {
-      out = renderer.render(input, htmlPath);
-    }
-
     const stagedPath = path.join(runTmpDir, 'card.png');
 
-    captureWithOutputCheck(out, stagedPath);
+    if (input.mode === 'article-diagram') {
+      renderArticleDiagramWithFallbacks(input, runTmpDir, stagedPath);
+    } else {
+      const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
+      const out = renderSingleOutput(input, htmlPath, measureHtmlPath);
+      captureWithOutputCheck(out, stagedPath);
+    }
     publishPngs([{ stagedPath, finalPath: outputPath }]);
 
     console.log(outputPath);

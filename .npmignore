@@ -3,6 +3,7 @@ HANDOFF.md
 tmp/
 card-workspace/
 gallery/
+.lode/tmp-*.json
 
 # Dependencies and OS files
 node_modules/

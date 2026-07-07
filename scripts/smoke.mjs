@@ -98,7 +98,7 @@ try {
   assert.equal(articleDiagram.status, 0, articleDiagram.stderr || articleDiagram.stdout || 'article-diagram CLI failed');
   assert.equal(articleDiagram.stdout.trim(), articleDiagramOutputPath, 'article-diagram stdout did not contain only the output path');
   assert.equal(articleDiagram.stderr, '', 'article-diagram success wrote unexpected stderr output');
-  assert.deepEqual(readPngSize(articleDiagramOutputPath), { width: 2160, height: 1440 });
+  assert.deepEqual(readPngSize(articleDiagramOutputPath), { width: 2160, height: 1620 });
 
   const posterCard = text => ({ body: [{ type: 'paragraph', text }] });
   const overflowBase = path.join(harnessDir, 'overflow.png');

@@ -139,9 +139,10 @@ Rules:
 - `nodes[].note` is optional and must be shorter than the label in visual weight.
 - `links[]` must point to existing node ids.
 - `links[].label` is optional annotation, not required structure. Use it only when the relation word changes the reader's understanding.
+- In hub-and-spoke concept maps, do not label every spoke; the renderer keeps only the labels that can fit cleanly.
 - `zones[]` is only for `boundary-model`.
 - `boundary-model` nodes require `zone`.
-- `aspect` defaults to `body-3-2`; use `body-4-3` only when vertical space improves clarity.
+- `aspect` defaults to `body-3-2`; use `body-4-3` only when dense boundary-model content, many nodes, zone descriptions, or node notes genuinely need more vertical space.
 
 Language contract:
 
@@ -211,32 +212,46 @@ Avoid:
 - process-flow uses CSS grid (auto-layout); do not override its column rhythm.
 - One visible label per node.
 - Relationship labels are optional. If several links share the same label, hide the repeated labels and state the shared relation in the title or caption.
+- Hub-and-spoke concept maps should usually rely on node labels plus caption; relationship labels are limited so they do not crowd the hub.
 - Visible relationship labels must stay outside node boxes and away from the stage boundary; if they cannot fit cleanly, remove the label before shrinking the text.
 - Text must not overlap connectors, boxes, zones, or other text.
 - Connectors should sit behind nodes and stop visually at node boundaries.
 - Zone labels should name the area, not the output format.
+- In 3+ zone boundary-model bands, `zones[].description` is a short hint, not body copy. It renders as a single truncated line so nodes do not cover it.
 - The title should describe the relationship, not say `article diagram`, `process flow`, or `boundary model`.
+- Treat the header, diagram stage, and caption as one composition. A sparse diagram should not use a tall canvas just to fill space.
+- Captions should read as compact explanation strips: one line when possible, two lines at most, aligned to the diagram width rather than a narrow paragraph block.
 - Keep text readable at thumbnail size.
 - Prefer fewer nodes over smaller text.
 - Do not add page chrome, toolbar headers, fake UI panels, or decorative frames.
 - Preserve Quiet Paper: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
+
+## Auto Rescue
+
+The CLI runs bounded rescue retries before failing an `article-diagram` render:
+
+- If concept-map relationship labels collide with nodes, the renderer first keeps fewer labels, then hides relationship labels if needed. Nodes, node text, and caption are preserved.
+- If boundary-model bands are too tight, the renderer retries with more compact band spacing and may use the taller article-body aspect.
+- If a process-flow caption becomes an awkward narrow paragraph, the renderer retries with a wider caption treatment and may use the taller article-body aspect.
+
+Auto rescue is intentionally limited. It must not silently remove nodes, change the diagram family, rewrite visible text, or shrink text below readability. If the diagram still cannot fit after these bounded retries, the render fails with the output-check error so the input can be simplified.
 
 ## Layout Engine
 
 concept-map and boundary-model run a two-pass measure-then-place pipeline. process-flow stays single-pass because CSS grid already adapts to content.
 
 **Measure pass** (`scripts/renderers/article-diagram.js` `renderMeasure`):
-- A hidden DOM is rendered with each node at its family-specific width (concept-map 220 / boundary-model 218) and `visibility: hidden` stack flow.
-- For boundary-model, each zone's header (label + optional description) is also rendered at the zone's real inner width so description wrapping and thus header height are accurate.
+- A hidden DOM is rendered with each node at its family-specific width (concept-map 220 / boundary-model 218 for nested 2-zone, 282 for 3+ zone bands) and `visibility: hidden` stack flow.
+- For boundary-model, each zone's header (label + optional description) is rendered at the zone's real layout width. In 3+ zone bands, descriptions are measured as single-line hints, matching the final visual constraint.
 - `assets/capture4k.js --measure` returns each `[data-measure-id]` element's bbox as JSON.
 
 **Layout pass** (`layoutConceptMap` / `layoutBoundaryModel`):
-- concept-map: geometric anchors (2=horizontal / 3=triangle / 4=rectangle / 5=pentagon) clamped to stage bounds using measured half-width and half-height so nodes with long notes do not drift into each other or off-stage.
+- concept-map: geometric anchors (2=horizontal / 3=triangle / 4=rectangle / 5=pentagon) clamped to stage bounds using measured half-width and half-height so nodes with long notes do not drift into each other or off-stage. Relationship labels try alternate positions; repeated labels and crowded hub-spoke labels are hidden before the renderer shrinks text.
 - boundary-model: legacy `BOUNDARY_NODE_SLOTS` provide base anchors (which already encode inner-zone avoidance), then each node is pushed below the measured zone-header band and clamped in both x and y to stay inside its zone. If a zone genuinely cannot fit a node below its header, the renderer fails with a clear error naming the zone, the node, and the dimensions — the AI should then shorten the note, drop the description, or simplify the diagram.
 
 **Known limitations** (do not promise users these will just work):
-- concept-map with 5 nodes + 5 links + long notes may still report `article_diagram_label_collision`. The layout engine places node anchors but does not yet iteratively relocate link labels to avoid node bboxes. Simplify the input first.
-- boundary-model with 3+ zones uses a **horizontal indented band** paradigm (not centered nested boxes) because nested-box geometry mathematically cannot fit 218px-wide nodes in all zone rings on a 960px stage. Bands have no ring constraint but have a **vertical space constraint**: total content height (zone headers + node heights + paddings) must fit within the stage height (~599px on body-4-3, the default for 3+ zones). Keep zone descriptions and node notes short — label-only content fits comfortably; adding descriptions or long notes across all zones may exceed capacity and fail with a clear error naming the total vs available height.
+- concept-map with 5 nodes + 5 links + long notes may still drop relationship labels during auto rescue. Simplify the input if the relation words are essential.
+- boundary-model with 3+ zones uses a **horizontal indented band** paradigm (not centered nested boxes) because nested-box geometry mathematically cannot fit 218px-wide nodes in all zone rings on a 960px stage. Bands have no ring constraint but have a **vertical space constraint**: total content height (zone headers + node heights + paddings) must fit within the stage height. Sparse 3-zone diagrams stay on `body-3-2`; dense diagrams with stacked nodes, 4 zones, zone descriptions, or node notes switch to `body-4-3`. Auto rescue can compact band spacing and retry the taller aspect, but very long zone descriptions or node notes can still exceed capacity.
 - boundary-model with 2 zones uses centered nested boxes (the original paradigm) and has no ring constraint (2-zone geometry provides enough room).
 
 ## Anti-Patterns
