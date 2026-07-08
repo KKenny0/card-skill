@@ -35,6 +35,8 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 
 默认直接产出可用 PNG，不要先让用户做选择题。除非用户明确要求“给我几个方向 / 换一批 / 先选风格”，否则自动选择最合适的 mode、design 和画面方向，并在验证通过后交付。
 
+所有 mode 默认共享同一套 Quiet Paper 气质：纸面底色、香萃字系、低饱和墨色、细分隔线、小圆角、极少阴影。`editorial-image` 和 `article-diagram` 可以有不同用途，但不能另起一套封面模板、流程图或 dashboard 视觉语言；品牌 design 只改变气质温度，不改变这套纸面纪律。
+
 优先从用户的发布任务理解需求，再映射到内部 mode；不要要求用户先学习 mode 名称：
 
 | 用户任务 | 默认入口 |
@@ -42,8 +44,11 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | 公众号头图 / 封面 | `editorial-image` + `wechat-cover` |
 | 正文氛围插图 / 段落视觉换气 | `editorial-image` + `body-3-2` |
 | 正文解释图 / 关系图 / 流程图 / 边界图 | `article-diagram` |
+| 长文章 / 深度阅读 / 保留段落节奏 | `long` |
 | 小红书 / 社媒卡片 | 单一观点优先 `big`，多观点或系列优先 `poster`，结构化知识优先 `infograph` |
 | 推理过程 / 关系梳理 / 白板 | `whiteboard` |
+| 有冲突、转折或人物动作的叙事 | `comic` |
+| 个人经验、反思、失败到顿悟的弧线 | `sketchnote` |
 
 这些只是入口映射；内容结构明显更适合其他现有 mode 时，自动改走更合适的路线。
 

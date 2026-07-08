@@ -225,6 +225,7 @@ Avoid:
 - Prefer fewer nodes over smaller text.
 - Do not add page chrome, toolbar headers, fake UI panels, or decorative frames.
 - Preserve Quiet Paper: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
+- Treat the diagram as a paper annotation inside an article, not a SaaS dashboard. Titles and labels should keep the Xiangcui/DM editorial feel; boxes, connectors, and bands should look like quiet paper marks rather than UI widgets.
 
 ## Auto Rescue
 

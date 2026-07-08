@@ -221,7 +221,7 @@ For final rendering, use a custom composition when the brief has a real article 
 - `custom_css` for the actual composition, spacing, symbolic objects, and atmosphere
 - `visual_metaphor` and `art_direction` as hidden guidance, not necessarily visible text
 
-The default CLI renderer is only an aspect-safe Quiet Paper scaffold. It is useful for validation and simple covers, but high-quality editorial images should use a custom composition derived from the selected direction.
+The default CLI renderer is an aspect-safe Quiet Paper scaffold, not a separate cover-template universe. It is useful for validation and simple covers, but it must still feel like a card-skill paper object: warm canvas, Xiangcui/DM editorial type, low-saturation ink, hairline surfaces, subtle grain, and almost no shadow. High-quality editorial images should use a custom composition derived from the selected direction.
 
 The composition needs one dominant visible subject: an object, scene, gesture, spatial relationship, or concrete diagram metaphor. A stack of paper rectangles, loose lines, decorative frames, or empty negative space is not enough unless it has been transformed into a specific metaphor tied to the article. If hiding the title makes the image feel generic, rebuild the custom composition before capture.
 
@@ -260,6 +260,7 @@ Visual weight rules:
 - Large surfaces should use token-derived paper colors, usually `--surface-1`, `--surface-2`, or a low-mix variant of them.
 - Avoid heavy drop shadows. Prefer layering, overlap, whitespace, hairline, paper grain, and subtle contrast.
 - Diagrams should feel like editorial artwork: paper layers, annotations, measured spacing, and restrained connectors. Avoid dashboard-like cards, button-like modules, and loud process-diagram styling unless the article itself is about UI mockups.
+- Default scaffold visuals should read as paper, not UI chrome: no button-like cards, no large generic modules, no decorative paper stack unless it helps express the article.
 
 Custom CSS should not create a separate visual universe. If the composition needs stronger contrast, increase hierarchy through scale, position, or negative space before adding thick borders, bright fills, or heavy shadows.
 

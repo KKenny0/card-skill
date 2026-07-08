@@ -82,6 +82,7 @@ function baseCss(input, design, aspect) {
       --surface-2: ${design.surface2};
       --hairline: ${design.hairline};
       --radius: ${design.radius};
+      --paper-shadow: color-mix(in srgb, var(--ink) 7%, transparent);
     }
 
     html, body {
@@ -114,6 +115,20 @@ function baseCss(input, design, aspect) {
       isolation: isolate;
     }
 
+    .editorial-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.42;
+      background:
+        radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--surface-1) 34%, transparent) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 74% 62%, color-mix(in srgb, var(--ink) 8%, transparent) 0 0.7px, transparent 1.4px);
+      background-size: 18px 18px, 22px 22px;
+      mix-blend-mode: multiply;
+      z-index: -1;
+    }
+
     .editorial-kicker {
       font: 500 24px/1 var(--mono);
       letter-spacing: 0.12em;
@@ -130,6 +145,7 @@ function baseCss(input, design, aspect) {
       letter-spacing: 0;
       color: var(--ink);
       text-wrap: balance;
+      text-shadow: 0 1px 0 color-mix(in srgb, var(--surface-1) 58%, transparent);
     }
 
     .editorial-subtitle {
@@ -144,13 +160,16 @@ function baseCss(input, design, aspect) {
       position: relative;
       height: ${aspect.height <= 500 ? Math.max(190, aspect.height - 205) : Math.max(250, Math.min(460, aspect.height - 180))}px;
       min-width: 280px;
+      filter: saturate(0.92);
     }
 
     .paper-stack {
       position: absolute;
       border: 1px solid var(--hairline);
-      background: color-mix(in srgb, var(--surface-1) 86%, var(--bg));
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-1) 94%, var(--bg)), color-mix(in srgb, var(--surface-2) 38%, var(--bg)));
       border-radius: var(--radius);
+      box-shadow: 0 12px 28px var(--paper-shadow);
     }
 
     .paper-stack-a {
@@ -168,6 +187,7 @@ function baseCss(input, design, aspect) {
       top: 16%;
       transform: rotate(5deg);
       background: color-mix(in srgb, var(--surface-2) 54%, transparent);
+      box-shadow: none;
     }
 
     .paper-mark {
@@ -175,10 +195,10 @@ function baseCss(input, design, aspect) {
       right: 20%;
       top: 36%;
       width: 34%;
-      height: 2px;
-      background: var(--accent);
+      height: 1px;
+      background: color-mix(in srgb, var(--accent) 72%, var(--hairline));
       transform: rotate(-10deg);
-      opacity: 0.72;
+      opacity: 0.58;
     }
 
     .paper-thread {

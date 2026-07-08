@@ -544,6 +544,7 @@ function baseCss(input, design, aspect) {
       --surface-2: ${design.surface2};
       --hairline: ${design.hairline};
       --radius: ${design.radius};
+      --paper-shadow: color-mix(in srgb, var(--ink) 5%, transparent);
     }
 
     html, body {
@@ -573,7 +574,7 @@ function baseCss(input, design, aspect) {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto;
       gap: ${isTall ? '24px' : '18px'};
-      font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font-family: "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink);
     }
 
@@ -585,7 +586,7 @@ function baseCss(input, design, aspect) {
     }
 
     .diagram-header h1 {
-      font-family: "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font-family: "DM Serif Display", "XiangcuiDengcusong", serif;
       max-width: ${titleMaxWidth}px;
       font-size: ${titleFontSize}px;
       line-height: 1.04;
@@ -597,7 +598,7 @@ function baseCss(input, design, aspect) {
     .diagram-header p {
       justify-self: end;
       max-width: 300px;
-      font: 500 23px/1.24 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 400 24px/1.28 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink-light);
       text-wrap: balance;
     }
@@ -608,8 +609,22 @@ function baseCss(input, design, aspect) {
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
       background:
-        linear-gradient(135deg, color-mix(in srgb, var(--surface-1) 92%, var(--bg)), color-mix(in srgb, var(--surface-2) 46%, var(--bg)));
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-1) 74%, var(--bg)), color-mix(in srgb, var(--surface-2) 24%, var(--bg)));
       overflow: hidden;
+    }
+
+    .diagram-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background:
+        radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--ink) 8%, transparent) 0 0.7px, transparent 1.4px),
+        radial-gradient(circle at 72% 66%, color-mix(in srgb, var(--surface-1) 44%, transparent) 0 1px, transparent 1.6px);
+      background-size: 20px 20px, 26px 26px;
+      mix-blend-mode: multiply;
+      z-index: 0;
     }
 
     .diagram-stage::before {
@@ -626,7 +641,7 @@ function baseCss(input, design, aspect) {
       max-width: ${captionMaxWidth}px;
       justify-self: center;
       margin: 0 auto;
-      font: 500 ${captionFontSize}px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 400 ${captionFontSize + 1}px/1.26 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink-light);
       text-wrap: ${captionTextWrap};
     }
@@ -647,7 +662,7 @@ function baseCss(input, design, aspect) {
     }
 
     .diagram-connectors line {
-      stroke: color-mix(in srgb, var(--accent) 70%, var(--hairline));
+      stroke: color-mix(in srgb, var(--accent) 46%, var(--hairline));
       stroke-width: 0.42;
       vector-effect: non-scaling-stroke;
     }
@@ -660,10 +675,9 @@ function baseCss(input, design, aspect) {
       border-radius: 999px;
       background: color-mix(in srgb, var(--surface-1) 96%, var(--bg));
       color: var(--ink-light);
-      font: 700 24px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 500 23px/1 "XiangcuiDengcusong", "DM Sans", serif;
       letter-spacing: 0;
       white-space: nowrap;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface-1) 82%, transparent);
     }
 
     .diagram-node {
@@ -673,7 +687,7 @@ function baseCss(input, design, aspect) {
       transform: translate(-50%, -50%);
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
-      background: color-mix(in srgb, var(--surface-1) 94%, var(--bg));
+      background: color-mix(in srgb, var(--surface-1) 86%, var(--bg));
       padding: 20px 22px;
       display: grid;
       gap: 7px;
@@ -684,7 +698,7 @@ function baseCss(input, design, aspect) {
     .diagram-node strong,
     .process-step strong,
     .boundary-node strong {
-      font: 700 30px/1.04 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 500 31px/1.05 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink);
       letter-spacing: 0;
       text-wrap: balance;
@@ -693,7 +707,7 @@ function baseCss(input, design, aspect) {
     .diagram-node p,
     .process-step p,
     .boundary-node p {
-      font: 500 24px/1.22 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 400 25px/1.24 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink-light);
       letter-spacing: 0;
       text-wrap: balance;
@@ -713,7 +727,7 @@ function baseCss(input, design, aspect) {
       right: 88px;
       top: 50%;
       height: 2px;
-      background: color-mix(in srgb, var(--accent) 72%, var(--hairline));
+      background: color-mix(in srgb, var(--accent) 42%, var(--hairline));
       transform: translateY(-1px);
     }
 
@@ -722,7 +736,7 @@ function baseCss(input, design, aspect) {
       min-height: 210px;
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
-      background: color-mix(in srgb, var(--surface-1) 94%, var(--bg));
+      background: color-mix(in srgb, var(--surface-1) 84%, var(--bg));
       padding: ${denseProcessFlow ? '24px 16px 20px' : '26px 20px 22px'};
       display: grid;
       align-content: start;
@@ -736,10 +750,10 @@ function baseCss(input, design, aspect) {
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: color-mix(in srgb, var(--accent) 15%, var(--surface-1));
+      background: color-mix(in srgb, var(--surface-2) 62%, var(--bg));
       color: var(--accent);
       font: 700 22px/1 "JetBrains Mono", monospace;
-      border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--hairline));
+      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--hairline));
     }
 
     .boundary-model {
@@ -748,15 +762,15 @@ function baseCss(input, design, aspect) {
 
     .boundary-zone {
       position: absolute;
-      border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--hairline));
+      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--hairline));
       border-radius: calc(var(--radius) + 2px);
-      background: color-mix(in srgb, var(--surface-1) 34%, transparent);
+      background: color-mix(in srgb, var(--surface-1) 24%, transparent);
       padding: 16px 18px;
     }
 
     .boundary-zone strong {
       display: block;
-      font: 700 26px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 500 27px/1 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--accent);
       letter-spacing: 0;
     }
@@ -765,7 +779,7 @@ function baseCss(input, design, aspect) {
       display: block;
       margin-top: 6px;
       max-width: 320px;
-      font: 500 24px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 400 24px/1.18 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink-light);
     }
 
@@ -775,7 +789,7 @@ function baseCss(input, design, aspect) {
       min-height: 86px;
       border: 1px solid var(--hairline);
       border-radius: var(--radius);
-      background: color-mix(in srgb, var(--surface-1) 95%, var(--bg));
+      background: color-mix(in srgb, var(--surface-1) 88%, var(--bg));
       padding: 17px 18px;
       display: grid;
       gap: 6px;
@@ -786,24 +800,24 @@ function baseCss(input, design, aspect) {
 
     .boundary-band {
       position: absolute;
-      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--hairline));
-      border-left: 2px solid color-mix(in srgb, var(--accent) 55%, var(--hairline));
+      border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--hairline));
+      border-left: 2px solid color-mix(in srgb, var(--accent) 38%, var(--hairline));
       border-radius: calc(var(--radius) + 2px);
-      background: color-mix(in srgb, var(--surface-1) 22%, transparent);
+      background: color-mix(in srgb, var(--surface-1) 18%, transparent);
       padding: 14px 18px;
     }
 
     .boundary-band[data-level="1"] {
-      background: color-mix(in srgb, var(--surface-1) 36%, transparent);
+      background: color-mix(in srgb, var(--surface-1) 30%, transparent);
     }
 
     .boundary-band[data-level="2"] {
-      background: color-mix(in srgb, var(--surface-1) 50%, transparent);
+      background: color-mix(in srgb, var(--surface-1) 42%, transparent);
     }
 
     .band-header strong {
       display: block;
-      font: 700 26px/1 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 500 27px/1 "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--accent);
       letter-spacing: 0;
     }
@@ -812,7 +826,7 @@ function baseCss(input, design, aspect) {
       display: block;
       margin-top: 5px;
       max-width: ${bandCaptionMaxWidth}px;
-      font: 500 ${bandCaptionFontSize}px/${bandCaptionLineHeight} "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 400 ${bandCaptionFontSize}px/${bandCaptionLineHeight} "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink-light);
       white-space: nowrap;
       overflow: hidden;
@@ -827,7 +841,7 @@ function baseCss(input, design, aspect) {
     }
 
     .band-node strong {
-      font: 700 ${bandNodeTitleSize}px/1.02 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
+      font: 500 ${bandNodeTitleSize}px/1.02 "XiangcuiDengcusong", "DM Sans", serif;
     }
 
     .band-node p {
