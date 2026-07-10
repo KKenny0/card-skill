@@ -359,11 +359,13 @@ async function inspectPage(opts, issues) {
       const articleDiagramLabelCollisions = [];
       const articleDiagramCaptionIssues = [];
       const articleDiagramBandHeaderOverlaps = [];
+      const formulaCardMetrics = [];
       const meaningfulTags = new Set(['P', 'LI', 'TD', 'TH', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'DIV', 'BLOCKQUOTE']);
       const ignoreBounds = /texture|noise|grain|background|ghost|watermark|bleed|decor/i;
       const headlinePattern = /title|headline|hero|cover|phrase|editorial|subtitle|caption|statement/i;
       const isEditorialImage = Boolean(document.querySelector('[data-card-mode="editorial-image"], [data-card-mode="article-diagram"]'));
       const isArticleDiagram = Boolean(document.querySelector('[data-card-mode="article-diagram"]'));
+      const expectsFormulaCard = Boolean(document.querySelector('[data-diagram-family="compression-pack"][data-compression-view="summary"]'));
       const isBigMode = Boolean(document.querySelector('[data-card-mode="big"]'));
       const allowedPrimaryFonts = new Set([
         'dm sans',
@@ -941,6 +943,28 @@ async function inspectPage(opts, issues) {
         }
       }
 
+      if (isArticleDiagram) {
+        const formulaCard = document.querySelector('[data-formula-card="true"]');
+        const page = document.querySelector('.page');
+        const note = formulaCard?.querySelector('[data-formula-note="true"]');
+        if (formulaCard && page && note && isVisible(formulaCard)) {
+          const cardRect = formulaCard.getBoundingClientRect();
+          const pageRect = page.getBoundingClientRect();
+          const noteStyle = window.getComputedStyle(note);
+          const noteLineHeight = parseFloat(noteStyle.lineHeight) || 1;
+          formulaCardMetrics.push({
+            horizontalFill: Number((cardRect.width / pageRect.width).toFixed(3)),
+            verticalFill: Number((cardRect.height / pageRect.height).toFixed(3)),
+            leftWhitespace: Math.round(cardRect.left - pageRect.left),
+            rightWhitespace: Math.round(pageRect.right - cardRect.right),
+            topWhitespace: Math.round(cardRect.top - pageRect.top),
+            bottomWhitespace: Math.round(pageRect.bottom - cardRect.bottom),
+            noteLines: Math.round(note.getBoundingClientRect().height / noteLineHeight),
+            formulaRows: formulaCard.querySelectorAll('[data-formula-row="true"]').length,
+          });
+        }
+      }
+
       return {
         scrollWidth: Math.max(doc.scrollWidth, body.scrollWidth),
         clientWidth: doc.clientWidth,
@@ -960,6 +984,8 @@ async function inspectPage(opts, issues) {
         articleDiagramLabelCollisions: articleDiagramLabelCollisions.slice(0, 10),
         articleDiagramCaptionIssues: articleDiagramCaptionIssues.slice(0, 10),
         articleDiagramBandHeaderOverlaps: articleDiagramBandHeaderOverlaps.slice(0, 10),
+        expectsFormulaCard,
+        formulaCardMetrics: formulaCardMetrics.slice(0, 1),
         bigPhraseMetrics: bigPhraseMetrics.slice(0, 3),
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage });
@@ -1050,6 +1076,29 @@ async function inspectPage(opts, issues) {
         { elements: report.articleDiagramBandHeaderOverlaps }));
     }
 
+    if (report.expectsFormulaCard && report.formulaCardMetrics.length !== 1) {
+      issues.push(issue('error', 'article_diagram_formula_metrics_missing',
+        'Compression summary output is missing the semantic formula-card measurement markers.',
+        { count: report.formulaCardMetrics.length }));
+    }
+
+    const invalidFormulaCards = report.formulaCardMetrics.filter(item => (
+      item.horizontalFill < 0.66
+      || item.horizontalFill > 0.9
+      || item.verticalFill < 0.4
+      || item.verticalFill > 0.72
+      || Math.abs(item.leftWhitespace - item.rightWhitespace) > 48
+      || Math.abs(item.topWhitespace - item.bottomWhitespace) > 36
+      || item.noteLines < 1
+      || item.noteLines > 2
+      || item.formulaRows > 3
+    ));
+    if (invalidFormulaCards.length > 0) {
+      issues.push(issue('error', 'article_diagram_formula_density',
+        'Editorial Equation content density or whitespace balance is outside the approved visual range.',
+        { elements: invalidFormulaCards }));
+    }
+
     if (report.bigPhraseMetrics.length === 0) {
       const hasBigMarker = fs.readFileSync(opts.html, 'utf-8').includes('data-card-mode="big"');
       if (hasBigMarker) {
@@ -1071,9 +1120,11 @@ async function inspectPage(opts, issues) {
     }
 
     const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;
+    const formulaAnnotationPattern = /formula-card-deck/i;
     const bodyText = report.textSizes.filter(item => {
       if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(item.tag)) return false;
       if (labelPattern.test(item.className)) return false;
+      if (formulaAnnotationPattern.test(item.className)) return false;
       return item.text.length >= 12 && item.fontSize >= 16;
     });
     const smallBodyText = bodyText.filter(item => item.fontSize < 36);
@@ -1084,7 +1135,7 @@ async function inspectPage(opts, issues) {
     }
 
     const annotationText = report.textSizes.filter(item => {
-      if (!labelPattern.test(item.className)) return false;
+      if (!labelPattern.test(item.className) && !formulaAnnotationPattern.test(item.className)) return false;
       if (/colophon|brand|footer|page-indicator/i.test(item.className)) return false;
       return item.text.length >= 4 && item.fontSize > 0 && item.fontSize < 24;
     });

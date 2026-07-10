@@ -150,6 +150,7 @@ function assertPackagedSkill() {
     'schemas/article-diagram.json',
     'references/design-index.md',
     'references/mode-article-diagram.md',
+    'assets/capture4k.js',
     'assets/big_template.html',
   ]) {
     const rootContent = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -194,7 +195,7 @@ function runOutputCheck(htmlPath, output) {
   return { result, report };
 }
 
-function runCardCli(input, outputName) {
+function runCardCli(input, outputName, expectedCount = 1) {
   const inputPath = path.join(tmpDir, `${outputName}.json`);
   const outputPath = path.join(tmpDir, `${outputName}.png`);
   fs.writeFileSync(inputPath, JSON.stringify(input, null, 2), 'utf8');
@@ -205,9 +206,20 @@ function runCardCli(input, outputName) {
   ], { encoding: 'utf8' });
 
   assert.equal(result.status, 0, `${outputName} CLI render failed:\n${result.stdout}\n${result.stderr}`);
-  assert.ok(fs.existsSync(outputPath), `${outputName} CLI render did not create a PNG`);
-  assert.ok(fs.statSync(outputPath).size > 1000, `${outputName} CLI render created an empty-looking PNG`);
-  return outputPath;
+  if (expectedCount === 1) {
+    assert.ok(fs.existsSync(outputPath), `${outputName} CLI render did not create a PNG`);
+    assert.ok(fs.statSync(outputPath).size > 1000, `${outputName} CLI render created an empty-looking PNG`);
+    return outputPath;
+  }
+
+  const outputPaths = Array.from({ length: expectedCount }, (_, i) =>
+    path.join(tmpDir, `${outputName}_${i + 1}.png`));
+  outputPaths.forEach((pngPath, i) => {
+    assert.ok(fs.existsSync(pngPath), `${outputName} CLI render did not create PNG ${i + 1}/${expectedCount}`);
+    assert.ok(fs.statSync(pngPath).size > 1000, `${outputName} CLI render created an empty-looking PNG ${i + 1}/${expectedCount}`);
+  });
+  assert.equal(result.stdout.trim().split(/\r?\n/).length, expectedCount, `${outputName} stdout did not list ${expectedCount} output paths`);
+  return outputPaths;
 }
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
@@ -215,6 +227,20 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
 try {
   assertVersionSources();
   assertPackagedSkill();
+
+  const measureViewportPath = path.join(tmpDir, 'capture-measure-viewport.html');
+  fs.writeFileSync(measureViewportPath, '<!doctype html><style>*{box-sizing:border-box}html,body{margin:0}.probe{width:calc(100vw - 20px);height:10px}</style><div class="probe" data-measure-id="probe"></div>', 'utf8');
+  const measureViewportResult = spawnSync(process.execPath, [
+    path.join(ROOT, 'assets', 'capture4k.js'),
+    measureViewportPath,
+    '--measure',
+    '1080',
+    '240',
+    '1',
+  ], { encoding: 'utf8' });
+  assert.equal(measureViewportResult.status, 0, `capture4k measure viewport check failed:\n${measureViewportResult.stderr}`);
+  const measureViewportBoxes = JSON.parse(measureViewportResult.stdout);
+  assert.equal(measureViewportBoxes.probe.width, 1060, 'capture4k --measure parsed the viewport width from the wrong argument position');
 
   for (const [mode, input] of Object.entries(inputs)) {
     const validation = validate(input);
@@ -521,6 +547,181 @@ try {
     assert.equal(check.report?.pass, true, `${family} article-diagram did not pass`);
   }
 
+  const compressionPackFixture = {
+    mode: 'article-diagram',
+    title: '多 Agent 的写入边界',
+    subtitle: '压缩成公式卡',
+    formula: '安全协作 = 单线程写入 + 共享轨迹 + 旁路判断',
+    sentence: '多 agent 不是多条线同时修改，而是主线负责写入，旁路线把检索、验证和摘要回流给主线。',
+    structure: {
+      nodes: [
+        { id: 'trace', label: '共享轨迹', note: '完整决策过程' },
+        { id: 'writer', label: '单线程写入', note: '唯一修改路径' },
+        { id: 'helpers', label: '旁路 agent', note: '检索 / 验证 / 总结' },
+        { id: 'tools', label: '工具执行', note: '受控副作用' },
+      ],
+      relations: [
+        { from: 'helpers', to: 'trace', label: '贡献判断' },
+        { from: 'trace', to: 'writer', label: '约束写入' },
+        { from: 'writer', to: 'tools', label: '调用' },
+      ],
+    },
+    caption: '默认输出不显示标题、caption 或结构图。',
+    source: 'Context 工程',
+  };
+  const compressionValidation = validate(compressionPackFixture);
+  assert.equal(compressionValidation.valid, true, `compression-pack article-diagram fixture failed validation: ${compressionValidation.errors.join(', ')}`);
+  assert.equal(
+    renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).variant,
+    'editorial-equation',
+    'compression formula card should use the unified Editorial Equation layout',
+  );
+  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).id, 'large', 'short compression formula card should use the large type scale');
+  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).formulaRows, 1, 'short compression formula card should stay on one semantic row');
+  const compressionPath = path.join(tmpDir, 'article-diagram-compression-pack.html');
+  const compressionOutput = renderers['article-diagram'].render(compressionPackFixture, compressionPath);
+  assert.equal(Array.isArray(compressionOutput), false, 'compression-pack should render one formula card by default');
+  {
+    const html = stripComments(fs.readFileSync(compressionOutput.htmlPath, 'utf8'));
+    assert.match(html, /data-diagram-family="compression-pack"/, 'compression output did not mark compression-pack');
+    assert.match(html, /data-compression-view="summary"/, 'compression output did not mark summary view');
+    assert.match(html, /formula-card-plate/, 'compression output did not render the formula card');
+    assert.match(html, /formula-card-body/, 'compression output did not use the single-body formula card layout');
+    assert.match(html, /formula-layout-editorial-equation/, 'compression output did not use Editorial Equation layout');
+    assert.match(html, /formula-density-compact/, 'compact compression output did not mark compact density');
+    assert.match(html, /data-formula-scale="large"/, 'short compression output did not mark the large type scale');
+    assert.match(html, /data-formula-rows="1"/, 'short compression output did not mark one formula row');
+    assert.match(html, /formula-expression/, 'compression output did not render the semantic formula expression');
+    assert.match(html, /formula-card-deck/, 'compression output did not render the explanation as a deck');
+    assert.doesNotMatch(html, /<section[^>]*figure-sheet/, 'compression output unexpectedly rendered the article figure sheet');
+    assert.doesNotMatch(html, /formula-chip/, 'compression output unexpectedly used the old chip formula layout');
+    assert.doesNotMatch(html, /formula-card-sentence/, 'compression output unexpectedly used the old detached sentence layout');
+    assert.doesNotMatch(html, /formula-layout-(?:compact-inline|ledger|annotation-tall)/, 'compression output leaked an old formula layout variant');
+    assert.doesNotMatch(html, /<header class="diagram-header"/, 'compression formula card unexpectedly rendered a visible title header');
+    assert.doesNotMatch(html, /<p class="diagram-caption"/, 'compression formula card unexpectedly rendered a visible caption');
+    const check = runOutputCheck(compressionOutput.htmlPath, compressionOutput);
+    assert.equal(check.result.status, 0, `compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, 'compression-pack output did not pass');
+    const missingMetricsPath = path.join(tmpDir, 'article-diagram-compression-pack-missing-metrics.html');
+    fs.writeFileSync(missingMetricsPath, html.replace('data-formula-card="true"', ''), 'utf8');
+    const missingMetricsCheck = runOutputCheck(missingMetricsPath, compressionOutput);
+    assert.notEqual(missingMetricsCheck.result.status, 0, 'compression summary without semantic formula markers unexpectedly passed output check');
+    assert.ok(missingMetricsCheck.report?.issues?.some(item => item.code === 'article_diagram_formula_metrics_missing'), 'missing formula metrics did not report the expected issue code');
+  }
+  assert.equal(renderers['article-diagram'].defaultAspect(compressionPackFixture), 'body-2-1', 'compact compression formula card should default to body-2-1');
+  const mediumCompressionPackFixture = {
+    ...compressionPackFixture,
+    formula: '可审计协作 = 单线程写入 + 共享轨迹 + 旁路检索 + 旁路验证 + 摘要回流',
+    sentence: '多 Agent 协作仍由主线写入，旁路线只贡献判断。',
+  };
+  assert.equal(
+    renderers['article-diagram'].analyzeFormulaCardContent(mediumCompressionPackFixture).id,
+    'medium',
+    'multi-term compression formula card should use the medium type scale',
+  );
+  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(mediumCompressionPackFixture).formulaRows, 2, 'multi-term compression formula card should use two semantic rows');
+  assert.equal(renderers['article-diagram'].defaultAspect(mediumCompressionPackFixture), 'body-2-1', 'medium compression formula card should stay body-2-1');
+  {
+    const mediumPath = path.join(tmpDir, 'article-diagram-compression-pack-medium.html');
+    const mediumOutput = renderers['article-diagram'].render(mediumCompressionPackFixture, mediumPath);
+    const html = stripComments(fs.readFileSync(mediumOutput.htmlPath, 'utf8'));
+    assert.match(html, /data-formula-scale="medium"/, 'medium compression output did not mark the medium type scale');
+    assert.match(html, /data-formula-rows="2"/, 'medium compression output did not render two semantic rows');
+    assert.doesNotMatch(html, /formula-ledger/, 'medium compression output unexpectedly rendered the retired ledger layout');
+    const check = runOutputCheck(mediumOutput.htmlPath, mediumOutput);
+    assert.equal(check.result.status, 0, `medium compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, 'medium compression-pack output did not pass');
+  }
+  const longCompressionPackFixture = {
+    ...mediumCompressionPackFixture,
+    formula: '可持续的 Agent 协作 = 主线程保持单一写入权 + 辅助 Agent 只提供检索与验证 + 所有结果通过摘要回流进入共享轨迹',
+    sentence: '当公式项和解释句同时变长时，画布增加的是承载空间，而不是无目的的留白；字体也不会被压缩到不可读。',
+  };
+  assert.equal(
+    renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).id,
+    'small',
+    'long compression formula card should use the smallest approved type scale',
+  );
+  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).formulaRows, 3, 'long compression formula card should use three semantic rows');
+  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).noteLines, 2, 'long compression formula card should keep the note to two lines');
+  assert.equal(renderers['article-diagram'].defaultAspect(longCompressionPackFixture), 'body-3-2', 'long compression formula card should use body-3-2');
+  {
+    const longPath = path.join(tmpDir, 'article-diagram-compression-pack-long.html');
+    const longOutput = renderers['article-diagram'].render(longCompressionPackFixture, longPath);
+    const html = stripComments(fs.readFileSync(longOutput.htmlPath, 'utf8'));
+    assert.match(html, /data-formula-scale="small"/, 'long compression output did not mark the small type scale');
+    assert.match(html, /data-formula-rows="3"/, 'long compression output did not render three semantic rows');
+    assert.match(html, /data-note-lines="2"/, 'long compression output did not mark a two-line note');
+    const check = runOutputCheck(longOutput.htmlPath, longOutput);
+    assert.equal(check.result.status, 0, `long compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, 'long compression-pack output did not pass');
+  }
+  const mixedCompressionAnalysis = renderers['article-diagram'].analyzeFormulaCardContent({
+    ...compressionPackFixture,
+    formula: 'Agent 可靠性 = single-writer ownership + 可追溯 transcript + bounded tool effects',
+    sentence: '中英文混排仍需保持完整 term，不允许在单个语义项内部断行。',
+  });
+  assert.equal(mixedCompressionAnalysis.variant, 'editorial-equation', 'mixed-language formula should keep the unified layout');
+  assert.equal(mixedCompressionAnalysis.termLines.flat().length, 3, 'mixed-language formula should preserve all semantic terms');
+  const arrowCompressionAnalysis = renderers['article-diagram'].analyzeFormulaCardContent({
+    ...compressionPackFixture,
+    formula: '原始请求 → 可验证结果',
+    sentence: '箭头关系应保留原始方向。',
+  });
+  assert.equal(arrowCompressionAnalysis.relation, '→', 'arrow formula should preserve its relation operator');
+  const tooWideResultFormula = '这是一个无法在批准字号下完整放入画布的超长主结论名称 = 简短项';
+  assert.throws(
+    () => renderers['article-diagram'].analyzeFormulaCardContent({
+      ...compressionPackFixture,
+      formula: tooWideResultFormula,
+      sentence: '主结论不能溢出画布。',
+    }),
+    /article_diagram_formula_too_dense/,
+    'an over-wide result should fail instead of overflowing the card',
+  );
+  const structureOnlyFixture = {
+    ...compressionPackFixture,
+    formula: tooWideResultFormula,
+    sentence: '结构视图不应被未展示的公式布局阻断。',
+    render_plan: 'structure',
+  };
+  assert.equal(
+    renderers['article-diagram'].renderMeasure(structureOnlyFixture, path.join(tmpDir, 'unused-structure-measure.html')),
+    null,
+    'structure-only compression output should skip formula measurement',
+  );
+  const structureOnlyPath = path.join(tmpDir, 'article-diagram-compression-pack-structure-only.html');
+  const structureOnlyOutput = renderers['article-diagram'].render(structureOnlyFixture, structureOnlyPath);
+  assert.match(fs.readFileSync(structureOnlyOutput.htmlPath, 'utf8'), /data-compression-view="structure"/, 'structure-only compression output did not render its requested view');
+  const structureOnlyCheck = runOutputCheck(structureOnlyOutput.htmlPath, structureOnlyOutput);
+  assert.equal(structureOnlyCheck.result.status, 0, `structure-only compression output failed output check: ${structureOnlyCheck.result.stdout}\n${structureOnlyCheck.result.stderr}`);
+  const splitCompressionPath = path.join(tmpDir, 'article-diagram-compression-pack-split.html');
+  const splitCompressionOutput = renderers['article-diagram'].render(
+    { ...compressionPackFixture, render_plan: 'split' },
+    splitCompressionPath,
+  );
+  assert.equal(Array.isArray(splitCompressionOutput), true, 'compression-pack split plan should render multiple outputs');
+  assert.equal(splitCompressionOutput.length, 2, 'compression-pack split plan should render summary and structure outputs');
+  for (const [i, output] of splitCompressionOutput.entries()) {
+    const html = stripComments(fs.readFileSync(output.htmlPath, 'utf8'));
+    assert.match(html, /data-compression-view="(summary|structure)"/, `split compression output ${i + 1} did not mark its view`);
+    const check = runOutputCheck(output.htmlPath, output);
+    assert.equal(check.result.status, 0, `split compression-pack output ${i + 1} failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, `split compression-pack output ${i + 1} did not pass`);
+  }
+  runCardCli(compressionPackFixture, 'compression-pack', 1);
+  runCardCli({ ...compressionPackFixture, render_plan: 'split' }, 'compression-pack-split', 2);
+  const measuredNoteFixture = {
+    ...compressionPackFixture,
+    sentence: 'i'.repeat(120),
+  };
+  assert.throws(
+    () => renderers['article-diagram'].analyzeFormulaCardContent(measuredNoteFixture),
+    /article_diagram_formula_too_dense/,
+    'fallback estimation should expose the regression fixture before the real-font measure pass',
+  );
+  runCardCli(measuredNoteFixture, 'compression-pack-measured-note', 1);
+
   const repeatedChineseLinkPath = path.join(tmpDir, 'article-diagram-repeated-chinese-link-labels.html');
   const repeatedChineseLinkOutput = renderers['article-diagram'].render({
     mode: 'article-diagram',
@@ -793,6 +994,23 @@ try {
   });
   assert.equal(invalidFamilyValidation.valid, false, 'invalid article-diagram family unexpectedly passed validation');
   assert.match(invalidFamilyValidation.errors.join('\n'), /family must be one of: concept-map, process-flow, boundary-model/);
+
+  const missingCompressionValidation = validate({
+    mode: 'article-diagram',
+    title: 'Missing compression pack',
+  });
+  assert.equal(missingCompressionValidation.valid, false, 'article-diagram without family or compression fields unexpectedly passed validation');
+  assert.match(missingCompressionValidation.errors.join('\n'), /compression pack requires string "formula"/);
+
+  const hybridArticleDiagramValidation = validate({
+    ...articleDiagramFixtures['concept-map'],
+    formula: 'Mixed = legacy + compression',
+    sentence: 'Mixed payloads must not silently choose one renderer.',
+    structure: compressionPackFixture.structure,
+    render_plan: 'split',
+  });
+  assert.equal(hybridArticleDiagramValidation.valid, false, 'hybrid legacy/compression article-diagram input unexpectedly passed validation');
+  assert.match(hybridArticleDiagramValidation.errors.join('\n'), /cannot include compression fields/);
 
   const missingZonesValidation = validate({
     mode: 'article-diagram',

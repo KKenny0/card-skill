@@ -102,11 +102,16 @@ const SCHEMAS = {
     },
   },
   'article-diagram': {
-    required: ['mode', 'family', 'title', 'nodes'],
+    required: ['mode', 'title'],
     optional: [
       'design',
       'aspect',
+      'family',
       'subtitle',
+      'formula',
+      'sentence',
+      'structure',
+      'render_plan',
       'caption',
       'nodes',
       'links',
@@ -122,6 +127,10 @@ const SCHEMAS = {
       aspect: 'string',
       title: 'string',
       subtitle: 'string',
+      formula: 'string',
+      sentence: 'string',
+      structure: 'object',
+      render_plan: 'string',
       caption: 'string',
       nodes: 'array',
       links: 'array',
@@ -139,7 +148,8 @@ const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items',
 const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
 const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
 const ARTICLE_DIAGRAM_FAMILIES = new Set(['concept-map', 'process-flow', 'boundary-model']);
-const ARTICLE_DIAGRAM_ASPECTS = new Set(['body-3-2', 'body-4-3']);
+const ARTICLE_DIAGRAM_ASPECTS = new Set(['body-2-1', 'body-3-2', 'body-4-3']);
+const ARTICLE_DIAGRAM_RENDER_PLANS = new Set(['auto', 'summary', 'structure', 'split']);
 const DESIGN_NAMES = listDesigns().map(design => design.name);
 
 function validate(input) {
@@ -233,11 +243,85 @@ function validate(input) {
   }
 
   if (mode === 'article-diagram') {
+    const usesLegacyFamily = Boolean(input.family);
+    const compressionFields = ['formula', 'sentence', 'structure', 'render_plan']
+      .filter(field => Object.prototype.hasOwnProperty.call(input, field));
+
     if (input.family && !ARTICLE_DIAGRAM_FAMILIES.has(input.family)) {
       errors.push(`family must be one of: ${[...ARTICLE_DIAGRAM_FAMILIES].join(', ')}`);
     }
     if (input.aspect && !ARTICLE_DIAGRAM_ASPECTS.has(input.aspect)) {
       errors.push(`aspect must be one of: ${[...ARTICLE_DIAGRAM_ASPECTS].join(', ')}`);
+    }
+    if (input.render_plan && !ARTICLE_DIAGRAM_RENDER_PLANS.has(input.render_plan)) {
+      errors.push(`render_plan must be one of: ${[...ARTICLE_DIAGRAM_RENDER_PLANS].join(', ')}`);
+    }
+
+    if (usesLegacyFamily && compressionFields.length > 0) {
+      errors.push(`legacy article-diagram family input cannot include compression fields: ${compressionFields.join(', ')}`);
+    }
+
+    if (!usesLegacyFamily) {
+      if (!input.formula || typeof input.formula !== 'string') {
+        errors.push('article-diagram compression pack requires string "formula"');
+      }
+      if (!input.sentence || typeof input.sentence !== 'string') {
+        errors.push('article-diagram compression pack requires string "sentence"');
+      }
+      if (!input.structure || typeof input.structure !== 'object' || Array.isArray(input.structure)) {
+        errors.push('article-diagram compression pack requires object "structure"');
+      } else {
+        const structureNodes = input.structure.nodes;
+        const structureRelations = input.structure.relations;
+        if (!Array.isArray(structureNodes) || structureNodes.length < 2) {
+          errors.push('structure.nodes[] must have at least 2 nodes');
+        } else {
+          if (structureNodes.length > 6) errors.push('structure.nodes[] supports at most 6 nodes');
+          const structureNodeIds = new Set();
+          structureNodes.forEach((node, i) => {
+            if (!node || typeof node !== 'object' || Array.isArray(node)) {
+              errors.push(`structure.nodes[${i}] must be an object`);
+              return;
+            }
+            if (!node.id || typeof node.id !== 'string') errors.push(`structure.nodes[${i}]: missing string "id"`);
+            if (!node.label || typeof node.label !== 'string') errors.push(`structure.nodes[${i}]: missing string "label"`);
+            if (node.note !== undefined && typeof node.note !== 'string') errors.push(`structure.nodes[${i}].note must be string`);
+            if (node.id) {
+              if (structureNodeIds.has(node.id)) errors.push(`structure.nodes[${i}]: duplicate id "${node.id}"`);
+              structureNodeIds.add(node.id);
+            }
+            if (typeof node.label === 'string' && node.label.length > 36) {
+              errors.push(`structure.nodes[${i}].label must be 36 characters or fewer`);
+            }
+          });
+
+          if (structureRelations !== undefined) {
+            if (!Array.isArray(structureRelations)) {
+              errors.push('structure.relations must be an array');
+            } else {
+              if (structureRelations.length > 6) errors.push('structure.relations[] supports at most 6 relations');
+              structureRelations.forEach((relation, i) => {
+                if (!relation || typeof relation !== 'object' || Array.isArray(relation)) {
+                  errors.push(`structure.relations[${i}] must be an object`);
+                  return;
+                }
+                if (!relation.from || typeof relation.from !== 'string') errors.push(`structure.relations[${i}]: missing string "from"`);
+                if (!relation.to || typeof relation.to !== 'string') errors.push(`structure.relations[${i}]: missing string "to"`);
+                if (relation.from && !structureNodeIds.has(relation.from)) errors.push(`structure.relations[${i}].from references unknown node "${relation.from}"`);
+                if (relation.to && !structureNodeIds.has(relation.to)) errors.push(`structure.relations[${i}].to references unknown node "${relation.to}"`);
+                if (relation.label !== undefined && typeof relation.label !== 'string') errors.push(`structure.relations[${i}].label must be string`);
+                if (typeof relation.label === 'string' && relation.label.length > 24) errors.push(`structure.relations[${i}].label must be 24 characters or fewer`);
+              });
+            }
+          }
+        }
+      }
+
+      if (input.nodes !== undefined || input.links !== undefined || input.zones !== undefined) {
+        errors.push('compression article-diagram uses structure.nodes/structure.relations; legacy nodes/links/zones require family');
+      }
+
+      return { valid: errors.length === 0, errors };
     }
 
     const nodeIds = new Set();
@@ -335,4 +419,5 @@ module.exports = {
   EDITORIAL_TONES,
   ARTICLE_DIAGRAM_FAMILIES,
   ARTICLE_DIAGRAM_ASPECTS,
+  ARTICLE_DIAGRAM_RENDER_PLANS,
 };

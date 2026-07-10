@@ -13,6 +13,7 @@ const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/infograph_template.h
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
 const ASPECTS = {
+  'body-2-1': { width: 1080, height: 540 },
   'body-3-2': { width: 1080, height: 720 },
   'body-4-3': { width: 1080, height: 810 },
 };
@@ -53,6 +54,7 @@ const BOUNDARY_NODE_SLOTS = [
 
 function defaultAspect(input) {
   if (input.aspect) return input.aspect;
+  if (isCompressionPack(input)) return analyzeFormulaCardContent(input).aspect;
   // 3+ zone boundary-model only needs the taller canvas when the diagram
   // content itself is dense. Sparse bands read better in the normal body
   // aspect because the header, stage, and caption stay balanced.
@@ -163,6 +165,358 @@ function renderCaption(input) {
   return input.caption
     ? `<p class="diagram-caption">${escapeHtml(truncate(input.caption, 110))}</p>`
     : '';
+}
+
+function isCompressionPack(input) {
+  return !input.family && (input.formula || input.sentence || input.structure);
+}
+
+function compressionPlan(input) {
+  const plan = input.render_plan || 'auto';
+  if (plan === 'auto') return 'summary';
+  return plan;
+}
+
+function formulaCardTerms(input) {
+  return parseFormulaCard(input).terms;
+}
+
+function parseFormulaCard(input) {
+  const formulaText = String(input.formula || '').trim();
+  const relationMatch = formulaText.match(/\s*(=>|→|=)\s*/);
+  if (!relationMatch) {
+    return { result: formulaText, relation: '', terms: [] };
+  }
+
+  const relationIndex = relationMatch.index;
+  const result = formulaText.slice(0, relationIndex).trim();
+  const termsSource = formulaText.slice(relationIndex + relationMatch[0].length).trim();
+  const relation = relationMatch[1] === '=>' ? '→' : relationMatch[1];
+  const terms = termsSource
+    .split(/\s*\+\s*/)
+    .map(term => term.trim())
+    .filter(Boolean);
+  return { result, relation, terms };
+}
+
+const FORMULA_TYPE_SCALES = [
+  {
+    id: 'large', resultSize: 72, termSize: 42, noteSize: 29,
+    shellWidth: 890, noteWidth: 760, expressionGap: 24, rowGap: 10, noteGap: 36,
+    maxRows: 1,
+  },
+  {
+    id: 'medium', resultSize: 66, termSize: 38, noteSize: 28,
+    shellWidth: 860, noteWidth: 730, expressionGap: 23, rowGap: 10, noteGap: 34,
+    maxRows: 2,
+  },
+  {
+    id: 'small', resultSize: 64, termSize: 37, noteSize: 28,
+    shellWidth: 900, noteWidth: 820, expressionGap: 27, rowGap: 13, noteGap: 43,
+    maxRows: 3,
+  },
+];
+
+function fallbackTextWidth(value, fontSize) {
+  return visualTextLength(value) * fontSize * 0.52;
+}
+
+function measuredWidth(bboxes, key, value, fontSize) {
+  return bboxes?.[key]?.width || fallbackTextWidth(value, fontSize);
+}
+
+function measuredHeight(bboxes, key, fallback) {
+  return bboxes?.[key]?.height || fallback;
+}
+
+function contiguousPartitions(items, lineCount) {
+  if (lineCount <= 1) return [[items]];
+  if (lineCount > items.length) return [];
+  const output = [];
+  const visit = (start, remaining, lines) => {
+    if (remaining === 1) {
+      output.push([...lines, items.slice(start)]);
+      return;
+    }
+    const lastBreak = items.length - remaining + 1;
+    for (let end = start + 1; end <= lastBreak; end += 1) {
+      visit(end, remaining - 1, [...lines, items.slice(start, end)]);
+    }
+  };
+  visit(0, lineCount, []);
+  return output;
+}
+
+function formulaLineWidth(line, termWidths, plusWidth) {
+  const termWidth = line.reduce((sum, term) => sum + termWidths.get(term), 0);
+  const plusCount = Math.max(0, line.length - 1);
+  return 50 + termWidth + plusCount * (plusWidth + 26);
+}
+
+function formulaCardCandidates(input, bboxes) {
+  const parsed = parseFormulaCard(input);
+  if (parsed.terms.length > 6) {
+    throw new Error('article_diagram_formula_too_dense: formula cards support at most 6 semantic terms. Compress the formula before rendering.');
+  }
+
+  const aspectIds = input.aspect ? [input.aspect] : ['body-2-1', 'body-3-2'];
+  const candidates = [];
+  for (const scale of FORMULA_TYPE_SCALES) {
+    const resultHeight = measuredHeight(bboxes, `formula-result-${scale.id}`, scale.resultSize * 1.02);
+    const resultWidth = measuredWidth(bboxes, `formula-result-${scale.id}`, parsed.result, scale.resultSize);
+    if (resultWidth > scale.shellWidth) continue;
+    const termHeight = measuredHeight(bboxes, `formula-term-${scale.id}-0`, scale.termSize * 1.12);
+    const plusWidth = measuredWidth(bboxes, `formula-plus-${scale.id}`, '+', scale.termSize * 0.62);
+    const termWidths = new Map(parsed.terms.map((term, index) => [
+      term,
+      measuredWidth(bboxes, `formula-term-${scale.id}-${index}`, term, scale.termSize),
+    ]));
+    const rowCounts = parsed.terms.length === 0
+      ? [0]
+      : Array.from({ length: Math.min(scale.maxRows, parsed.terms.length) }, (_, index) => index + 1);
+
+    for (const rowCount of rowCounts) {
+      const partitions = rowCount === 0 ? [[]] : contiguousPartitions(parsed.terms, rowCount);
+      for (const termLines of partitions) {
+        const lineWidths = termLines.map(line => formulaLineWidth(line, termWidths, plusWidth));
+        if (lineWidths.some(width => width > scale.shellWidth)) continue;
+        const maxLineWidth = Math.max(0, ...lineWidths);
+        const minLineWidth = Math.min(maxLineWidth, ...lineWidths);
+        const orphanPenalty = rowCount > 1 && minLineWidth < maxLineWidth * 0.42 ? 90 : 0;
+        const raggedness = rowCount > 1
+          ? lineWidths.reduce((sum, width) => sum + ((maxLineWidth - width) / maxLineWidth) ** 2, 0) * 80
+          : 0;
+
+        for (const aspectId of aspectIds) {
+          const aspect = ASPECTS[aspectId];
+          if (!aspect) continue;
+          const maxRowsForAspect = aspect.height <= 540 ? 2 : 3;
+          if (rowCount > maxRowsForAspect) continue;
+          const noteKey = `formula-note-${scale.id}-${scale.noteWidth}`;
+          const noteHeight = measuredHeight(
+            bboxes,
+            noteKey,
+            Math.max(1, Math.ceil(fallbackTextWidth(input.sentence, scale.noteSize) / scale.noteWidth)) * scale.noteSize * 1.3,
+          );
+          const noteLines = Math.max(1, Math.round(noteHeight / (scale.noteSize * 1.3)));
+          if (noteLines > 2) continue;
+
+          const expressionHeight = rowCount > 0
+            ? rowCount * termHeight + Math.max(0, rowCount - 1) * scale.rowGap
+            : 0;
+          const groupHeight = resultHeight + 19
+            + (rowCount > 0 ? scale.expressionGap + expressionHeight : 0)
+            + scale.noteGap + noteHeight;
+          const verticalFill = groupHeight / aspect.height;
+          if (verticalFill < 0.4 || verticalFill > 0.72) continue;
+
+          const targetFill = aspect.height <= 540 ? 0.48 : 0.52;
+          const aspectPenalty = aspect.height <= 540 ? 0 : 18;
+          const scalePenalty = scale.id === 'large' ? 0 : scale.id === 'medium' ? 18 : 36;
+          const notePenalty = noteLines > 1 ? 4 : 0;
+          const score = Math.abs(verticalFill - targetFill) * 180
+            + aspectPenalty + scalePenalty + notePenalty + orphanPenalty + raggedness;
+          candidates.push({
+            variant: 'editorial-equation',
+            density: aspect.height <= 540 ? 'compact' : 'standard',
+            aspect: aspectId,
+            result: parsed.result,
+            relation: parsed.relation,
+            terms: parsed.terms,
+            termLines,
+            formulaRows: rowCount,
+            noteLines,
+            groupHeight: Math.round(groupHeight),
+            verticalFill: Math.round(verticalFill * 1000) / 1000,
+            score,
+            ...scale,
+          });
+        }
+      }
+    }
+  }
+  return candidates.sort((a, b) => a.score - b.score);
+}
+
+function analyzeFormulaCardContent(input, bboxes = null) {
+  const formulaWeight = visualTextLength(input.formula);
+  const sentenceWeight = visualTextLength(input.sentence);
+  const candidates = formulaCardCandidates(input, bboxes);
+  if (candidates.length === 0) {
+    throw new Error('article_diagram_formula_too_dense: no readable Editorial Equation candidate fits. Shorten the formula or sentence instead of shrinking the type.');
+  }
+  return {
+    ...candidates[0],
+    formulaWeight,
+    sentenceWeight,
+  };
+}
+
+function outputPathWithSuffix(outputHtmlPath, suffix) {
+  const parsed = path.parse(outputHtmlPath);
+  return path.join(parsed.dir, `${parsed.name}_${suffix}${parsed.ext || '.html'}`);
+}
+
+function structureNodes(input) {
+  return Array.isArray(input.structure?.nodes) ? input.structure.nodes.slice(0, 6) : [];
+}
+
+function structureRelations(input) {
+  return Array.isArray(input.structure?.relations) ? input.structure.relations.slice(0, 6) : [];
+}
+
+function relationLabelFor(input, id) {
+  return structureNodes(input).find(node => node.id === id)?.label || id;
+}
+
+function compressionText(input) {
+  const nodes = structureNodes(input);
+  const relations = structureRelations(input);
+  return [
+    input.title,
+    input.subtitle,
+    input.formula,
+    input.sentence,
+    input.caption,
+    ...nodes.flatMap(node => [node.label, node.note]),
+    ...relations.map(relation => relation.label),
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function compressionStructureKind(input) {
+  const nodes = structureNodes(input);
+  const relations = structureRelations(input);
+  const text = compressionText(input);
+  const boundaryPattern = /boundary|inside|outside|guard|permission|trust|sandbox|writer|write|control|isolation|isolate|权限|边界|内外|写入|主线|旁路|隔离|受控|信任|闸门/;
+  const chainPattern = /sequence|loop|pipeline|flow|step|cause|next|order|顺序|流程|链路|因果|循环|下一轮|回写/;
+
+  if (boundaryPattern.test(text)) return 'boundary';
+  if (chainPattern.test(text) || relations.length >= Math.max(2, nodes.length - 1)) return 'chain';
+  if (nodes.length <= 3) return 'triad';
+  return 'matrix';
+}
+
+function compressionLabels(input) {
+  const cjkPattern = /[\u3400-\u9fff]/;
+  const text = compressionText(input);
+  if (cjkPattern.test(text)) {
+    return {
+      formula: '公式',
+      sentence: '一句话',
+      structure: '结构',
+    };
+  }
+  return {
+    formula: 'FORMULA',
+    sentence: 'ONE SENTENCE',
+    structure: 'STRUCTURE',
+  };
+}
+
+function renderCompressionFormula(analysis) {
+  const rows = analysis.formulaRows > 0 ? analysis.termLines.map((line, rowIndex) => {
+    const terms = line.map((term, termIndex) => `
+      ${termIndex > 0 ? '<span class="formula-plus">+</span>' : ''}
+      <span class="formula-term">${escapeHtml(term)}</span>
+    `).join('');
+    const operator = rowIndex === 0 ? analysis.relation : '+';
+    return `
+      <div class="formula-row" data-formula-row="true">
+        <span class="formula-operator">${escapeHtml(operator)}</span>
+        <div class="formula-terms">${terms}</div>
+      </div>
+    `;
+  }).join('\n') : '';
+
+  return `
+    <h1 class="formula-result-major">${escapeHtml(analysis.result)}</h1>
+    <div class="formula-rule"></div>
+    ${rows ? `<div class="formula-expression">${rows}</div>` : ''}
+  `;
+}
+
+function renderCompressionSummary(input, layoutPlan = null) {
+  const analysis = layoutPlan || analyzeFormulaCardContent(input);
+  return `
+    <section class="diagram-stage formula-card-plate">
+      <div class="formula-card-body formula-layout-editorial-equation formula-density-${analysis.density}" data-formula-card="true" data-formula-scale="${analysis.id}" data-formula-rows="${analysis.formulaRows}" data-note-lines="${analysis.noteLines}">
+        ${renderCompressionFormula(analysis)}
+        <p class="formula-card-deck" data-formula-note="true">${escapeHtml(input.sentence || '')}</p>
+      </div>
+    </section>
+  `;
+}
+
+function renderCompressionStructure(input) {
+  const labels = compressionLabels(input);
+  const { kind, structureCols, nodeHtml, relationHtml } = compressionStructureParts(input);
+
+  return `
+    <section class="diagram-stage compression-plate structure-plate structure-${kind}" style="--structure-count:${structureNodes(input).length}; --structure-cols:${structureCols};">
+      <div class="plate-label">${escapeHtml(labels.structure)}</div>
+      <div class="structure-map">
+        ${nodeHtml}
+      </div>
+      <div class="structure-relations">
+        ${relationHtml}
+      </div>
+    </section>
+  `;
+}
+
+function compressionStructureParts(input) {
+  const nodes = structureNodes(input);
+  const relations = structureRelations(input);
+  const kind = compressionStructureKind(input);
+  const structureCols = kind === 'chain'
+    ? Math.max(2, Math.min(4, nodes.length))
+    : kind === 'triad'
+      ? Math.max(2, Math.min(3, nodes.length))
+      : 2;
+  const relationHtml = relations.length > 0
+    ? relations.map(relation => `
+        <div class="structure-relation">
+          <span>${escapeHtml(truncate(relationLabelFor(input, relation.from), 18))}</span>
+          <b>${escapeHtml(truncate(relation.label || 'leads to', 18))}</b>
+          <span>${escapeHtml(truncate(relationLabelFor(input, relation.to), 18))}</span>
+        </div>
+      `).join('\n')
+    : `<div class="structure-relation structure-relation-muted">
+        <span>${escapeHtml(truncate(nodes[0]?.label || 'A', 18))}</span>
+        <b>structures</b>
+        <span>${escapeHtml(truncate(nodes[1]?.label || 'B', 18))}</span>
+        </div>`;
+
+  const nodeHtml = nodes.map((node, index) => `
+    <div class="structure-node" data-index="${String(index + 1).padStart(2, '0')}" data-kind="${kind}">
+      <strong>${escapeHtml(truncate(node.label, 28))}</strong>
+      ${node.note ? `<p class="node-caption">${escapeHtml(truncate(node.note, 48))}</p>` : ''}
+    </div>
+  `).join('\n');
+
+  return { kind, structureCols, nodeHtml, relationHtml };
+}
+
+function renderCompressionFigureSheet(input) {
+  const { kind, structureCols, nodeHtml, relationHtml } = compressionStructureParts(input);
+  return `
+    <section class="diagram-stage figure-sheet figure-${kind}" style="--structure-count:${structureNodes(input).length}; --structure-cols:${structureCols};">
+      <div class="argument-strip">
+        <div class="argument-formula">
+          ${renderCompressionFormula(input.formula)}
+        </div>
+        <div class="argument-sentence">${escapeHtml(truncate(input.sentence || '', 68))}</div>
+      </div>
+      <div class="figure-structure">
+        <div class="structure-map">
+          ${nodeHtml}
+        </div>
+        <div class="structure-relations">
+          ${relationHtml}
+        </div>
+      </div>
+    </section>
+  `;
 }
 
 function linkList(input, positionsById) {
@@ -503,7 +857,13 @@ function renderDiagram(input, positions) {
   throw new Error(`Unknown article-diagram family: ${input.family}`);
 }
 
-function baseCss(input, design, aspect) {
+function renderCompressionDiagram(input, view, layoutPlan = null) {
+  if (view === 'summary') return renderCompressionSummary(input, layoutPlan);
+  if (view === 'structure') return renderCompressionStructure(input);
+  return renderCompressionFigureSheet(input);
+}
+
+function baseCss(input, design, aspect, formulaLayoutPlan = null) {
   const isTall = aspect.height > 720;
   const options = articleDiagramOptions(input);
   const compactLevel = boundaryCompactLevel(input);
@@ -532,6 +892,12 @@ function baseCss(input, design, aspect) {
   const bandNodeNoteSize = compactLevel >= 2 ? 21 : compactLevel >= 1 ? 22 : 23;
   const processStepCount = (input.nodes || []).slice(0, 6).length;
   const denseProcessFlow = input.family === 'process-flow' && processStepCount >= 5;
+  const formulaPlan = isCompressionPack(input) ? formulaLayoutPlan : null;
+  const formulaCardCompact = isCompressionPack(input) && aspect.height <= 540;
+  const formulaCardPadding = aspect.height <= 540 ? '54px 72px' : '54px 72px';
+  const formulaTermSize = formulaCardCompact ? 50 : 58;
+  const formulaResultSize = formulaCardCompact ? 56 : 66;
+  const formulaSentenceSize = 36;
   return `
     :root {
       --bg: ${design.canvas};
@@ -576,6 +942,11 @@ function baseCss(input, design, aspect) {
       gap: ${isTall ? '24px' : '18px'};
       font-family: "XiangcuiDengcusong", "DM Sans", serif;
       color: var(--ink);
+    }
+
+    .article-diagram-compression-pack {
+      padding: ${formulaCardCompact ? '36px 54px 30px' : '48px 62px 36px'};
+      grid-template-rows: minmax(0, 1fr);
     }
 
     .diagram-header {
@@ -847,30 +1218,591 @@ function baseCss(input, design, aspect) {
     .band-node p {
       font: 500 ${bandNodeNoteSize}px/1.16 "DM Sans", "XiangcuiDengcusong", Arial, sans-serif;
     }
+
+    .article-diagram-compression-pack .diagram-stage {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .article-diagram-compression-pack .diagram-stage::before,
+    .article-diagram-compression-pack .diagram-stage::after {
+      content: none;
+    }
+
+    .formula-card-plate {
+      min-height: 0;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      padding: ${formulaCardPadding};
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-1) 62%, transparent), color-mix(in srgb, var(--surface-2) 18%, transparent)),
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 44%);
+    }
+
+    .formula-card-body {
+      position: relative;
+      z-index: 1;
+      width: min(100%, ${formulaCardCompact ? '760px' : '900px'});
+      min-width: 0;
+      display: grid;
+      gap: ${formulaCardCompact ? '24px' : '28px'};
+      justify-items: start;
+    }
+
+    .article-diagram-compression-pack {
+      padding: 0;
+    }
+
+    .formula-card-plate {
+      padding: ${formulaCardPadding};
+      background:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--ink) 1.2%, transparent) 0 1px, transparent 1px 4px),
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-1) 72%, var(--bg)), var(--bg));
+    }
+
+    .formula-layout-editorial-equation {
+      width: min(100%, ${formulaPlan?.shellWidth || 860}px);
+      display: grid;
+      gap: 0;
+      justify-items: start;
+    }
+
+    .formula-layout-editorial-equation .formula-result-major {
+      margin: 0;
+      max-width: 100%;
+      color: var(--ink);
+      font: 500 ${formulaPlan?.resultSize || 66}px/1.02 "XiangcuiDengcusong", "DM Serif Display", serif;
+      letter-spacing: 0;
+      text-wrap: balance;
+      overflow-wrap: normal;
+    }
+
+    .formula-rule {
+      width: 72px;
+      height: 2px;
+      margin-top: 17px;
+      background: var(--accent);
+      opacity: 0.82;
+    }
+
+    .formula-expression {
+      width: 100%;
+      margin-top: ${formulaPlan?.expressionGap || 23}px;
+      display: grid;
+      gap: ${formulaPlan?.rowGap || 10}px;
+    }
+
+    .formula-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 14px;
+      align-items: baseline;
+    }
+
+    .formula-operator,
+    .formula-plus {
+      color: var(--accent);
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-weight: 400;
+    }
+
+    .formula-operator {
+      font-size: ${(formulaPlan?.termSize || 38) * 0.88}px;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .formula-layout-editorial-equation .formula-terms {
+      min-width: 0;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: baseline;
+      gap: 13px;
+    }
+
+    .formula-layout-editorial-equation .formula-term {
+      display: inline;
+      width: auto;
+      max-width: none;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      color: var(--ink);
+      font: 500 ${formulaPlan?.termSize || 38}px/1.12 "XiangcuiDengcusong", "DM Serif Display", serif;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .formula-layout-editorial-equation .formula-plus {
+      font-size: ${(formulaPlan?.termSize || 38) * 0.74}px;
+      line-height: 1;
+      transform: none;
+    }
+
+    .formula-layout-editorial-equation .formula-card-deck {
+      width: ${formulaPlan?.noteWidth || 730}px;
+      max-width: 100%;
+      margin: ${formulaPlan?.noteGap || 34}px 0 0;
+      padding-left: 17px;
+      border-left: 2px solid color-mix(in srgb, var(--accent) 58%, var(--hairline));
+      color: var(--ink-light);
+      font: 400 ${formulaPlan?.noteSize || 28}px/1.3 "XiangcuiDengcusong", "DM Sans", serif;
+      letter-spacing: 0;
+      text-wrap: pretty;
+      overflow-wrap: normal;
+    }
+
+    .compression-plate {
+      position: relative;
+      display: grid;
+      min-height: 0;
+      padding: ${isTall ? '50px 58px 46px' : '42px 54px 38px'};
+      border-top: 1px solid color-mix(in srgb, var(--hairline) 78%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--hairline) 66%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-1) 58%, transparent), color-mix(in srgb, var(--surface-2) 24%, transparent)),
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 42%);
+    }
+
+    .plate-label {
+      position: relative;
+      z-index: 1;
+      color: color-mix(in srgb, var(--accent) 74%, var(--ink-light));
+      font: 700 24px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0;
+    }
+
+    .formula-plate {
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: ${isTall ? '24px' : '20px'};
+    }
+
+    .formula-field {
+      position: relative;
+      z-index: 1;
+      align-self: center;
+      max-width: 1120px;
+      padding: ${isTall ? '30px 0 34px' : '26px 0 30px'};
+      border-top: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--hairline) 72%, transparent);
+    }
+
+    .formula-line {
+      max-width: 1040px;
+      font: 500 ${isTall ? 52 : 46}px/1.14 "XiangcuiDengcusong", "DM Serif Display", serif;
+      color: var(--ink);
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+    }
+
+    .formula-equation {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) auto minmax(0, 0.95fr);
+      gap: ${isTall ? '26px' : '22px'};
+      align-items: center;
+    }
+
+    .formula-terms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .formula-term {
+      display: inline-flex;
+      align-items: center;
+      min-height: 54px;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 42%, var(--hairline));
+      padding: 0 4px 8px;
+      color: var(--ink);
+      font: 500 ${isTall ? 42 : 38}px/1.06 "XiangcuiDengcusong", "DM Serif Display", serif;
+      white-space: nowrap;
+    }
+
+    .formula-arrow {
+      color: var(--accent);
+      font: 500 ${isTall ? 44 : 40}px/1 "XiangcuiDengcusong", "DM Sans", serif;
+    }
+
+    .formula-result {
+      color: var(--ink);
+      font: 500 ${isTall ? 48 : 43}px/1.08 "XiangcuiDengcusong", "DM Serif Display", serif;
+      text-wrap: balance;
+    }
+
+    .figure-sheet {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: ${isTall ? '22px' : '18px'};
+      padding: ${isTall ? '28px 42px 34px' : '24px 40px 30px'};
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-1) 52%, transparent), color-mix(in srgb, var(--surface-2) 18%, transparent));
+    }
+
+    .argument-strip {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+      gap: ${isTall ? '26px' : '22px'};
+      align-items: center;
+      padding: ${isTall ? '15px 0 17px' : '13px 0 15px'};
+      border-top: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+    }
+
+    .argument-formula {
+      min-width: 0;
+    }
+
+    .figure-sheet .formula-equation {
+      grid-template-columns: minmax(0, 1.18fr) auto minmax(0, 0.82fr);
+      gap: 14px;
+    }
+
+    .figure-sheet .formula-terms {
+      gap: 8px 10px;
+    }
+
+    .figure-sheet .formula-term {
+      min-height: 44px;
+      padding: 0 2px 6px;
+      font-size: 36px;
+      line-height: 1.06;
+    }
+
+    .figure-sheet .formula-arrow {
+      font-size: 36px;
+    }
+
+    .figure-sheet .formula-result,
+    .figure-sheet .formula-line {
+      font-size: 36px;
+      line-height: 1.12;
+    }
+
+    .argument-sentence {
+      color: var(--ink-light);
+      font: 400 ${isTall ? 37 : 36}px/1.16 "XiangcuiDengcusong", "DM Sans", serif;
+      text-wrap: balance;
+    }
+
+    .sentence-block {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .sentence-kicker {
+      color: color-mix(in srgb, var(--accent) 74%, var(--ink-light));
+      font: 700 25px/1.08 "XiangcuiDengcusong", "DM Sans", serif;
+      letter-spacing: 0;
+    }
+
+    .sentence-block p {
+      margin: 0;
+      font: 400 ${isTall ? 38 : 36}px/1.18 "XiangcuiDengcusong", "DM Sans", serif;
+      color: var(--ink-light);
+      text-wrap: balance;
+    }
+
+    .structure-plate {
+      grid-template-rows: auto auto auto;
+      align-content: start;
+      gap: ${isTall ? '24px' : '20px'};
+    }
+
+    .structure-map {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(var(--structure-cols), minmax(0, 1fr));
+      gap: ${isTall ? '18px' : '16px'};
+      align-content: center;
+    }
+
+    .structure-map::before {
+      content: "";
+      position: absolute;
+      inset: 50% 22px auto;
+      height: 1px;
+      background: color-mix(in srgb, var(--accent) 34%, var(--hairline));
+      z-index: 0;
+    }
+
+    .structure-triad .structure-map::before,
+    .structure-matrix .structure-map::before {
+      inset: auto 28px 52px;
+    }
+
+    .structure-boundary .structure-map {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: stretch;
+    }
+
+    .structure-boundary .structure-map::before {
+      inset: 18px 50% 18px auto;
+      width: 1px;
+      height: auto;
+    }
+
+    .structure-node {
+      position: relative;
+      z-index: 1;
+      min-height: ${isTall ? 164 : 148}px;
+      border: 1px solid color-mix(in srgb, var(--hairline) 86%, transparent);
+      border-radius: calc(var(--radius) - 2px);
+      background: color-mix(in srgb, var(--surface-1) 84%, var(--bg));
+      padding: 19px 22px 17px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: start;
+      gap: 10px;
+    }
+
+    .structure-node::before {
+      content: attr(data-index);
+      width: 44px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 48%, var(--hairline));
+      color: var(--accent);
+      font: 700 23px/1 "JetBrains Mono", monospace;
+    }
+
+    .structure-node strong {
+      font: 500 ${isTall ? 31 : 29}px/1.06 "XiangcuiDengcusong", "DM Sans", serif;
+      color: var(--ink);
+      text-wrap: balance;
+    }
+
+    .structure-node p {
+      margin: 0;
+      font: 400 ${isTall ? 25 : 24}px/1.2 "XiangcuiDengcusong", "DM Sans", serif;
+      color: var(--ink-light);
+      text-wrap: balance;
+    }
+
+    .structure-chain .structure-node {
+      min-height: ${isTall ? 180 : 166}px;
+    }
+
+    .structure-boundary .structure-node {
+      min-height: ${isTall ? 138 : 126}px;
+      padding: ${isTall ? '17px 20px 15px' : '15px 18px 14px'};
+    }
+
+    .structure-boundary .structure-node:nth-child(odd) {
+      margin-right: ${isTall ? '16px' : '12px'};
+    }
+
+    .structure-boundary .structure-node:nth-child(even) {
+      margin-left: ${isTall ? '16px' : '12px'};
+    }
+
+    .structure-boundary .structure-node strong {
+      font-size: ${isTall ? 30 : 28}px;
+    }
+
+    .figure-structure {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: ${isTall ? '14px' : '12px'};
+    }
+
+    .figure-sheet .structure-map {
+      min-height: 0;
+      align-content: stretch;
+    }
+
+    .figure-sheet .structure-map::before {
+      opacity: 0.72;
+    }
+
+    .figure-boundary .structure-map {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .figure-boundary .structure-map::before {
+      inset: 18px 50% 18px auto;
+      width: 1px;
+      height: auto;
+    }
+
+    .figure-sheet .structure-node {
+      min-height: 0;
+      padding: ${isTall ? '18px 20px 16px' : '16px 18px 15px'};
+      grid-template-rows: auto auto;
+      align-content: center;
+      gap: ${isTall ? '9px' : '8px'};
+    }
+
+    .figure-sheet:not(.figure-chain) .structure-node::before {
+      content: none;
+      display: none;
+    }
+
+    .figure-sheet .structure-node strong {
+      font-size: ${isTall ? 30 : 28}px;
+      line-height: 1.08;
+    }
+
+    .figure-sheet .structure-node p {
+      font-size: ${isTall ? 24 : 23}px;
+      line-height: 1.18;
+    }
+
+    .figure-sheet .structure-relations {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0 12px;
+      border-top: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+    }
+
+    .figure-boundary .structure-relations,
+    .figure-chain .structure-relations {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .structure-relations {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+
+    .structure-chain .structure-relations,
+    .structure-boundary .structure-relations {
+      grid-template-columns: 1fr;
+    }
+
+    .structure-relation {
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-top: 1px solid color-mix(in srgb, var(--hairline) 78%, transparent);
+      color: var(--ink-light);
+      font: 400 24px/1.08 "XiangcuiDengcusong", "DM Sans", serif;
+    }
+
+    .structure-relation b {
+      display: inline-grid;
+      place-items: center;
+      min-width: 82px;
+      color: var(--accent);
+      font: 500 24px/1 "XiangcuiDengcusong", "DM Sans", serif;
+      white-space: nowrap;
+    }
+
+    .structure-relation b::before,
+    .structure-relation b::after {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 1px;
+      margin: 0 7px 5px;
+      background: color-mix(in srgb, var(--accent) 42%, var(--hairline));
+      vertical-align: middle;
+    }
+
+    .structure-relation span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .structure-relation span:first-child {
+      text-align: right;
+    }
+
+    .figure-sheet .structure-relation {
+      min-height: 42px;
+      padding: 8px 8px;
+      gap: 8px;
+      font-size: 24px;
+      line-height: 1.06;
+    }
+
+    .figure-sheet .structure-relation b {
+      min-width: 58px;
+      font-size: 24px;
+    }
+
+    .figure-sheet .structure-relation b::before,
+    .figure-sheet .structure-relation b::after {
+      width: 10px;
+      margin: 0 5px 4px;
+    }
+
+    .structure-relation-muted {
+      grid-column: 1 / -1;
+      max-width: 640px;
+      justify-self: center;
+    }
+
+    .compression-combined {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 0.88fr 1.12fr;
+      gap: 18px;
+    }
+
+    .compression-combined .diagram-stage {
+      min-height: 0;
+    }
   `;
 }
 
-function render(input, outputHtmlPath, positions) {
+function renderSingleHtml(input, outputHtmlPath, positions, compressionView = null) {
   const designName = input.design || 'stripe';
   const design = getDesign(designName);
   if (!design) throw new Error(`Design not found: ${input.design}`);
 
-  const aspectKey = defaultAspect(input);
+  const formulaLayoutPlan = isCompressionPack(input) && compressionView !== 'structure'
+    ? (positions?.__formulaCardPlan__ || analyzeFormulaCardContent(input))
+    : null;
+  const aspectKey = isCompressionPack(input) && compressionView === 'structure' && !input.aspect
+    ? 'body-3-2'
+    : (formulaLayoutPlan?.aspect || defaultAspect(input));
   const aspect = ASPECTS[aspectKey];
   if (!aspect) throw new Error(`Unknown article-diagram aspect: ${aspectKey}`);
 
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-  const logoUrl = input.logo ? escapeHtml(pathToFileURL(path.resolve(input.logo)).href) : '';
-  const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
-  const sourceLine = input.source ? `<span class="info-source">${escapeHtml(input.source)}</span>` : '';
+  const compressionPack = isCompressionPack(input);
+  const logoUrl = !compressionPack && input.logo ? escapeHtml(pathToFileURL(path.resolve(input.logo)).href) : '';
+  const brandName = !compressionPack && input.brand_name ? escapeHtml(input.brand_name) : '';
+  const sourceLine = !compressionPack && input.source ? `<span class="info-source">${escapeHtml(input.source)}</span>` : '';
+  const familyName = compressionPack ? 'compression-pack' : input.family;
+  const bodyHtml = compressionPack
+    ? renderCompressionDiagram(input, compressionView || 'summary', formulaLayoutPlan)
+    : renderDiagram(input, positions);
+  const headerHtml = compressionPack ? '' : renderHeader(input);
+  const captionHtml = compressionPack ? '' : renderCaption(input);
   const contentHtml = `
-    <article class="article-diagram article-diagram-${input.family}">
-      ${renderHeader(input)}
-      ${renderDiagram(input, positions)}
-      ${renderCaption(input)}
+    <article class="article-diagram article-diagram-${familyName}">
+      ${headerHtml}
+      ${bodyHtml}
+      ${captionHtml}
     </article>
   `;
-  const customCss = baseCss(input, design, aspect);
+  const customCss = baseCss(input, design, aspect, formulaLayoutPlan);
 
   template = template.replaceAll('{{CUSTOM_CSS}}', customCss);
   template = template.replaceAll('{{CONTENT_HTML}}', contentHtml);
@@ -880,7 +1812,7 @@ function render(input, outputHtmlPath, positions) {
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
   template = template.replace(
     '<div class="page">',
-    `<div class="page" data-card-mode="article-diagram" data-card-design="${escapeHtml(designName)}" data-diagram-family="${escapeHtml(input.family)}">`,
+    `<div class="page" data-card-mode="article-diagram" data-card-design="${escapeHtml(designName)}" data-diagram-family="${escapeHtml(familyName)}"${compressionView ? ` data-compression-view="${escapeHtml(compressionView)}"` : ''}>`,
   );
 
   if (!logoUrl && !brandName) {
@@ -901,6 +1833,25 @@ function render(input, outputHtmlPath, positions) {
     captureHeight: aspect.height,
     fullpage: false,
   };
+}
+
+function render(input, outputHtmlPath, positions) {
+  if (!isCompressionPack(input)) {
+    return renderSingleHtml(input, outputHtmlPath, positions);
+  }
+
+  const plan = compressionPlan(input);
+  if (plan === 'split') {
+    return [
+      renderSingleHtml(input, outputPathWithSuffix(outputHtmlPath, 'summary'), positions, 'summary'),
+      renderSingleHtml(input, outputPathWithSuffix(outputHtmlPath, 'structure'), positions, 'structure'),
+    ];
+  }
+  if (plan === 'summary' || plan === 'structure') {
+    return renderSingleHtml(input, outputHtmlPath, positions, plan);
+  }
+
+  return renderSingleHtml(input, outputHtmlPath, positions, 'summary');
 }
 
 // ── Two-pass measure-then-place (concept-map only for Phase 1) ──
@@ -969,14 +1920,82 @@ function layoutConceptMap(input, bboxes, aspect) {
   return positions;
 }
 
-function renderMeasure(input, outputHtmlPath) {
-  // concept-map and boundary-model use two-pass measure-then-place.
-  // process-flow is CSS grid (no absolute positioning) and stays single-pass.
-  if (input.family !== 'concept-map' && input.family !== 'boundary-model') return null;
+function renderFormulaMeasure(input, outputHtmlPath, design) {
+  const parsed = parseFormulaCard(input);
+  const fontBaseUrl = pathToFileURL(FONT_DIR).href;
+  const scaleHtml = FORMULA_TYPE_SCALES.map(scale => {
+    const termHtml = parsed.terms.map((term, index) => `
+      <span class="measure-inline" data-measure-id="formula-term-${scale.id}-${index}" style="font-size:${scale.termSize}px;line-height:1.12;">${escapeHtml(term)}</span>
+    `).join('\n');
+    return `
+      <section>
+        <span class="measure-inline" data-measure-id="formula-result-${scale.id}" style="font-size:${scale.resultSize}px;line-height:1.02;">${escapeHtml(parsed.result)}</span>
+        <span class="measure-symbol" data-measure-id="formula-plus-${scale.id}" style="font-size:${scale.termSize * 0.74}px;">+</span>
+        ${termHtml}
+        <p class="measure-note" data-measure-id="formula-note-${scale.id}-${scale.noteWidth}" style="width:${scale.noteWidth}px;font-size:${scale.noteSize}px;line-height:1.3;">${escapeHtml(input.sentence || '')}</p>
+      </section>
+    `;
+  }).join('\n');
 
+  const html = `<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @font-face {
+    font-family: 'XiangcuiDengcusong';
+    src: url('${fontBaseUrl}/XiangcuiDengcusong.ttf') format('truetype');
+    font-display: block;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; background: ${design.canvas}; }
+  section { margin-bottom: 24px; }
+  .measure-inline {
+    visibility: hidden;
+    display: inline-block;
+    width: max-content;
+    font-family: 'XiangcuiDengcusong', 'DM Serif Display', serif;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .measure-symbol {
+    visibility: hidden;
+    display: inline-block;
+    width: max-content;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    line-height: 1;
+  }
+  .measure-note {
+    visibility: hidden;
+    margin: 0;
+    font-family: 'XiangcuiDengcusong', 'DM Sans', serif;
+    font-weight: 400;
+  }
+</style></head><body>${scaleHtml}</body></html>`;
+
+  fs.writeFileSync(outputHtmlPath, html, 'utf-8');
+  return {
+    htmlPath: outputHtmlPath,
+    captureWidth: 1080,
+    captureHeight: 1200,
+    fullpage: false,
+  };
+}
+
+function layoutFormulaCard(input, bboxes) {
+  return { __formulaCardPlan__: analyzeFormulaCardContent(input, bboxes) };
+}
+
+function renderMeasure(input, outputHtmlPath) {
   const designName = input.design || 'stripe';
   const design = getDesign(designName);
   if (!design) throw new Error(`Design not found: ${input.design}`);
+
+  if (isCompressionPack(input)) {
+    if (compressionPlan(input) === 'structure') return null;
+    return renderFormulaMeasure(input, outputHtmlPath, design);
+  }
+
+  // concept-map and boundary-model use two-pass measure-then-place.
+  // process-flow is CSS grid (no absolute positioning) and stays single-pass.
+  if (input.family !== 'concept-map' && input.family !== 'boundary-model') return null;
 
   const aspectKey = defaultAspect(input);
   const aspect = ASPECTS[aspectKey];
@@ -1479,4 +2498,13 @@ function layoutBoundaryModel(input, bboxes, aspect) {
   return positions;
 }
 
-module.exports = { render, renderMeasure, layoutConceptMap, layoutBoundaryModel, ASPECTS, defaultAspect };
+module.exports = {
+  render,
+  renderMeasure,
+  layoutFormulaCard,
+  layoutConceptMap,
+  layoutBoundaryModel,
+  analyzeFormulaCardContent,
+  ASPECTS,
+  defaultAspect,
+};

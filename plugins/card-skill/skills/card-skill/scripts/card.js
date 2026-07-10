@@ -260,7 +260,6 @@ function articleDiagramFallbackPlan(baseInput) {
 
 function renderSingleOutput(cardInput, htmlPath, measureHtmlPath) {
   if (cardInput.mode === 'article-diagram'
-      && (cardInput.family === 'concept-map' || cardInput.family === 'boundary-model')
       && typeof renderer.renderMeasure === 'function') {
     const measureOut = renderer.renderMeasure(cardInput, measureHtmlPath);
     if (measureOut) {
@@ -284,13 +283,17 @@ function renderSingleOutput(cardInput, htmlPath, measureHtmlPath) {
         throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
       }
 
-      const aspectKey = renderer.defaultAspect(cardInput);
-      const aspect = renderer.ASPECTS[aspectKey];
       let positions;
-      if (cardInput.family === 'concept-map') {
-        positions = renderer.layoutConceptMap(cardInput, bboxes, aspect);
-      } else if (cardInput.family === 'boundary-model') {
-        positions = renderer.layoutBoundaryModel(cardInput, bboxes, aspect);
+      if (!cardInput.family && typeof renderer.layoutFormulaCard === 'function') {
+        positions = renderer.layoutFormulaCard(cardInput, bboxes);
+      } else {
+        const aspectKey = renderer.defaultAspect(cardInput);
+        const aspect = renderer.ASPECTS[aspectKey];
+        if (cardInput.family === 'concept-map') {
+          positions = renderer.layoutConceptMap(cardInput, bboxes, aspect);
+        } else if (cardInput.family === 'boundary-model') {
+          positions = renderer.layoutBoundaryModel(cardInput, bboxes, aspect);
+        }
       }
 
       return renderer.render(cardInput, htmlPath, positions);
@@ -300,7 +303,7 @@ function renderSingleOutput(cardInput, htmlPath, measureHtmlPath) {
   return renderer.render(cardInput, htmlPath);
 }
 
-function renderArticleDiagramWithFallbacks(baseInput, tmpDir, stagedPath) {
+function renderArticleDiagramEntries(baseInput, tmpDir) {
   let lastError = null;
   const attempts = articleDiagramFallbackPlan(baseInput);
 
@@ -310,9 +313,21 @@ function renderArticleDiagramWithFallbacks(baseInput, tmpDir, stagedPath) {
     const measureHtmlPath = path.join(tmpDir, `card_${baseInput.mode}_measure${suffix}.html`);
 
     try {
-      const out = renderSingleOutput(attempt.input, htmlPath, measureHtmlPath);
-      captureWithOutputCheck(out, stagedPath);
-      return out;
+      const rendered = renderSingleOutput(attempt.input, htmlPath, measureHtmlPath);
+      const outputs = Array.isArray(rendered) ? rendered : [rendered];
+      const entries = outputs.map((out, outputIndex) => {
+        const stagedName = outputs.length === 1
+          ? 'card.png'
+          : `card_${outputIndex + 1}.png`;
+        return {
+          out,
+          stagedPath: path.join(tmpDir, stagedName),
+        };
+      });
+      for (const entry of entries) {
+        captureWithOutputCheck(entry.out, entry.stagedPath);
+      }
+      return entries;
     } catch (error) {
       lastError = error;
       if (!isArticleDiagramSalvageable(error)) throw error;
@@ -412,15 +427,25 @@ try {
     const stagedPath = path.join(runTmpDir, 'card.png');
 
     if (input.mode === 'article-diagram') {
-      renderArticleDiagramWithFallbacks(input, runTmpDir, stagedPath);
+      const entries = renderArticleDiagramEntries(input, runTmpDir);
+      const pngPaths = entries.map((entry, i) => {
+        if (entries.length === 1) return outputPath;
+        const pngName = path.basename(outputPath, '.png') + `_${i + 1}.png`;
+        return path.join(path.dirname(outputPath), pngName);
+      });
+
+      publishPngs(entries.map((entry, i) => ({ stagedPath: entry.stagedPath, finalPath: pngPaths[i] })));
+      if (entries.length > 1) {
+        pngPaths.forEach((pngPath, i) => console.error(`  Diagram ${i + 1}/${pngPaths.length}: ${pngPath}`));
+      }
+      console.log(pngPaths.join('\n'));
     } else {
       const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
       const out = renderSingleOutput(input, htmlPath, measureHtmlPath);
       captureWithOutputCheck(out, stagedPath);
+      publishPngs([{ stagedPath, finalPath: outputPath }]);
+      console.log(outputPath);
     }
-    publishPngs([{ stagedPath, finalPath: outputPath }]);
-
-    console.log(outputPath);
   }
 } catch (e) {
   console.error(`Render failed: ${e.message}`);

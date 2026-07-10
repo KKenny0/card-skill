@@ -1,31 +1,37 @@
 # Mode: article-diagram
 
-This mode creates in-article explanatory visuals. Use it when the image must clarify a relationship, sequence, boundary, permission model, trust model, or compact system structure.
+This mode creates in-article compression formula cards. Its default job is not to pick a diagram family; its job is to compress one article section into three stable artifacts:
 
-It is not an editorial cover and not a summary card. A good article diagram lets the reader understand one relationship before reading the surrounding paragraph again.
+1. `formula` - the core relation, invariant, or transformation.
+2. `sentence` - one human-readable takeaway.
+3. `structure` - the small supporting structure behind the formula, kept as semantic input and future structure-view material.
+
+Use it when the image must help the reader carry away the article's logic after reading a section. It is not an editorial cover, not a mood image, and not a whole-article summary card.
 
 ## Core Belief
 
-正文解释图的工作不是装饰文章，而是降低理解成本。
+正文解释图的工作不是装饰文章，而是把理解压缩成可带走的结构。
 
-It should answer one of these questions:
+The useful question is no longer "which family fits?" The useful question is:
 
-- What relates to what?
-- What happens first, next, and last?
-- Where is the boundary?
-- Which part is inside, outside, guarded, or restricted?
+- What is the section's formula?
+- What is the one sentence the reader should remember?
+- What structure makes that sentence true?
 
 If the image only sets mood, use `editorial-image`. If it compresses a whole article into many points, use `poster`, `whiteboard`, or a Creative tier mode instead.
 
-## Families
+## Default Output
 
-Pick the family before writing labels. Do not improvise a fourth family in the JSON.
+Default `render_plan` is `auto`, which renders one formula card:
 
-| Family | Use when | Hard limit |
+| Region | Contains | Purpose |
 |---|---|---|
-| `concept-map` | 2-5 concepts and their relationships | 5 nodes, 6 links |
-| `process-flow` | Sequence, loop, review path, handoff, pipeline | 6 steps |
-| `boundary-model` | Inside/outside, trust, permission, sandbox, safety boundary | 4 zones, 6 nodes |
+| Main field | `formula` | The compressed relation the reader should carry away |
+| Footnote line | `sentence` | The human-readable judgment that explains why the formula matters |
+
+The default card does not render title, page number, template label, top-right summary copy, bottom caption, or the supporting `structure`.
+
+Use `render_plan: "summary"` as an explicit alias for the default formula card. Use `render_plan: "structure"` or `render_plan: "split"` only when the user explicitly asks to experiment with a supporting structure view. The structure view is not the default product surface.
 
 ## Routing
 
@@ -40,6 +46,7 @@ Use `article-diagram` for:
 - `trust boundary`
 - `process diagram`
 - `concept map`
+- article-section compression
 
 Keep `editorial-image` for:
 
@@ -53,13 +60,13 @@ Keep `editorial-image` for:
 Ambiguous `正文配图` requests should be routed by intent:
 
 - If the user wants mood, rhythm, metaphor, or a visual pause -> `editorial-image`.
-- If the user wants concepts, steps, boxes, arrows, nested areas, permissions, or labels -> `article-diagram`.
+- If the user wants concepts, steps, boxes, arrows, nested areas, permissions, labels, or a compressed argument -> `article-diagram`.
 
 ## Whole Article Workflow
 
-When the input is a full article, do not compress the whole article into one diagram. First find the sections that deserve explanation, then render one independent diagram for each qualifying section.
+When the input is a full article, do not compress the whole article into one card. First find the sections that deserve compression, then render one independent compression pack for each qualifying section.
 
-### Step 1: Identify section groups
+### Step 1: Identify Section Groups
 
 Scan the article for headings and semantic turns:
 
@@ -71,16 +78,17 @@ Scan the article for headings and semantic turns:
 
 Each section group = one section title or inferred topic + its following paragraphs, lists, quotes, examples, or local explanation, until the next peer or higher-level section begins.
 
-### Step 2: Decide which sections are worth drawing
+### Step 2: Decide Which Sections Are Worth Compressing
 
-A section is worth an `article-diagram` only when a diagram would lower understanding cost. Draw it when the section contains at least one of these:
+A section is worth an `article-diagram` only when compression would lower understanding cost. Draw it when the section contains at least one of these:
 
-- a relationship between 2-5 concepts
+- a relationship between 2-6 concepts
 - a sequence, loop, review path, handoff, pipeline, or lifecycle
 - an inside/outside boundary, trust boundary, permission boundary, or safety boundary
 - a cause-and-effect chain
 - a system structure with roles, layers, or controlled resources
 - a contrast where the distinction is spatial, procedural, or structural
+- a thesis that can be expressed as a compact formula plus support structure
 
 Skip the section when it is mainly:
 
@@ -90,43 +98,53 @@ Skip the section when it is mainly:
 - a list of claims without visible relationships
 - a passage better served by `editorial-image`, `poster`, or `whiteboard`
 
-Do not create one diagram per heading mechanically. A section must earn a diagram by having structure.
+Do not create one compression pack per heading mechanically. A section must earn it by having structure.
 
-### Step 3: Produce one diagram per qualifying section
+### Step 3: Produce One Compression Pack Per Qualifying Section
 
 For every qualifying section:
 
-1. Keep the section boundary intact. Do not mix content from different sections in one diagram.
+1. Keep the section boundary intact. Do not mix content from different sections.
 2. Extract the smallest useful structure from that section.
-3. Pick exactly one family: `concept-map`, `process-flow`, or `boundary-model`.
-4. Generate one complete `article-diagram` JSON object for that section.
-5. Preserve article order in the output sequence.
+3. Write the formula first.
+4. Write the one sentence second.
+5. Build the supporting structure with 2-6 nodes and up to 6 relations, but treat it as semantic support unless a structure view is explicitly requested.
+6. Preserve article order in the output sequence.
 
-If one section contains multiple possible structures, choose the one that best helps the reader understand that section in context. Only create multiple diagrams for the same section when the user explicitly asks for a fuller set.
+If one section contains multiple possible structures, choose the one that best helps the reader understand that section in context. Only create multiple packs for the same section when the user explicitly asks for a fuller set.
 
-### Step 4: Batch output rules
+### Step 4: Batch Output Rules
 
 When multiple sections qualify:
 
 - render all qualifying sections, not only the strongest one
-- use filenames that preserve article order and section identity, such as `01-{section-slug}.png`
-- keep each diagram readable as a standalone in-article image
-- report how many diagrams were produced and which section each one belongs to
+- use filenames that preserve article order and section identity, such as `01-{section-slug}.png`; add `-structure` suffixes only for explicit structure/split output
+- keep each formula card readable as a standalone in-article image
+- report how many compression packs were produced and which section each one belongs to
 
-If no section qualifies, do not force a weak diagram. Tell the user the article has no section that clearly benefits from a structural explanation image, then recommend the closest better mode.
+If no section qualifies, do not force a weak diagram. Tell the user the article has no section that clearly benefits from structural compression, then recommend the closest better mode.
 
 ## Field Contract
 
-Base shape:
+Default shape:
 
 ```json
 {
   "mode": "article-diagram",
-  "family": "concept-map | process-flow | boundary-model",
   "title": "Short relationship title",
-  "nodes": [{ "id": "stable-id", "label": "Visible label", "note": "Optional short note" }],
-  "links": [{ "from": "node-id", "to": "node-id", "label": "Optional relation" }],
-  "zones": [{ "id": "zone-id", "label": "Visible zone" }],
+  "subtitle": "Optional section context",
+  "formula": "Core relation = force A + force B - constraint C",
+  "sentence": "One hard sentence the reader should remember.",
+  "structure": {
+    "nodes": [
+      { "id": "a", "label": "Visible label", "note": "Optional short note" },
+      { "id": "b", "label": "Visible label" }
+    ],
+    "relations": [
+      { "from": "a", "to": "b", "label": "Optional relation" }
+    ]
+  },
+  "render_plan": "auto",
   "caption": "Optional one-sentence interpretation",
   "design": "stripe"
 }
@@ -134,152 +152,143 @@ Base shape:
 
 Rules:
 
-- `nodes[].id` is an internal anchor; it should not be visible.
-- `nodes[].label` is visible. Keep it short.
-- `nodes[].note` is optional and must be shorter than the label in visual weight.
-- `links[]` must point to existing node ids.
-- `links[].label` is optional annotation, not required structure. Use it only when the relation word changes the reader's understanding.
-- In hub-and-spoke concept maps, do not label every spoke; the renderer keeps only the labels that can fit cleanly.
-- `zones[]` is only for `boundary-model`.
-- `boundary-model` nodes require `zone`.
-- `aspect` defaults to `body-3-2`; use `body-4-3` only when dense boundary-model content, many nodes, zone descriptions, or node notes genuinely need more vertical space.
+- `formula` is visible. It should express a relationship, not repeat the title.
+- `sentence` is visible. It should make a judgment, not summarize mechanically.
+- `structure.nodes[].id` is an internal anchor; it should not be visible.
+- `structure.nodes[].label` is visible. Keep it short.
+- `structure.nodes[].note` is optional and must be shorter than the label in visual weight.
+- `structure.relations[]` must point to known structure node ids.
+- `structure.relations[].label` is optional annotation. Use it only when the relation word changes the reader's understanding.
+- `render_plan` may be `auto`, `split`, `summary`, or `structure`. `auto` and `summary` render the formula card.
+- `aspect` defaults to `body-2-1` for formula cards, expands to `body-3-2` when formula or sentence text is dense, and keeps `body-4-3` for legacy/tall diagram cases.
 
 Language contract:
 
 - Visible text follows the source article and the user's request by default.
-- For a Chinese article, write `title`, `subtitle`, `nodes[].label`, `nodes[].note`, `links[].label`, `zones[].label`, `zones[].description`, and `caption` in Chinese unless the user explicitly asks for English, bilingual output, or translation.
+- For a Chinese article, write `title`, `subtitle`, `formula`, `sentence`, `structure.nodes[].label`, `structure.nodes[].note`, `structure.relations[].label`, and `caption` in Chinese unless the user explicitly asks for English, bilingual output, or translation.
 - For an English article, keep visible text in English unless the user asks otherwise.
 - Internal ids may be English slugs, but visible labels should not be translated away from the source language.
 - Preserve proper nouns, product names, API names, and technical terms in the language or spelling used by the source.
-- The English examples below and in the schema are schema illustrations, not a language default.
 
-## Family Selection
+## Compression Quality
 
-### concept-map
+### Formula
 
-Use when the article explains how a few ideas reinforce, constrain, or transform each other.
+Good formulas:
 
-Good inputs:
-
-- Three-part model
-- Concept dependency
-- Tension between forces
-- Hub-and-spoke explanation
+- express a relation, transformation, boundary, or constraint
+- make the structure visible before the reader sees the diagram
+- can be read aloud without sounding like decorative math
+- may use `+` and `=>` for a clean terms-to-conclusion layout; the renderer treats the left side as input terms and the right side as the compressed result
 
 Avoid:
 
-- More than five concepts
-- Long relationship labels
-- Repeating the same relationship label on several links; move the shared relation into the title or caption instead
-- A complete article outline disguised as a map
+- vague slogans
+- copied titles
+- decorative symbols that add no logic
+- long clauses that should be the sentence instead
 
-### process-flow
+### One Sentence
 
-Use when order matters.
+Good sentences:
 
-Good inputs:
-
-- Review -> decide -> act -> verify
-- Draft -> critique -> revise -> publish
-- Request -> plan -> tool call -> result
+- state the section's hard conclusion
+- explain why the formula matters
+- can stand alone under the article paragraph
 
 Avoid:
 
-- Branching decision trees
-- Parallel swimlanes
-- Long step descriptions
+- neutral summaries
+- "this section discusses..."
+- repeating every node in prose
 
-### boundary-model
+### Structure
 
-Use when the article depends on a separation between spaces, trust levels, permissions, or control layers.
+Good structures:
 
-Good inputs:
-
-- Agent harness safety
-- Sandbox vs filesystem
-- User request vs tool execution
-- Public API vs private state
+- contain 2-6 visible nodes
+- only include relations needed to explain the formula
+- prefer fewer nodes over smaller text
+- can express relationship, sequence, boundary, or causal chain through the same node/relation grammar
+- support formula writing first; they are not automatically rendered in the default card
 
 Avoid:
 
-- Decorative nested boxes with no real boundary
-- More than four zones
-- Labels that repeat the article title instead of naming zones
+- a full article outline disguised as a diagram
+- many boxes with no visible reading path
+- relation labels on every edge when the shared relation belongs in the formula
+
+## Legacy Compatibility
+
+The renderer still accepts legacy `family` inputs:
+
+| Family | Use when | Hard limit |
+|---|---|---|
+| `concept-map` | Existing fixtures or explicit user request for concept-map | 5 nodes, 6 links |
+| `process-flow` | Existing fixtures or explicit user request for process-flow | 6 steps |
+| `boundary-model` | Existing fixtures or explicit user request for boundary-model | 4 zones, 6 nodes |
+
+Do not use these families for new article compression unless the user explicitly asks for that old shape. New article-diagram work should use `formula`, `sentence`, and `structure`.
 
 ## Visual Rules
 
-- concept-map and boundary-model positions are computed by the layout engine from measured node and zone-header sizes; do not free-position labels by taste.
-- process-flow uses CSS grid (auto-layout); do not override its column rhythm.
-- One visible label per node.
-- Relationship labels are optional. If several links share the same label, hide the repeated labels and state the shared relation in the title or caption.
-- Hub-and-spoke concept maps should usually rely on node labels plus caption; relationship labels are limited so they do not crowd the hub.
-- Visible relationship labels must stay outside node boxes and away from the stage boundary; if they cannot fit cleanly, remove the label before shrinking the text.
-- Text must not overlap connectors, boxes, zones, or other text.
-- Connectors should sit behind nodes and stop visually at node boundaries.
-- Zone labels should name the area, not the output format.
-- In 3+ zone boundary-model bands, `zones[].description` is a short hint, not body copy. It renders as a single truncated line so nodes do not cover it.
-- The title should describe the relationship, not say `article diagram`, `process flow`, or `boundary model`.
-- Treat the header, diagram stage, and caption as one composition. A sparse diagram should not use a tall canvas just to fill space.
-- Captions should read as compact explanation strips: one line when possible, two lines at most, aligned to the diagram width rather than a narrow paragraph block.
+- The renderer uses a formula card by default: `formula` is the main visual field, `sentence` is the quiet explanatory footnote.
+- Do not show page numbers, plate numbers, top-right summary copy, bottom caption strips, or template labels like `formula`, `one sentence`, or `structure` unless the user explicitly asks for a labeled teaching slide.
+- The formula must feel like an article annotation, not a poster headline and not a dashboard tile.
+- The formula card must use the same Quiet Paper grammar: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
+- Formula cards use one Editorial Equation grammar: a dominant result, a short accent rule, 1-3 semantic equation rows on one left axis, and a 1-2 line annotation.
+- Layout variation comes only from measured line grouping, one of three approved type scales, and `body-2-1` / `body-3-2` aspect selection. Do not introduce ledger, proof-strip, or detached annotation variants.
+- A term is indivisible. Line breaks may occur only at `=`, `+`, or `→` relationship boundaries.
+- Text must not overlap borders, sentence line, caption, or footer.
+- The title should describe the relationship, not say `article diagram`, `正文解释图`, `concept map`, `process flow`, or `compression pack`.
+- Title and captions are semantic input but not visible in the default compression-pack render. Put essential explanatory text in `formula` and `sentence`.
 - Keep text readable at thumbnail size.
-- Prefer fewer nodes over smaller text.
 - Do not add page chrome, toolbar headers, fake UI panels, or decorative frames.
-- Preserve Quiet Paper: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
-- Treat the diagram as a paper annotation inside an article, not a SaaS dashboard. Titles and labels should keep the Xiangcui/DM editorial feel; boxes, connectors, and bands should look like quiet paper marks rather than UI widgets.
+- Treat the card as a paper annotation inside an article, not a SaaS dashboard.
 
 ## Auto Rescue
 
-The CLI runs bounded rescue retries before failing an `article-diagram` render:
+Compression formula cards use a real-font measure pass before final rendering. The planner enumerates readable semantic line groups, rejects candidates outside the approved density and whitespace range, then selects the lowest-scoring candidate. If no candidate fits, simplify the input first:
 
-- If concept-map relationship labels collide with nodes, the renderer first keeps fewer labels, then hides relationship labels if needed. Nodes, node text, and caption are preserved.
-- If boundary-model bands are too tight, the renderer retries with more compact band spacing and may use the taller article-body aspect.
-- If a process-flow caption becomes an awkward narrow paragraph, the renderer retries with a wider caption treatment and may use the taller article-body aspect.
+- shorten `formula`
+- shorten `sentence`
+- let the planner use `body-3-2` when three formula rows or a two-line annotation need the taller ratio
+- do not lower formula terms below the approved small scale or annotations below 27px
 
-Auto rescue is intentionally limited. It must not silently remove nodes, change the diagram family, rewrite visible text, or shrink text below readability. If the diagram still cannot fit after these bounded retries, the render fails with the output-check error so the input can be simplified.
+Legacy family inputs still use the existing bounded rescue retries for label collisions, tight boundary bands, and narrow process captions.
 
-## Layout Engine
+## Known Limitations
 
-concept-map and boundary-model run a two-pass measure-then-place pipeline. process-flow stays single-pass because CSS grid already adapts to content.
-
-**Measure pass** (`scripts/renderers/article-diagram.js` `renderMeasure`):
-- A hidden DOM is rendered with each node at its family-specific width (concept-map 220 / boundary-model 218 for nested 2-zone, 282 for 3+ zone bands) and `visibility: hidden` stack flow.
-- For boundary-model, each zone's header (label + optional description) is rendered at the zone's real layout width. In 3+ zone bands, descriptions are measured as single-line hints, matching the final visual constraint.
-- `assets/capture4k.js --measure` returns each `[data-measure-id]` element's bbox as JSON.
-
-**Layout pass** (`layoutConceptMap` / `layoutBoundaryModel`):
-- concept-map: geometric anchors (2=horizontal / 3=triangle / 4=rectangle / 5=pentagon) clamped to stage bounds using measured half-width and half-height so nodes with long notes do not drift into each other or off-stage. Relationship labels try alternate positions; repeated labels and crowded hub-spoke labels are hidden before the renderer shrinks text.
-- boundary-model: legacy `BOUNDARY_NODE_SLOTS` provide base anchors (which already encode inner-zone avoidance), then each node is pushed below the measured zone-header band and clamped in both x and y to stay inside its zone. If a zone genuinely cannot fit a node below its header, the renderer fails with a clear error naming the zone, the node, and the dimensions — the AI should then shorten the note, drop the description, or simplify the diagram.
-
-**Known limitations** (do not promise users these will just work):
-- concept-map with 5 nodes + 5 links + long notes may still drop relationship labels during auto rescue. Simplify the input if the relation words are essential.
-- boundary-model with 3+ zones uses a **horizontal indented band** paradigm (not centered nested boxes) because nested-box geometry mathematically cannot fit 218px-wide nodes in all zone rings on a 960px stage. Bands have no ring constraint but have a **vertical space constraint**: total content height (zone headers + node heights + paddings) must fit within the stage height. Sparse 3-zone diagrams stay on `body-3-2`; dense diagrams with stacked nodes, 4 zones, zone descriptions, or node notes switch to `body-4-3`. Auto rescue can compact band spacing and retry the taller aspect, but very long zone descriptions or node notes can still exceed capacity.
-- boundary-model with 2 zones uses centered nested boxes (the original paradigm) and has no ring constraint (2-zone geometry provides enough room).
+- Very long formulas can still overpower the card. Rewrite the formula into short terms plus a short result instead of shrinking text.
+- The default renderer intentionally does not solve open-ended structure diagrams. If the user needs a precise topology, use the legacy family path explicitly, a future structure-view design, or a custom Creative tier render.
 
 ## Anti-Patterns
 
-- **Mode label leakage**: visible text like `ARTICLE DIAGRAM`, `正文解释图`, `concept map`, or `process flow`.
-- **Whole-article compression**: one diagram tries to summarize every section of a long article.
-- **Mechanical section coverage**: every heading gets a diagram even when the section has no structural relationship to explain.
-- **Section mixing**: one diagram combines concepts from separate sections just because they all seem important.
-- **Box soup**: many boxes with no visible hierarchy.
-- **Arrow soup**: arrows everywhere, no first reading path.
-- **Summary card in disguise**: bullets distributed into boxes.
+- **Mode label leakage**: visible text like `ARTICLE DIAGRAM`, `正文解释图`, `concept map`, `process flow`, or `compression pack`.
+- **Formula as slogan**: the formula is a decorative title, not a relation.
+- **Sentence as summary**: the sentence restates the paragraph without a judgment.
+- **Whole-article compression**: one pack tries to summarize every section of a long article.
+- **Mechanical section coverage**: every heading gets a pack even when the section has no structural relationship to explain.
+- **Section mixing**: one pack combines concepts from separate sections just because they all seem important.
+- **Box soup**: forcing structure boxes into the default formula card.
+- **Arrow soup**: forcing relations into a card that should only carry formula and sentence.
+- **Old diagram drift**: the output looks like the legacy concept-map/process-flow/boundary-model renderer instead of a compression plate.
 - **Fake precision**: detailed labels that imply structure the article did not establish.
-- **Tiny taxonomy**: six small terms packed so tightly that none can be read first.
 
 ## Acceptance Check
 
 Before delivery:
 
-- Can the main relationship be understood in 3 seconds?
-- Is the family correct for the job?
-- Are there 2-6 visible units, not a full article outline?
-- For full-article input, were all worth-drawing sections rendered, and weak sections skipped?
-- Does each diagram serve exactly one section?
+- Can the formula be understood in 3 seconds?
+- Does the sentence state a real judgment?
+- Does the formula card avoid title, labels, captions, and diagram chrome?
+- Does the supporting `structure` help write the formula without forcing a visual topology?
+- For full-article input, were all worth-compressing sections rendered, and weak sections skipped?
+- Does each compression pack serve exactly one section?
 - Does every label name article content rather than the image format?
 - Does visible text stay in the source or requested language?
-- Do zones, nodes, and connectors avoid accidental overlap?
-- Does the image still read at thumbnail size?
+- Do formula text, sentence, and optional colophon avoid accidental overlap?
+- Does each image still read at thumbnail size?
 - Does it stay inside Quiet Paper rather than looking like a dashboard or slide?
 
 If any answer is no, simplify the structure before rendering.

@@ -1,9 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill article-diagram mode input",
-  "description": "Structured input for in-article explanatory diagrams. Use this mode for compact concept maps, process flows, and boundary models that must be understood at first glance. Visible text should follow the source article or requested language unless the user explicitly asks for translation or bilingual output.",
+  "description": "Structured input for in-article compression formula cards. The default shape is a compression pack: formula, one sentence, and a supporting structure map. Legacy concept-map, process-flow, and boundary-model inputs are still accepted for compatibility. Visible text should follow the source article or requested language unless the user explicitly asks for translation or bilingual output.",
   "type": "object",
-  "required": ["mode", "family", "title", "nodes"],
+  "required": ["mode", "title"],
+  "oneOf": [
+    {
+      "required": ["formula", "sentence", "structure"],
+      "not": { "required": ["family"] }
+    },
+    {
+      "required": ["family", "nodes"],
+      "not": {
+        "anyOf": [
+          { "required": ["formula"] },
+          { "required": ["sentence"] },
+          { "required": ["structure"] },
+          { "required": ["render_plan"] }
+        ]
+      }
+    }
+  ],
   "properties": {
     "mode": { "type": "string", "const": "article-diagram" },
     "family": {
@@ -13,8 +30,8 @@
     },
     "aspect": {
       "type": "string",
-      "enum": ["body-3-2", "body-4-3"],
-      "description": "Canvas ratio for article body placement. Defaults to body-3-2."
+      "enum": ["body-2-1", "body-3-2", "body-4-3"],
+      "description": "Canvas ratio for article body placement. Compression formula cards default to body-2-1 and expand to body-3-2 when dense; legacy diagrams default to body-3-2."
     },
     "design": {
       "type": "string",
@@ -29,9 +46,65 @@
       "type": "string",
       "description": "Optional short context line. Use the source or requested language for visible text."
     },
+    "formula": {
+      "type": "string",
+      "description": "Compression-pack formula. Express the core relation, invariant, or transformation in compact visible language."
+    },
+    "sentence": {
+      "type": "string",
+      "description": "Compression-pack one-sentence takeaway. This is the human-readable theorem."
+    },
+    "render_plan": {
+      "type": "string",
+      "enum": ["auto", "summary", "structure", "split"],
+      "description": "Compression-pack render plan. auto defaults to a formula card containing formula and sentence only. Use structure or split only when explicitly producing the supporting structure view."
+    },
+    "structure": {
+      "type": "object",
+      "description": "Compression-pack structure map that supports the formula and sentence.",
+      "required": ["nodes"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": {
+                "type": "string",
+                "description": "Visible structure node label. Use the source or requested language."
+              },
+              "note": {
+                "type": "string",
+                "description": "Optional visible node note. Keep it shorter than the label."
+              }
+            }
+          }
+        },
+        "relations": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "label": {
+                "type": "string",
+                "description": "Optional visible relationship label. Use it only when it changes interpretation."
+              }
+            }
+          }
+        }
+      }
+    },
     "nodes": {
       "type": "array",
-      "description": "Visible concepts, steps, or entities. Keep labels short and in the source or requested language.",
+      "description": "Legacy family visible concepts, steps, or entities. Keep labels short and in the source or requested language.",
       "minItems": 2,
       "maxItems": 6,
       "items": {
@@ -116,20 +189,23 @@
   "examples": [
     {
       "mode": "article-diagram",
-      "family": "boundary-model",
       "title": "Safety lives at the boundary",
-      "nodes": [
-        { "id": "user", "label": "User intent", "zone": "outside" },
-        { "id": "harness", "label": "Agent harness", "zone": "guarded" },
-        { "id": "tools", "label": "Tools", "zone": "guarded" },
-        { "id": "system", "label": "Filesystem", "zone": "restricted" }
-      ],
-      "zones": [
-        { "id": "outside", "label": "Outside request" },
-        { "id": "guarded", "label": "Guarded execution" },
-        { "id": "restricted", "label": "Restricted resources" }
-      ],
-      "caption": "The harness matters because it turns intent into controlled action."
+      "formula": "Safety = single writer + shared trace + bounded tools",
+      "sentence": "Multi-agent work stays safe when only one execution line writes while helpers contribute judgment through a shared trace.",
+      "structure": {
+        "nodes": [
+          { "id": "trace", "label": "Shared trace", "note": "Decision history" },
+          { "id": "writer", "label": "Single writer", "note": "Only mutation path" },
+          { "id": "helpers", "label": "Helper agents", "note": "Explore and verify" },
+          { "id": "tools", "label": "Bounded tools", "note": "Controlled action" }
+        ],
+        "relations": [
+          { "from": "helpers", "to": "trace", "label": "contribute" },
+          { "from": "trace", "to": "writer", "label": "guides" },
+          { "from": "writer", "to": "tools", "label": "executes" }
+        ]
+      },
+      "caption": "The structure map explains why parallel intelligence still needs a single write boundary."
     }
   ]
 }

@@ -77,10 +77,10 @@ card-skill 把 9 个 mode 分两层：
 判断逻辑：
 1. 如果 mode 是 infograph / comic / sketchnote → 直接进入 Creative tier 的 AI 流程（Step 1）
 2. 如果 mode 是 article-diagram：
-   - 先进入 Step 1.6 选择固定图型：`concept-map` / `process-flow` / `boundary-model`
-   - 如果输入是整篇文章，先逐章筛选；凡是值得画的章节都各出一张正文解释图，不要把整篇文章塞成一张节点清单
-   - 单张图只表达一个章节里的一个关系、流程或边界
-   - 提取 `nodes`，必要时提取 `links`；`boundary-model` 还必须提取 `zones`
+   - 先进入 Step 1.6，把文章片段压成统一三件套：`formula` / `sentence` / `structure`
+   - 默认只输出公式卡：`formula` 是主视觉，`sentence` 是低权重解释脚注；暂不默认渲染结构图
+   - 如果输入是整篇文章，先逐章筛选；凡是值得压缩的章节都各出一组 compression pack，不要把整篇文章塞成一张节点清单
+   - 旧 `concept-map` / `process-flow` / `boundary-model` 输入只作为兼容路径；新产出不要公开暴露 family 选择
    - CLI 路径可直接渲染；schema 失败时先简化结构，不要改走开放自由画布
 3. 如果 mode 是 editorial-image：
    - 先进入 Step 1.5 生成或确认视觉方向
@@ -113,7 +113,7 @@ long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, th
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
 poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
 editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design?, editorial_tone? }`
-article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], links?, zones?, caption?, design? }`
+article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, label, note?}], relations?}, render_plan?, caption?, design? }`；legacy: `{ mode, family, title, nodes, links?, zones? }`
 
 ### Step 0.5: 读取基础
 
@@ -135,7 +135,7 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
    - `references/mode-poster.md` — 多卡分割（视觉权重计算、贪婪分割算法）
    - `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
    - `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文氛围插图）
-   - `references/mode-article-diagram.md` — 正文解释图（概念图、流程图、边界模型）
+   - `references/mode-article-diagram.md` — 正文解释图（默认公式卡：公式 + 一句话；结构图暂缓，旧图型只作兼容）
 
 ### Step 1: 获取 + 分析内容
 
@@ -222,35 +222,41 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
 
 当用户要求 `正文解释图` / `关系图` / `流程图` / `边界图` / `权限边界` / `安全边界` / `trust boundary` / `article diagram` / `concept map` / `process flow` 时，进入 `article-diagram` 流程。
 
-先读取 `references/mode-article-diagram.md`。默认选择 1 个固定图型并继续渲染；不要为了显得丰富而产出多个方向，除非用户明确要求先看方案。
+先读取 `references/mode-article-diagram.md`。默认采用统一 compression pack，不再先问“选哪种图型”，而是问“这段内容能被压成什么公式、什么一句话、什么结构骨架”。
 
-图型选择：
+压缩三件套：
 
-| 用户意图 | `family` | 结构 |
-|----------|----------|------|
-| 2-5 个概念及其关系 | `concept-map` | `nodes` + 可选 `links` |
-| 顺序、循环、管线、交接路径 | `process-flow` | 按顺序排列的 `nodes` |
-| 内外边界、权限、信任、安全、沙箱 | `boundary-model` | `zones` + 带 `zone` 的 `nodes` |
+| 字段 | 作用 | 要求 |
+|------|------|------|
+| `formula` | 核心关系 / 不变量 / 转换式 | 像公式，但不必是数学；必须能解释文章里的关系 |
+| `sentence` | 人能带走的一句话 | 不复述标题，给出判断 |
+| `structure` | 支撑公式的结构板 | 2-6 个节点，最多 6 条关系 |
 
 约束：
-- `concept-map` 最多 5 个节点；`process-flow` 和 `boundary-model` 最多 6 个节点
-- `boundary-model` 必须有 2-4 个 `zones`，每个 node 必须归属一个 zone
-- 节点标签短于 36 个字符；链接标签短于 24 个字符
-- 链接标签是可选注释，不是必填结构；多条边使用同一个关系词时，不要逐条显示，把共同关系写进标题或 caption
-- 输入是整篇文章时，先按章节分组；有关系、流程、边界、权限、信任层、因果链或系统结构的章节都要各自生成一张图
+- `structure.nodes` 最少 2 个、最多 6 个；节点标签短于 36 个字符
+- `structure.relations` 最多 6 条；关系标签短于 24 个字符
+- 关系标签是可选注释，不是必填结构；共同关系优先写进 `formula` 或 `sentence`
+- 输入是整篇文章时，先按章节分组；有关系、流程、边界、权限、信任层、因果链或系统结构的章节都要各自生成一组 compression pack
 - 纯铺垫、纯情绪、纯结论、没有结构关系的章节跳过；不要为了覆盖所有标题机械出图
-- 每张正文解释图只服务一个章节，不混合多个章节；输出顺序跟随文章顺序
-- 可见文字默认跟随原文和用户请求：中文文章用中文标题、节点、连线、区域和说明；英文文章用英文；只有用户明确要求英文、双语或翻译时才改变语言
+- 每组 compression pack 只服务一个章节，不混合多个章节；输出顺序跟随文章顺序
+- 可见文字默认跟随原文和用户请求：中文文章用中文标题、公式、句子、节点、关系和说明；英文文章用英文；只有用户明确要求英文、双语或翻译时才改变语言
 - 标题描述关系，不写 `article diagram`、`正文解释图`、`concept map`、`process flow` 这类产物类型
-- 如果用户给了很多材料，按章节抽出最小关系；不要把文章所有观点都塞进同一张图里
+- 如果用户给了很多材料，按章节抽出最小压缩单元；不要把文章所有观点都塞进同一张图里
+- 旧 `family` 输入仍可渲染，但只用于兼容历史素材或用户明确要求的技术图
+- 渲染时默认使用公式卡：只展示 `formula` 和 `sentence`，不展示标题、图序号、模板标签、顶部概括语或底部 caption
+- 公式卡统一使用 Editorial Equation：主结论、短分隔线、1-3 行语义完整的关系式、1-2 行旁注；不得切换成 ledger、双栏证明页或底部大段文字
+- renderer 必须先测量真实字体，再从固定字号档和 `body-2-1` / `body-3-2` 中选择可读候选；term 只能在关系符边界换行，不得拆词或靠连续缩字救场
+- `structure` 仍然作为语义输入保留，用来帮助生成公式和未来结构图；除非显式要求 `render_plan: "structure"` 或 `render_plan: "split"`，否则不要默认可视化它
 
 出图前自检：
-- 3 秒内能看出主关系吗？
-- 是否选对图型，而不是拿边界图画流程、拿流程图画概念网？
-- 整篇文章输入时，是否已经画出所有值得画的章节，并跳过不适合画的章节？
-- 每张图是否只对应一个章节？
+- 公式是否真的表达关系，而不是漂亮标题？
+- 一句话是否给出判断，而不是摘要句？
+- 结构字段是否支撑公式，而不是强行生成一张开放形态结构图？
+- 整篇文章输入时，是否已经压缩所有值得压缩的章节，并跳过不适合的章节？
+- 每组图是否只对应一个章节？
 - 每个可见标签都在命名内容，不是在描述图片用途？
-- 节点、区域、连线有没有互相压住？
+- 节点、关系条、标题、caption 有没有互相压住？
+- 主体结构是否占据画面主要面积，而不是被公式、标签或模板装饰抢走注意力？
 - 缩略图里是否还看得出主结构？
 
 ### Step 2: 匹配设计系统
@@ -259,7 +265,7 @@ article-diagram: `{ mode, family, title, nodes: [{id, label, note?, zone?}], lin
 
 **editorial-image 跳过常规候选匹配**：先按 `references/mode-editorial-image.md` 确定视觉方向，再根据气质选择 Quiet Paper token。
 
-**article-diagram 跳过常规候选匹配**：先按 `references/mode-article-diagram.md` 确定 `family`，再用固定槽位渲染。设计系统只改变纸面气质，不改变图型。
+**article-diagram 跳过常规视觉模板匹配**：先按 `references/mode-article-diagram.md` 生成 compression pack，再由 Editorial Equation 测量布局器选择语义分行、字号档和画布比例。设计系统只改变纸面气质，不改变压缩逻辑或阅读轴。
 
 默认从 design-index.md 中直接选择 1 个最合适的品牌气质，不等待用户确认。先使用 Quiet Paper 审美骨架，再根据内容选择轻微偏向。
 
@@ -467,7 +473,7 @@ $output = Join-Path $env:TEMP 'smoke_big.png'
 
 涉及 `editorial-image` 设计选择时，还必须实际渲染并检查一组 PNG：`reflective`、`sharp`、`warm`、`technical`、显式 `design` 各 1 张。确认视觉气质确实不同、仍保持 Quiet Paper、无明显裁切/溢出/坏换行/主体过小。
 
-涉及 `article-diagram` 时，至少实际渲染并检查 `concept-map`、`process-flow`、`boundary-model` 各 1 张，确认缩略图里主关系清楚、节点和连线没有互相压住。
+涉及 `article-diagram` 时，至少实际渲染并检查一组 compression pack（默认公式卡），并回归 `concept-map`、`process-flow`、`boundary-model` 各 1 张 legacy fixture，确认缩略图里主关系清楚、节点和关系没有互相压住。
 
 ## 开发者工具（非 AI 流程使用）
 

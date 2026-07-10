@@ -5,14 +5,14 @@ const { pathToFileURL } = require('url');
 
 async function main() {
   const args = process.argv.slice(2);
-  const measureMode = args.includes('--measure');
-  const positional = args.filter(a => a !== '--measure');
-  const htmlPath = positional[0];
-  const outputPath = positional[1];
-  const width = parseInt(positional[2]) || 1080;
-  const height = parseInt(positional[3]) || 800;
-  const dpr = parseFloat(positional[4]) || 2;
-  const fullpage = positional[5] === 'fullpage';
+  const measureIndex = args.indexOf('--measure');
+  const measureMode = measureIndex >= 0;
+  const htmlPath = args[0];
+  const outputPath = measureMode ? null : args[1];
+  const width = parseInt(args[measureMode ? measureIndex + 1 : 2]) || 1080;
+  const height = parseInt(args[measureMode ? measureIndex + 2 : 3]) || 800;
+  const dpr = parseFloat(args[measureMode ? measureIndex + 3 : 4]) || 2;
+  const fullpage = !measureMode && args[5] === 'fullpage';
 
   if (!htmlPath) {
     console.error('Usage: node capture4k.js <html> <png> [width] [height] [dpr] [fullpage]');
