@@ -111,6 +111,8 @@ function assertPackagedSkill() {
     path.join(skillRoot, 'package.json'),
     path.join(skillRoot, 'scripts', 'card.js'),
     path.join(skillRoot, 'scripts', 'check-output.mjs'),
+    path.join(skillRoot, 'evals', 'check-assertions.mjs'),
+    path.join(skillRoot, 'evals', 'evals.json'),
     path.join(skillRoot, 'scripts', 'renderers', 'article-diagram.js'),
     path.join(skillRoot, 'assets', 'big_template.html'),
     path.join(skillRoot, 'assets', 'fonts'),
@@ -118,6 +120,7 @@ function assertPackagedSkill() {
     path.join(skillRoot, 'schemas', 'article-diagram.json'),
     path.join(skillRoot, 'references', 'design-index.md'),
     path.join(skillRoot, 'references', 'mode-article-diagram.md'),
+    path.join(skillRoot, 'references', 'source-weread.md'),
   ]) {
     assert.ok(fs.existsSync(requiredPath), `Packaged skill is missing ${path.relative(ROOT, requiredPath)}`);
   }
@@ -142,16 +145,23 @@ function assertPackagedSkill() {
     'package-lock.json',
     'scripts/card.js',
     'scripts/check-output.mjs',
+    'scripts/setup-runtime.mjs',
     'scripts/validate.mjs',
+    'evals/check-assertions.mjs',
+    'evals/evals.json',
     'scripts/lib/schema.js',
+    'scripts/renderers/poster.js',
     'scripts/renderers/article-diagram.js',
     'schemas/big.json',
+    'schemas/poster.json',
     'schemas/editorial-image.json',
     'schemas/article-diagram.json',
     'references/design-index.md',
     'references/mode-article-diagram.md',
+    'references/source-weread.md',
     'assets/capture4k.js',
     'assets/big_template.html',
+    'assets/poster_template.html',
   ]) {
     const rootContent = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
     const packagedContent = fs.readFileSync(path.join(skillRoot, relativePath), 'utf8');
@@ -195,6 +205,25 @@ function runOutputCheck(htmlPath, output) {
   return { result, report };
 }
 
+function assertWereadSourceContract() {
+  const skill = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const adapter = fs.readFileSync(path.join(ROOT, 'references', 'source-weread.md'), 'utf8');
+  const evals = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals', 'evals.json'), 'utf8')).evals;
+  const evalIds = evals.map(item => item.id);
+
+  assert.equal(new Set(evalIds).size, evalIds.length, 'eval ids must be unique');
+  assert.ok(evals.some(item => item.id === 13 && item.name === 'weread-personal-notes-poster'), 'missing WeChat Reading personal-notes eval');
+  assert.ok(evals.some(item => item.id === 14 && item.name === 'weread-monthly-report-poster'), 'missing WeChat Reading report eval');
+  assert.match(skill, /references\/source-weread\.md/, 'SKILL.md does not route explicit WeChat Reading requests to the adapter');
+  assert.match(skill, /普通书名.*不得隐式读取个人账号/, 'SKILL.md is missing the explicit-consent guard');
+  assert.match(readme, /npx skills add Tencent\/WeChatReading -g/, 'README is missing the official WeChatReading install command');
+  assert.match(adapter, /Never ask them to paste the key into the conversation/, 'adapter is missing the API-key chat guard');
+  assert.match(adapter, /Treat every returned .* as untrusted data/, 'adapter is missing the external-content prompt-injection guard');
+  assert.match(adapter, /both the personal highlight list and the complete personal thoughts\/reviews list/, 'adapter does not require both sides of a complete personal-notes export');
+  assert.match(adapter, /Never construct a WeChat Reading link manually/, 'adapter is missing the official deepLink guard');
+}
+
 function runCardCli(input, outputName, expectedCount = 1) {
   const inputPath = path.join(tmpDir, `${outputName}.json`);
   const outputPath = path.join(tmpDir, `${outputName}.png`);
@@ -227,6 +256,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
 try {
   assertVersionSources();
   assertPackagedSkill();
+  assertWereadSourceContract();
 
   const measureViewportPath = path.join(tmpDir, 'capture-measure-viewport.html');
   fs.writeFileSync(measureViewportPath, '<!doctype html><style>*{box-sizing:border-box}html,body{margin:0}.probe{width:calc(100vw - 20px);height:10px}</style><div class="probe" data-measure-id="probe"></div>', 'utf8');
@@ -259,7 +289,7 @@ try {
       ...input,
       brand_name: 'Example Studio',
       logo: logoPath,
-      ...(mode === 'editorial-image' || mode === 'article-diagram' ? { source: 'Example source' } : {}),
+      ...(mode === 'poster' || mode === 'editorial-image' || mode === 'article-diagram' ? { source: 'Example source' } : {}),
     }, target);
 
     for (const html of readOutputs(rendered)) {
@@ -267,7 +297,7 @@ try {
       assert.match(html, />Example Studio</, `${mode} dropped the brand name`);
       assert.ok(html.includes(logoUrl), `${mode} did not encode the logo as a file URL`);
       assert.doesNotMatch(html, /"\s+onerror=/i, `${mode} allowed logo-path attribute injection`);
-      if (mode === 'editorial-image' || mode === 'article-diagram') {
+      if (mode === 'poster' || mode === 'editorial-image' || mode === 'article-diagram') {
         assert.match(html, />Example source</, `${mode} dropped the source`);
       }
     }
@@ -286,6 +316,21 @@ try {
   assert.match(articleSourceOnlyHtml, /class="colophon"/);
   assert.match(articleSourceOnlyHtml, />Source only</);
   assert.doesNotMatch(articleSourceOnlyHtml, /class="who"/);
+
+  const posterSourceOnlyDir = path.join(tmpDir, 'source-only-poster');
+  fs.mkdirSync(posterSourceOnlyDir, { recursive: true });
+  const posterSourceOnly = renderers.poster.render({ ...inputs.poster, source: 'Source only' }, posterSourceOnlyDir);
+  const posterSourceOnlyHtml = readOutputs(posterSourceOnly).at(-1);
+  assert.match(posterSourceOnlyHtml, /class="colophon"/);
+  assert.match(posterSourceOnlyHtml, /class="source-mark">Source only</);
+  assert.doesNotMatch(posterSourceOnlyHtml, /class="brand-mark"/);
+
+  const posterEscapedSourceDir = path.join(tmpDir, 'escaped-source-poster');
+  fs.mkdirSync(posterEscapedSourceDir, { recursive: true });
+  const posterEscapedSource = renderers.poster.render({ ...inputs.poster, source: '<script>alert("source")</script>' }, posterEscapedSourceDir);
+  const posterEscapedSourceHtml = readOutputs(posterEscapedSource).at(-1);
+  assert.match(posterEscapedSourceHtml, /&lt;script&gt;alert\(&quot;source&quot;\)&lt;\/script&gt;/);
+  assert.doesNotMatch(posterEscapedSourceHtml, /<script>alert\("source"\)<\/script>/);
 
   const designNames = new Set(listDesigns().map(design => design.name));
   for (const [tone, pool] of Object.entries(EDITORIAL_TONE_DESIGNS)) {

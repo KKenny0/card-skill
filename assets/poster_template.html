@@ -255,6 +255,23 @@
     justify-content: space-between;
   }
 
+  .colophon .colophon-meta {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .colophon .source-mark {
+    max-width: 680px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 500 22px/1.25 var(--sans);
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+
   .colophon .brand-mark {
     display: flex;
     align-items: center;
@@ -282,6 +299,7 @@
   }
 
   .colophon .endmark {
+    flex: 0 0 auto;
     font: 500 24px/1 var(--mono);
     color: var(--ink-muted);
     letter-spacing: 0.1em;

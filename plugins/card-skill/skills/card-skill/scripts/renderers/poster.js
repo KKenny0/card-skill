@@ -62,7 +62,9 @@ function render(input, outputDir) {
   let template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
   const logoPath = input.logo ? path.resolve(input.logo) : '';
   const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
+  const source = input.source ? escapeHtml(input.source) : '';
   const hasBranding = Boolean(logoPath || brandName);
+  const hasColophon = Boolean(source || hasBranding);
   const totalCards = input.cards.length;
 
   const results = [];
@@ -86,10 +88,11 @@ function render(input, outputDir) {
 
     // Build colophon block (only for last card)
     let colophonBlock = '';
-    if (isLast && hasBranding) {
+    if (isLast && hasColophon) {
+      const sourceMark = source ? `<span class="source-mark">${source}</span>` : '';
       const brandMark = brandName ? `<div class="brand-mark"><div class="stripe-bar"></div><span>${brandName}</span></div>` : '';
       const logoMark = logoPath ? `<img class="logo-mark" src="${escapeHtml(pathToFileURL(logoPath).href)}" alt="logo">` : '';
-      colophonBlock = `<div class="colophon">${brandMark}${logoMark}<span class="endmark">■</span></div>`;
+      colophonBlock = `<div class="colophon"><div class="colophon-meta">${sourceMark}${brandMark}${logoMark}</div><span class="endmark">■</span></div>`;
     }
 
     // Fill template

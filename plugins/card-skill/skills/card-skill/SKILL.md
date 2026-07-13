@@ -1,8 +1,8 @@
 ---
 name: card-skill
-description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, or stories into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
+description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, stories, explicit WeChat Reading highlights/thoughts, or WeChat Reading personal statistics into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, reading report, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, 微信读书划线做卡, 微信读书笔记, 微信读书阅读月报, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.3.0"
+version: "0.4.0"
 ---
 
 # card-skill
@@ -25,6 +25,8 @@ npx playwright install chromium
 
 For one-off use without installing, run `npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill card-skill`.
 
+**Runtime dependency check.** Before the first render, run `node scripts/setup-runtime.mjs --check` from this skill directory. If it reports a missing dependency, run `node scripts/setup-runtime.mjs` once and then repeat the check. This installs the declared npm packages in the skill directory and Playwright Chromium in the user's normal Playwright cache. Relay setup failures instead of bypassing the output checks.
+
 **Update check (non-blocking).** Before starting, run `node scripts/check-update.mjs` once; if it prints a line, relay it to the user, then continue. It runs at most once a day, only reads this skill's public `VERSION` file, sends no content, and fails silently. Set `CARD_SKILL_DISABLE_UPDATE_CHECK=1` to skip this check.
 
 将内容铸成可见的形态。内容进去，PNG 出来。模具决定形状。
@@ -46,6 +48,8 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | 正文解释图 / 关系图 / 流程图 / 边界图 | `article-diagram` |
 | 长文章 / 深度阅读 / 保留段落节奏 | `long` |
 | 小红书 / 社媒卡片 | 单一观点优先 `big`，多观点或系列优先 `poster`，结构化知识优先 `infograph` |
+| 微信读书个人划线 / 想法 | 默认 `poster`；单句 `big`，长文笔记 `long`，显式结构压缩 `article-diagram` |
+| 微信读书阅读月报 / 年报 | `poster`，只渲染官方回包实际提供的统计模块 |
 | 推理过程 / 关系梳理 / 白板 | `whiteboard` |
 | 有冲突、转折或人物动作的叙事 | `comic` |
 | 个人经验、反思、失败到顿悟的弧线 | `sketchnote` |
@@ -61,7 +65,7 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | `--dpr` | 设备像素比 | 2（2× 像素密度） |
 | `brand_name` | 可选署名/品牌文字；只在用户明确提供时渲染 | 空 |
 | `logo` | 可选署名头像/品牌 logo 路径；只在用户明确提供时渲染 | 空 |
-| `source` | 可选来源文字；`long`、`editorial-image` 与 `article-diagram` 支持 | 空 |
+| `source` | 可选来源文字；`long`、`poster`、`editorial-image` 与 `article-diagram` 支持 | 空 |
 
 ## 执行流程
 
@@ -111,7 +115,7 @@ node scripts/card.js --input <system_temp>/card_input_{timestamp}.json --output 
 big: `{ mode, phrase, design?, accent_words?, ghost_char?, attribution? }`
 long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, theme? }`
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
-poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle? }`
+poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle?, source? }`
 editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, art_direction?, content_html?, custom_css?, design?, editorial_tone? }`
 article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, label, note?}], relations?}, render_plan?, caption?, design? }`；legacy: `{ mode, family, title, nodes, links?, zones? }`
 
@@ -136,10 +140,13 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
    - `references/mode-comic.md` — 漫画叙事（冲突提取、分镜系统、5 种风格路线）
    - `references/mode-editorial-image.md` — 长文作者配图（视觉立场、概念隐喻、公众号/博客封面、正文氛围插图）
    - `references/mode-article-diagram.md` — 正文解释图（默认公式卡：公式 + 一句话；结构图暂缓，旧图型只作兼容）
+   - `references/source-weread.md` — 可选微信读书来源适配（显式授权、个人笔记与阅读报告、来源标注、隐私和失败降级）
 
 ### Step 1: 获取 + 分析内容
 
 **获取**：URL → WebFetch / 粘贴文本 → 直接用 / 文件路径 → Read
+
+**微信读书可选来源**：只有用户明确提到微信读书，或明确说明当前划线、想法、统计来自微信读书时，才进入 `references/source-weread.md`。先读取已安装的官方 `Tencent/WeChatReading` Skill 的完整 `SKILL.md` 和当前请求对应的能力文档，由官方 Skill 负责认证、版本、分页、字段含义与 deepLink；card-skill 只接收规范化后的个人内容或统计并负责制图。普通书名、未注明平台的个人阅读统计、通用读书卡或文章请求不得隐式读取个人账号。官方 Skill 未安装、Key 缺失、升级提示、数据不可用和隐私降级规则全部见该 reference。
 
 **分析**：提取内容的三维特征（详见 `references/mode-infograph.md`）
 

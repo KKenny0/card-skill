@@ -53,13 +53,14 @@ const SCHEMAS = {
   },
   poster: {
     required: ['mode', 'title', 'cards'],
-    optional: ['design', 'subtitle', 'logo', 'brand_name'],
+    optional: ['design', 'subtitle', 'source', 'logo', 'brand_name'],
     types: {
       mode: 'string',
       title: 'string',
       cards: 'array',
       design: 'string',
       subtitle: 'string',
+      source: 'string',
       logo: 'string',
       brand_name: 'string',
     },

@@ -21,6 +21,11 @@
       "description": "Optional subtitle shown below the title on the first card.",
       "default": ""
     },
+    "source": {
+      "type": "string",
+      "description": "Optional source attribution shown in the colophon on the final card.",
+      "default": ""
+    },
     "cards": {
       "type": "array",
       "description": "Array of card objects. Each card gets its own HTML file and PNG output.",

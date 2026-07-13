@@ -1,6 +1,6 @@
 {
   "name": "card-skill",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Render text content into polished, shareable PNG cards, posters, whiteboards, long-form reading cards, editorial images, and in-article diagrams.",
   "author": {
     "name": "KKenny0",
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "card-skill",
     "shortDescription": "Turn text into publish-ready visual cards",
-    "longDescription": "card-skill packages Quiet Paper renderers, templates, fonts, schemas, and output checks for turning articles, notes, arguments, and stories into polished PNG visuals, including measured formula cards that compress article sections into portable ideas.",
+    "longDescription": "card-skill packages Quiet Paper renderers, templates, fonts, schemas, and output checks for turning articles, notes, arguments, stories, and explicitly requested WeChat Reading highlights or statistics into polished PNG visuals.",
     "developerName": "KKenny0",
     "category": "Productivity",
     "capabilities": [
@@ -32,6 +32,8 @@
     "defaultPrompt": [
       "Turn this article into a WeChat cover image",
       "Make these notes into a social card set",
+      "Turn my WeChat Reading highlights and thoughts into a sourced card set",
+      "Make my WeChat Reading statistics into a monthly reading report",
       "Draw this argument as a whiteboard card",
       "Compress the key sections of this article into formula cards"
     ],

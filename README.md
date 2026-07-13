@@ -51,6 +51,8 @@ codex plugin marketplace add KKenny0/card-skill
 codex plugin add card-skill@card-skill
 ```
 
+Codex 插件安装器只复制 skill 文件，不会执行 npm 生命周期脚本。首次制图时，agent 会在已安装的 skill 目录执行一次 `node scripts/setup-runtime.mjs`，安装锁定的 npm 依赖和 Playwright Chromium；后续使用会先快速检查并复用现有运行时。
+
 普通 agent 安装完整 skill 包：
 
 ```bash
@@ -81,6 +83,28 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 不需要 slash command；中文、英文自然语言都可以触发。
 
 ## 从你要发布的东西开始
+
+### 微信读书划线与阅读报告（可选）
+
+card-skill 可以和腾讯官方 [WeChatReading Skill](https://github.com/Tencent/WeChatReading) 组合使用，把你明确指定的一本书里的个人划线与想法做成卡组，或把个人阅读统计做成月报 / 年报。card-skill 不读取任意章节正文，也不会因为只看到一本书名就扫描你的账号。
+
+先单独安装官方来源 Skill：
+
+```bash
+npx skills add Tencent/WeChatReading -g
+```
+
+再按官方说明在本地设置 `WEREAD_API_KEY`。不要把 API Key 粘贴到对话、卡片输入或仓库文件中。
+
+```text
+把我在《千脑智能》里的个人划线和想法做成一组卡片。原文不要改写，把我的想法放在对应划线下面；没有明确对应关系的想法单独放，最后标明来源。
+```
+
+```text
+把我这个月的微信读书数据做成阅读月报。只使用真实返回的时长、天数、读完数量和偏好；缺少的模块直接省略，不要补造洞察。
+```
+
+只有明确提出微信读书请求时才会访问个人数据，并且只查询当前任务需要的书或统计周期。腾讯 Skill 负责认证和读取；个人内容会进入当前 Agent / 模型上下文用于整理，PNG 渲染与检查由本地脚本完成，不会自动上传或发布成品。
 
 ### 公众号 / 博客配图
 
@@ -145,7 +169,7 @@ card-skill 把 9 个 mode 分两层，承诺不同：
 
 ## 环境与首次运行
 
-安装 skill 需要 Node.js 22+ 与 npm。PNG 截图依赖 Playwright 和 Chromium；仓库声明了 Playwright 依赖，但不会声称你的环境已经自动完成浏览器安装。
+安装 skill 需要 Node.js 22+ 与 npm。PNG 截图依赖 Playwright 和 Chromium；Codex 插件首次运行由 `scripts/setup-runtime.mjs` 补齐依赖，普通 agent 也可以手动运行同一个脚本。
 
 如果首次渲染提示缺少依赖，请进入本 skill 的安装目录后运行：
 

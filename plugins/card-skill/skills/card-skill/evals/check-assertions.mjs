@@ -382,6 +382,16 @@ async function checkFileCountMin(context, auto) {
   };
 }
 
+async function checkFileCountExact(context, auto) {
+  const pngFiles = context.pngFiles;
+  const count = pngFiles ? pngFiles.length : 0;
+  const pass = count === auto.count;
+  return {
+    pass,
+    evidence: `${count} file(s) ${pass ? '===' : '!=='} ${auto.count}`,
+  };
+}
+
 async function checkCssSpacingVaries(context, auto) {
   const page = context.page;
   if (!page) return { pass: false, evidence: 'No page loaded' };
@@ -432,6 +442,7 @@ const CHECKERS = {
   html_not_match: checkHtmlNotMatch,
   file_exists: checkFileExists,
   file_count_min: checkFileCountMin,
+  file_count_exact: checkFileCountExact,
   css_spacing_varies: checkCssSpacingVaries,
   html_font_families: checkHtmlFontFamilies,
 };
@@ -489,6 +500,7 @@ async function runSelfTest(evalsData) {
     ['text_match', { visibleText: '2 / 4' }, { pattern: '\\d+\\s*/\\s*\\d+' }],
     ['file_exists', { pngFiles: ['card.png'] }, {}],
     ['file_count_min', { pngFiles: ['1.png', '2.png'] }, { min: 2 }],
+    ['file_count_exact', { pngFiles: ['1.png', '2.png'] }, { count: 2 }],
     ['css_var_match', { cssVars: { '--accent': '#635bff' } }, { vars: { '--accent': ['#533afd', '#635bff'] }, tolerance: 0 }],
   ];
 
@@ -522,7 +534,7 @@ async function runAssertions(evalDef, htmlPaths, pngPaths, browser) {
     }
 
     // For file-based checks, combine all results
-    if (auto.type === 'file_exists' || auto.type === 'file_count_min') {
+    if (auto.type === 'file_exists' || auto.type === 'file_count_min' || auto.type === 'file_count_exact') {
       const context = { pngFiles: pngPaths };
       try {
         const result = await checker(context, auto);

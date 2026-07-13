@@ -21,6 +21,7 @@ const { execFileSync, spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const CAPTURE_SCRIPT = path.join(ROOT, 'assets', 'capture4k.js');
 const CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-output.mjs');
+const SETUP_SCRIPT = path.join(ROOT, 'scripts', 'setup-runtime.mjs');
 // ── Args ──
 
 const args = process.argv.slice(2);
@@ -64,6 +65,15 @@ if (args.includes('--list-designs')) {
   }
   console.log(`\nTotal: ${designs.length} design systems`);
   process.exit(0);
+}
+
+// Fail early with an actionable setup command instead of surfacing a nested
+// ERR_MODULE_NOT_FOUND from the capture/output-check subprocesses.
+const runtimeCheck = spawnSync(process.execPath, [SETUP_SCRIPT, '--check'], { encoding: 'utf-8' });
+if (runtimeCheck.status !== 0) {
+  const details = runtimeCheck.stderr || runtimeCheck.stdout || 'card-skill runtime is not ready.';
+  console.error(details.trim());
+  process.exit(1);
 }
 
 // ── Read input ──

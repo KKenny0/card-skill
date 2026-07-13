@@ -527,6 +527,102 @@
           "auto": { "type": "file_exists" }
         }
       ]
+    },
+    {
+      "id": 13,
+      "name": "weread-personal-notes-poster",
+      "prompt": "把下面这份由官方 WeChatReading Skill 返回并脱敏的个人笔记做成 poster 卡组。不要调用网络。划线原文必须逐字保留；个人想法放在对应划线下；没有 range 的章节点评保持独立；来源写到最后一张。\n\n书名：《秩序与边界》\n作者：林川\n来源：微信读书 · 《秩序与边界》 · 林川\n\n个人划线：\n- chapterUid=101, range=120-154, 章节=第一章 约束，markText=真正的自由，不是没有边界，而是知道边界在哪里。\n- chapterUid=102, range=88-121, 章节=第二章 选择，markText=选择之所以困难，是因为每个答案都在放弃另一种生活。\n\n个人想法：\n- chapterUid=101, range=120-154, abstract=真正的自由，不是没有边界，而是知道边界在哪里。, content=边界不是自由的反面，而是自由得以落地的条件。\n- chapterUid=102, chapterName=第二章 选择, content=这一章让我重新理解了沉没成本。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "multiple_cards",
+          "check": "At least three poster cards are generated so the two paired/standalone note units and source-bearing close remain readable.",
+          "auto": { "type": "file_count_min", "min": 3, "glob": "*.png" }
+        },
+        {
+          "name": "first_highlight_verbatim",
+          "check": "The first personal highlight quotation is preserved verbatim.",
+          "auto": { "type": "text_match", "pattern": "真正的自由，不是没有边界，而是知道边界在哪里。" }
+        },
+        {
+          "name": "second_highlight_verbatim",
+          "check": "The second personal highlight quotation is preserved verbatim.",
+          "auto": { "type": "text_match", "pattern": "选择之所以困难，是因为每个答案都在放弃另一种生活。" }
+        },
+        {
+          "name": "thought_labels_clear",
+          "check": "Visible copy distinguishes 原文划线 from 我的想法 or 章节点评.",
+          "auto": { "type": "text_match", "pattern": "原文划线|我的想法|章节点评" }
+        },
+        {
+          "name": "source_present",
+          "check": "The final card carries the human-readable source 微信读书 · 《秩序与边界》 · 林川.",
+          "auto": { "type": "text_match", "pattern": "微信读书.*秩序与边界.*林川" }
+        },
+        {
+          "name": "no_raw_ids",
+          "check": "bookId, chapterUid, and range are not rendered as visible card content.",
+          "auto": { "type": "html_not_match", "pattern": "chapterUid|bookId|120-154|88-121" }
+        },
+        {
+          "name": "no_fabricated_public_content",
+          "check": "No popular highlight, public review, recommendation, or invented chapter prose is added.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "output_is_png",
+          "check": "PNG files were successfully generated for the poster set.",
+          "auto": { "type": "file_count_min", "min": 1, "glob": "*.png" }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "weread-monthly-report-poster",
+      "prompt": "把下面这份由官方 WeChatReading Skill 返回并脱敏的 2026 年 7 月阅读统计做成 3 张 poster 月报。不要调用网络。所有时长字段单位是秒；只使用回包存在的数据，不增加趋势、人格判断或推荐。来源写到最后一张。\n\nperiod=2026-07\ntotalReadTime=12600\nreadDays=5\ndayAverageReadTime=420\nreadStat: 读过=4本, 读完=2本, 笔记=18条\nreadLongest: 《边界练习》=5400秒, 《缓慢思考》=3600秒\npreferCategory: 人文社科 readingTime=7200秒, 科技 readingTime=3600秒\npreferAuthor: 无\npreferTime: 无\nsource=微信读书 · 2026 年 7 月阅读数据",
+      "files": [],
+      "assertions": [
+        {
+          "name": "three_report_cards",
+          "check": "Exactly the available summary, most-read, and category modules become a compact three-card report.",
+          "auto": { "type": "file_count_exact", "count": 3, "glob": "*.png" }
+        },
+        {
+          "name": "total_time_converted",
+          "check": "12600 seconds is shown as 3小时30分钟, not as raw seconds.",
+          "auto": { "type": "text_match", "pattern": "3\\s*小时\\s*30\\s*分钟" }
+        },
+        {
+          "name": "daily_average_converted",
+          "check": "420 seconds is shown as 7分钟, not as raw seconds.",
+          "auto": { "type": "text_match", "pattern": "7\\s*分钟" }
+        },
+        {
+          "name": "report_period_present",
+          "check": "The report clearly identifies July 2026.",
+          "auto": { "type": "text_match", "pattern": "2026.*7.*月" }
+        },
+        {
+          "name": "weread_source_present",
+          "check": "The report clearly identifies WeChat Reading as the source.",
+          "auto": { "type": "text_match", "pattern": "微信读书" }
+        },
+        {
+          "name": "missing_modules_omitted",
+          "check": "No author-preference or reading-rhythm card is invented because those modules are absent.",
+          "auto": { "type": "html_not_match", "pattern": "偏好作者|阅读时段|夜间阅读|清晨阅读" }
+        },
+        {
+          "name": "no_fabricated_interpretation",
+          "check": "No unsupported trend, personality diagnosis, goal, or recommendation is added.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "output_is_png",
+          "check": "PNG files were successfully generated for the reading report.",
+          "auto": { "type": "file_count_min", "min": 1, "glob": "*.png" }
+        }
+      ]
     }
   ]
 }
