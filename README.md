@@ -251,6 +251,26 @@ node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 
 </details>
 
+## 微信读书接入 Showcase
+
+下面三张图来自真实的个人阅读数据，展示 `card-skill` 如何把阅读统计与个人划线变成可以发布的视觉内容。仓库只保留最终 PNG，不保存原始 API 回包、书籍 ID 或 API Key。
+
+<table>
+<tr>
+<td width="33.33%"><img src="assets/gallery/weread-annual-report.png" width="100%" alt="微信读书年度阅读报告"><br><strong>年度阅读报告</strong></td>
+<td width="33.33%"><img src="assets/gallery/weread-reading-profile.png" width="100%" alt="微信读书总体阅读画像"><br><strong>总体阅读画像</strong></td>
+<td width="33.33%"><img src="assets/gallery/weread-personal-highlights_1.png" width="100%" alt="微信读书个人划线卡组"><br><strong>个人划线卡组</strong> · 3 cards</td>
+</tr>
+</table>
+
+对应的调用方式很简单：
+
+```text
+用我的微信读书年度阅读数据做一张 Quiet Paper 风格的年度报告，完成后检查裁切、换行和来源署名。
+
+用我年度阅读最多的那本书的个人划线和想法做一组卡片，区分原文划线与我的想法，不要读取热门划线。
+```
+
 ## Showcase：让作品替工具说话
 
 如果 card-skill 帮你做出了值得发布的图，欢迎在 GitHub Issues 分享：
