@@ -77,6 +77,7 @@ const SCHEMAS = {
       'visual_metaphor',
       'art_direction',
       'text_plan',
+      'composition_required',
       'source',
       'custom_css',
       'content_html',
@@ -95,6 +96,7 @@ const SCHEMAS = {
       visual_metaphor: 'string',
       art_direction: 'string',
       text_plan: 'string',
+      composition_required: 'boolean',
       source: 'string',
       custom_css: 'string',
       content_html: 'string',
@@ -240,6 +242,14 @@ function validate(input) {
     }
     if (input.use && !EDITORIAL_USES.has(input.use)) {
       errors.push(`use must be one of: ${[...EDITORIAL_USES].join(', ')}`);
+    }
+    if (input.composition_required === true) {
+      if (typeof input.content_html !== 'string' || input.content_html.trim() === '') {
+        errors.push('composition_required=true requires non-empty "content_html"');
+      }
+      if (typeof input.custom_css !== 'string' || input.custom_css.trim() === '') {
+        errors.push('composition_required=true requires non-empty "custom_css"');
+      }
     }
   }
 

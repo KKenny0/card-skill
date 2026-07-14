@@ -215,6 +215,8 @@ The structured fields are guardrails, not the final visual language.
 
 Use fields like `use`, `aspect`, `title`, `visual_metaphor`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
 
+When a selected direction depends on a concrete object, action, scene, spatial relationship, or concept metaphor that the default scaffold cannot show, set `composition_required: true`. This makes executability part of the render contract: schema validation and the renderer require both non-empty `content_html` and `custom_css`. Keep the flag in the final CLI input. Omit it or set it to `false` only when the default scaffold is deliberately the final composition; `use=cover` alone is not sufficient evidence.
+
 For final rendering, use a custom composition when the brief has a real article tension, concept metaphor, or in-article mood illustration job:
 
 - `content_html` for the chosen visual structure

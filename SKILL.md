@@ -2,7 +2,7 @@
 name: card-skill
 description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, stories, explicit WeChat Reading highlights/thoughts, or WeChat Reading personal statistics into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, reading report, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, 微信读书划线做卡, 微信读书笔记, 微信读书阅读月报, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.5.0"
+version: "0.5.1"
 ---
 
 # card-skill
@@ -317,7 +317,7 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 
 1. 先形成 `Card Decision Brief`，只保留当前任务必要的内容锚点、发布任务、路由和默认 2-3 个候选；用户明确指定 2-5 个候选时服从指定数量。
 2. 每个候选必须带真实可渲染的 `render_contract`，不能只展示抽象风格名或一组装饰色。
-3. `editorial-image` 候选围绕视觉隐喻、用途、比例和合法 design / tone；`article-diagram` 候选围绕 `formula`、`sentence`、`structure` 和显式的 `render_plan`。
+3. `editorial-image` 候选围绕视觉隐喻、用途、比例和合法 design / tone；凡方向依赖默认 scaffold 中不存在的具体物体、动作、场景或空间关系，`render_contract` 必须带 `composition_required: true`。`article-diagram` 候选围绕 `formula`、`sentence`、`structure` 和显式的 `render_plan`。
 4. 用户确认后，使用宿主的 follow-up 能力把选中的规范化契约送回同一对话，再进入 Step 4；不要从预览中直接调用 CLI，也不要把候选 HTML 当成最终 PNG。
 5. 如果宿主不支持预览、选择回传失败或预览无法渲染，退回文字候选列表或默认自动选择。预览失败不得跳过 schema、截图、`check-output` 或人工看图。
 
@@ -340,6 +340,8 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 | article-diagram | CLI 使用 `scripts/renderers/article-diagram.js` 生成固定槽位正文解释图 |
 
 用户选定后：
+
+0. 先兑现候选的可执行性契约：如果 `editorial-image.composition_required` 为 `true`，根据已选 `visual_metaphor` / `art_direction` 生成非空 `content_html` 与 `custom_css`，并保留该字段再交给 CLI。不要删除或改成 `false` 来绕过校验。只有默认标题区加纸张 scaffold 本身就是有意的最终构图时，才省略该字段或设为 `false`；`use=cover` 本身不能证明 scaffold 足够。
 
 1. 读取紧凑设计文件：`references/designs/{name}.md`
    - `ljg-*` 色调无需读取文件，直接使用 design-index.md 中的 CSS 变量

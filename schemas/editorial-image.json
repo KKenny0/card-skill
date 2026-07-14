@@ -50,6 +50,10 @@
       "type": "string",
       "description": "Text plan for the composition, preserved as a CSS comment for traceability."
     },
+    "composition_required": {
+      "type": "boolean",
+      "description": "Set true when the selected direction cannot be delivered by the default scaffold. Final render input must then include both content_html and custom_css."
+    },
     "content_html": {
       "type": "string",
       "description": "Trusted custom HTML composition. Use after the AI flow chooses a visual direction; preferred for final editorial images that need a concrete subject or scene."
@@ -71,6 +75,21 @@
       "description": "Optional brand or author name in the colophon footer. Omit for an unbranded output; do not use an author alias."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "composition_required": { "const": true } },
+        "required": ["composition_required"]
+      },
+      "then": {
+        "required": ["content_html", "custom_css"],
+        "properties": {
+          "content_html": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "custom_css": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        }
+      }
+    }
+  ],
   "examples": [
     {
       "mode": "editorial-image",

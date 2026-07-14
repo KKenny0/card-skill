@@ -237,6 +237,18 @@ function assertCodexPreviewContract() {
   assert.match(preview, /轻量选择器 \+ 单一主预览 \+ 选中详情 \+ 单一确认动作/, 'Codex preview is missing the single-preview composition');
   assert.match(preview, /不要把多行说明[\s\S]*放进 `\.btn` \/ `\.btn-block`/, 'Codex preview is missing the rich-button overflow guard');
   assert.match(preview, /window\.openai\.sendFollowUpMessage/, 'Codex preview is missing the follow-up handoff contract');
+  assert.match(preview, /composition_required: true/, 'Codex preview does not mark custom-composition candidates as executable contracts');
+  assert.match(preview, /主预览如果已经画出了默认 scaffold 中不存在的对象或关系/, 'Codex preview is missing the preview-to-render fidelity rule');
+  assert.match(skill, /composition_required.*content_html.*custom_css/, 'SKILL.md does not enforce selected custom compositions before Step 4 rendering');
+}
+
+function assertProjectAgentContract() {
+  const agents = fs.readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
+
+  assert.match(agents, /repository root is the source of truth/i, 'AGENTS.md is missing the root source-of-truth rule');
+  assert.match(agents, /generated installable mirror/i, 'AGENTS.md is missing the packaged mirror boundary');
+  assert.match(agents, /npm run package-skill[\s\S]*npm test[\s\S]*npm run smoke[\s\S]*git diff --check/, 'AGENTS.md is missing the required verification sequence');
+  assert.match(agents, /composition_required: true/, 'AGENTS.md is missing the executable editorial composition contract');
 }
 
 function runCardCli(input, outputName, expectedCount = 1) {
@@ -273,6 +285,7 @@ try {
   assertPackagedSkill();
   assertWereadSourceContract();
   assertCodexPreviewContract();
+  assertProjectAgentContract();
 
   const measureViewportPath = path.join(tmpDir, 'capture-measure-viewport.html');
   fs.writeFileSync(measureViewportPath, '<!doctype html><style>*{box-sizing:border-box}html,body{margin:0}.probe{width:calc(100vw - 20px);height:10px}</style><div class="probe" data-measure-id="probe"></div>', 'utf8');
@@ -403,6 +416,42 @@ try {
   });
   assert.equal(invalidUseValidation.valid, false, 'aspect value in use unexpectedly passed validation');
   assert.match(invalidUseValidation.errors.join('\n'), /use must be one of: cover, in-article, metaphor/);
+
+  const incompleteCompositionValidation = validate({
+    mode: 'editorial-image',
+    title: 'Three paths converge',
+    composition_required: true,
+    visual_metaphor: 'Three paper paths converge into one PNG sheet.',
+  });
+  assert.equal(incompleteCompositionValidation.valid, false, 'incomplete required composition unexpectedly passed validation');
+  assert.match(incompleteCompositionValidation.errors.join('\n'), /requires non-empty "content_html"/);
+  assert.match(incompleteCompositionValidation.errors.join('\n'), /requires non-empty "custom_css"/);
+
+  const completeCompositionInput = {
+    mode: 'editorial-image',
+    title: 'Three paths converge',
+    design: 'linear',
+    use: 'cover',
+    aspect: 'wechat-cover',
+    composition_required: true,
+    visual_metaphor: 'Three paper paths converge into one PNG sheet.',
+    content_html: '<section class="converge-fixture"><i></i><i></i><i></i><b>PNG</b></section>',
+    custom_css: '.converge-fixture { width: 100%; height: 100%; display: grid; }',
+  };
+  const completeCompositionValidation = validate(completeCompositionInput);
+  assert.equal(completeCompositionValidation.valid, true, `complete required composition failed validation: ${completeCompositionValidation.errors.join(', ')}`);
+  assert.throws(
+    () => renderers['editorial-image'].render({ ...completeCompositionInput, custom_css: '' }, path.join(tmpDir, 'incomplete-required-composition.html')),
+    /composition_required=true requires non-empty "custom_css"/,
+    'renderer did not defend the required composition contract',
+  );
+
+  const requiredCompositionPath = path.join(tmpDir, 'required-composition.html');
+  renderers['editorial-image'].render(completeCompositionInput, requiredCompositionPath);
+  const requiredCompositionHtml = stripComments(fs.readFileSync(requiredCompositionPath, 'utf8'));
+  assert.match(requiredCompositionHtml, /data-composition-required="true"/, 'required composition was not marked in rendered HTML');
+  assert.match(requiredCompositionHtml, /class="converge-fixture"/, 'required composition did not render its visible subject');
+  assert.doesNotMatch(requiredCompositionHtml, /class="paper-stack/, 'required composition silently fell back to the default scaffold');
 
   const authorAliasValidation = validate({ mode: 'big', phrase: 'No alias', author: 'Someone' });
   assert.equal(authorAliasValidation.valid, false, 'author alias unexpectedly passed validation');

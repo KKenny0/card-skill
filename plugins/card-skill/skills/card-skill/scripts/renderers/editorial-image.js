@@ -230,6 +230,15 @@ function baseCss(input, design, aspect) {
 }
 
 function render(input, outputHtmlPath) {
+  if (input.composition_required === true) {
+    if (typeof input.content_html !== 'string' || input.content_html.trim() === '') {
+      throw new Error('composition_required=true requires non-empty "content_html"');
+    }
+    if (typeof input.custom_css !== 'string' || input.custom_css.trim() === '') {
+      throw new Error('composition_required=true requires non-empty "custom_css"');
+    }
+  }
+
   const designName = resolveEditorialDesignName(input);
   const design = designName ? getDesign(designName) : null;
   if (!design) throw new Error(`Design not found: ${input.design || input.editorial_tone}`);
@@ -252,9 +261,10 @@ function render(input, outputHtmlPath) {
   template = template.replaceAll('{{BRAND_NAME}}', brandName);
   template = template.replaceAll('{{FONT_BASE}}', FONT_DIR.replace(/\\/g, '/'));
   const toneAttr = input.editorial_tone ? ` data-editorial-tone="${escapeHtml(input.editorial_tone)}"` : '';
+  const compositionAttr = input.composition_required === true ? ' data-composition-required="true"' : '';
   template = template.replace(
     '<div class="page">',
-    `<div class="page" data-card-mode="editorial-image" data-card-design="${escapeHtml(designName)}"${toneAttr}>`,
+    `<div class="page" data-card-mode="editorial-image" data-card-design="${escapeHtml(designName)}"${toneAttr}${compositionAttr}>`,
   );
 
   if (!logoUrl && !brandName) {
