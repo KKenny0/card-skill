@@ -119,6 +119,7 @@ function assertPackagedSkill() {
     path.join(skillRoot, 'schemas', 'big.json'),
     path.join(skillRoot, 'schemas', 'article-diagram.json'),
     path.join(skillRoot, 'references', 'design-index.md'),
+    path.join(skillRoot, 'references', 'codex-inline-preview.md'),
     path.join(skillRoot, 'references', 'mode-article-diagram.md'),
     path.join(skillRoot, 'references', 'source-weread.md'),
   ]) {
@@ -157,6 +158,7 @@ function assertPackagedSkill() {
     'schemas/editorial-image.json',
     'schemas/article-diagram.json',
     'references/design-index.md',
+    'references/codex-inline-preview.md',
     'references/mode-article-diagram.md',
     'references/source-weread.md',
     'assets/capture4k.js',
@@ -224,6 +226,19 @@ function assertWereadSourceContract() {
   assert.match(adapter, /Never construct a WeChat Reading link manually/, 'adapter is missing the official deepLink guard');
 }
 
+function assertCodexPreviewContract() {
+  const skill = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
+  const preview = fs.readFileSync(path.join(ROOT, 'references', 'codex-inline-preview.md'), 'utf8');
+  const step3 = skill.match(/### Step 3: 候选确认（仅按需）([\s\S]*?)### Step 3\.5:/)?.[1];
+
+  assert.ok(step3, 'SKILL.md is missing the bounded Step 3 fallback contract');
+  assert.match(step3, /Card Decision Brief\.candidates/, 'Step 3 fallback does not source candidates from the current decision brief');
+  assert.doesNotMatch(step3, /\b(?:linear|claude|stripe|notion)\b/, 'Step 3 fallback hard-codes design candidates');
+  assert.match(preview, /轻量选择器 \+ 单一主预览 \+ 选中详情 \+ 单一确认动作/, 'Codex preview is missing the single-preview composition');
+  assert.match(preview, /不要把多行说明[\s\S]*放进 `\.btn` \/ `\.btn-block`/, 'Codex preview is missing the rich-button overflow guard');
+  assert.match(preview, /window\.openai\.sendFollowUpMessage/, 'Codex preview is missing the follow-up handoff contract');
+}
+
 function runCardCli(input, outputName, expectedCount = 1) {
   const inputPath = path.join(tmpDir, `${outputName}.json`);
   const outputPath = path.join(tmpDir, `${outputName}.png`);
@@ -257,6 +272,7 @@ try {
   assertVersionSources();
   assertPackagedSkill();
   assertWereadSourceContract();
+  assertCodexPreviewContract();
 
   const measureViewportPath = path.join(tmpDir, 'capture-measure-viewport.html');
   fs.writeFileSync(measureViewportPath, '<!doctype html><style>*{box-sizing:border-box}html,body{margin:0}.probe{width:calc(100vw - 20px);height:10px}</style><div class="probe" data-measure-id="probe"></div>', 'utf8');

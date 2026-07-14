@@ -1,7 +1,7 @@
 {
   "name": "card-skill",
-  "version": "0.4.1",
-  "description": "Render text content into polished, shareable PNG cards, posters, whiteboards, long-form reading cards, editorial images, and in-article diagrams.",
+  "version": "0.5.0",
+  "description": "Render text content into polished, shareable PNG cards, posters, whiteboards, long-form reading cards, editorial images, and in-article diagrams, with an optional Codex direction preview before rendering.",
   "author": {
     "name": "KKenny0",
     "url": "https://github.com/KKenny0"
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "card-skill",
     "shortDescription": "Turn text into publish-ready visual cards",
-    "longDescription": "card-skill packages Quiet Paper renderers, templates, fonts, schemas, and output checks for turning articles, notes, arguments, stories, and explicitly requested WeChat Reading highlights or statistics into polished PNG visuals.",
+    "longDescription": "card-skill packages Quiet Paper renderers, templates, fonts, schemas, and output checks for turning articles, notes, arguments, stories, and explicitly requested WeChat Reading highlights or statistics into polished PNG visuals. In supported Codex desktop sessions, it can optionally show a small direction preview before rendering.",
     "developerName": "KKenny0",
     "category": "Productivity",
     "capabilities": [

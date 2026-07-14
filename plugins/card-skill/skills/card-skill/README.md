@@ -82,6 +82,16 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 
 不需要 slash command；中文、英文自然语言都可以触发。
 
+### Codex 对话预览（可选）
+
+在支持对话内交互卡片的 Codex 桌面会话中，可以明确要求先看方向，再决定是否出图：
+
+```text
+先给我 3 个公众号头图方向，用卡片展示每个方向的视觉隐喻、比例、适用理由和风险；我选定后再渲染 PNG。
+```
+
+选择后仍由现有 Stable / Creative 流程渲染、截图、检查并返回 PNG。普通请求不会被强制插入选择步骤；Codex CLI、IDE 或其他 agent 会退回文字候选列表，不影响原有流程。
+
 ## 从你要发布的东西开始
 
 ### 微信读书划线与阅读报告（可选）

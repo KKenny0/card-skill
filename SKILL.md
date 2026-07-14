@@ -2,7 +2,7 @@
 name: card-skill
 description: "Render text content into a polished, shareable PNG visual. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, stories, explicit WeChat Reading highlights/thoughts, or WeChat Reading personal statistics into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, reading report, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 做成漫画, 视觉笔记, 给文章配图, 微信读书划线做卡, 微信读书笔记, 微信读书阅读月报, article cover, blog hero, article diagram, concept map, process flow, and editorial image. Supports 9 modes: infographic, big-text poster, long-form reading card, whiteboard reasoning, multi-card poster, comic, sketchnote, editorial-image, and article-diagram. If the user mentions a restrained brand feel such as Apple, Stripe, Linear, Vercel, IBM, Notion, Claude, or similar, apply it as a visual style, not as a full brand redesign. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.4.1"
+version: "0.5.0"
 ---
 
 # card-skill
@@ -66,6 +66,12 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | `brand_name` | 可选署名/品牌文字；只在用户明确提供时渲染 | 空 |
 | `logo` | 可选署名头像/品牌 logo 路径；只在用户明确提供时渲染 | 空 |
 | `source` | 可选来源文字；`long`、`poster`、`editorial-image` 与 `article-diagram` 支持 | 空 |
+
+## Codex 环境扩展（可选）
+
+在支持对话内交互卡片的 Codex 桌面环境中，可以在渲染前展示少量候选方向，让用户选择视觉隐喻、公式压缩或设计气质。这个入口只是决策面，不是第 10 个 mode，不改变最终 PNG 输出契约，也不替代 schema、renderer、Playwright 截图或 `check-output`。
+
+完整规则见 `references/codex-inline-preview.md`。Codex CLI、IDE、其他 coding agent 或当前宿主不支持交互卡片时，沿用同一份候选契约输出文字列表；预览不可用不得阻塞原有直接出图流程。
 
 ## 执行流程
 
@@ -288,23 +294,34 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 3. **密度适配**：稀→留白风格（apple, notion），密→data-dense 风格（stripe, ibm）
 4. **多样性边界**：候选之间应气质不同，但都必须保持 Quiet Paper：暖纸或深卡纸、低饱和 accent、小圆角、少阴影
 
-如果用户明确要求候选、换一批或选择风格，再输出 3-5 个候选列表，每个附一句话匹配理由。
+如果用户明确要求候选、换一批或选择风格，默认给 2-3 个候选，每个附一句话匹配理由；用户明确指定 2-5 个候选时服从指定数量。支持 Codex 对话预览时进入 Step 3.5；其他环境只进入 Step 3 的文字候选流程，两条路径不要重复执行。
 
 ### Step 3: 候选确认（仅按需）
 
-只有用户要求先看候选时，才在终端展示候选列表，每个附一句话匹配理由和色板信息：
+只有用户要求先看候选，且当前宿主不支持 Codex 对话预览时，才在终端展示文字候选。候选必须直接来自当前任务的 `Card Decision Brief.candidates`，不得预置 design 名称、固定品牌组合或与当前内容无关的示例。
 
 ```
-候选设计系统：
-1. linear — 深色卡纸里的精密感，适合技术架构内容 (Canvas: #151413, Accent: #7b84b8)
-2. claude — 温暖编辑风，适合人文思考 (Canvas: #f5f0e8, Accent: #9b6048)
-3. stripe — 安静数据秩序，适合金融展示 (Canvas: #f6f4ee, Accent: #314d73)
-4. notion — 简约纸面留白，适合知识管理 (Canvas: #f6f3ec, Accent: #6f6095)
+候选方向：
+1. {label} — {why} / 风险：{risk}
+2. {label} — {why} / 风险：{risk}
+3. {label} — {why} / 风险：{risk}
 ```
 
-告知用户：选择编号（如"用 2"），或说"换一批"重新推荐。用户确认后进入 Step 4。
+默认输出 2-3 个；用户明确指定 2-5 个时按指定数量输出。告知用户：选择编号（如“用 2”），或说“换一批”重新生成当前内容的方向。用户确认后进入 Step 4。
 
 普通出图请求不要停在这里；自动选择设计系统后直接进入 Step 4。
+
+### Step 3.5: Codex 预览决策面（仅按需）
+
+只有当前宿主支持 Codex 对话预览，且满足以下任一条件时，才读取 `references/codex-inline-preview.md` 并生成预览：用户明确要求候选；或 `editorial-image` / `article-diagram` 存在会明显改变最终画面的多解决策。进入本步骤后不要再执行 Step 3 的文字候选流程。
+
+1. 先形成 `Card Decision Brief`，只保留当前任务必要的内容锚点、发布任务、路由和默认 2-3 个候选；用户明确指定 2-5 个候选时服从指定数量。
+2. 每个候选必须带真实可渲染的 `render_contract`，不能只展示抽象风格名或一组装饰色。
+3. `editorial-image` 候选围绕视觉隐喻、用途、比例和合法 design / tone；`article-diagram` 候选围绕 `formula`、`sentence`、`structure` 和显式的 `render_plan`。
+4. 用户确认后，使用宿主的 follow-up 能力把选中的规范化契约送回同一对话，再进入 Step 4；不要从预览中直接调用 CLI，也不要把候选 HTML 当成最终 PNG。
+5. 如果宿主不支持预览、选择回传失败或预览无法渲染，退回文字候选列表或默认自动选择。预览失败不得跳过 schema、截图、`check-output` 或人工看图。
+
+普通请求不经过本步骤，直接按现有流程自动选择并渲染。
 
 ### Step 4: 渲染
 
