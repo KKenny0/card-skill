@@ -62,17 +62,19 @@ Treat one paired highlight plus thought as one content unit. A standalone though
 Default routing:
 
 - one requested quotation: `big`, using `attribution` for the book source;
-- personal notes without another requested format: `poster`;
+- personal notes without another requested format: `poster` with `variant: "reading-notes"`;
 - a reading-note essay or explicit long-card request: `long`;
 - an explicit request to compress a relationship, mechanism, or argument: `article-diagram`.
 
-For the default poster route:
+For the default `poster` + `reading-notes` route:
 
 - 1-8 content units: keep every unit;
-- more than 8 units without an explicit quantity: group by chapter and theme into 6-8 coherent cards, prioritize units containing the user's own thought, and report `used / available` counts in the delivery message;
+- more than 8 units without an explicit quantity: group by chapter and theme into 6-8 coherent cards with about 2-4 related units per card, prioritize units containing the user's own thought, and report `used / available` counts in the delivery message;
 - an explicit request for every unit: create sequential batches of at most 8 cards without dropping content.
 
-Visible labels must distinguish `原文划线`, `我的想法`, `章节点评`, and `整本书评`. Use the poster `source` field for `微信读书 · 《书名》 · 作者`. Do not use `brand_name` as a substitute for provenance.
+Each paired or highlight-only unit uses `{ "type": "reading_unit", "quote": "...", "thought": "..." }`; omit `thought` when no exact pair exists. Standalone chapter thoughts and whole-book reviews continue to use ordinary `items` / `paragraph` body elements with explicit `章节点评` or `整本书评` labels. Theme titles are editorial organization only and must not impersonate headings from the book; use a light `主题整理` cue when that distinction would otherwise be unclear.
+
+The first card must contain both the series title and actual note content. Never spend a title-only card before the reading path begins. Visible labels must distinguish `原文划线`, `我的想法`, `章节点评`, and `整本书评`. Use the poster `source` field for `微信读书 · 《书名》 · 作者`. Do not use `brand_name` as a substitute for provenance.
 
 ## Reading report workflow
 

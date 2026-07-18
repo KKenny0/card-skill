@@ -14,7 +14,8 @@ const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
 /**
  * Convert structured body elements into HTML for poster_template.
- * Supported types: paragraph, heading, highlight, items, data_row, divider
+ * Supported types: paragraph, heading, highlight, items, data_row, divider,
+ * and reading_unit for the reading-notes variant.
  */
 function renderCardBody(body) {
   return body.map(el => {
@@ -39,6 +40,12 @@ function renderCardBody(body) {
       }
       case 'divider':
         return '<div class="divider"></div>';
+      case 'reading_unit': {
+        const thought = typeof el.thought === 'string' && el.thought.trim() !== ''
+          ? `<div class="reading-thought"><div class="reading-label">我的想法</div><p>${escapeHtml(el.thought)}</p></div>`
+          : '';
+        return `<section class="reading-unit"><div class="reading-quote"><div class="reading-label">原文划线</div><blockquote><p>${escapeHtml(el.quote)}</p></blockquote></div>${thought}</section>`;
+      }
       default:
         return '';
     }
@@ -66,6 +73,7 @@ function render(input, outputDir) {
   const hasBranding = Boolean(logoPath || brandName);
   const hasColophon = Boolean(source || hasBranding);
   const totalCards = input.cards.length;
+  const isReadingNotes = input.variant === 'reading-notes';
 
   const results = [];
 
@@ -109,7 +117,12 @@ function render(input, outputDir) {
     html = html.replace(/(--radius):\s*[^;]+;/g, `$1: ${design.radius};`);
     html = html.replaceAll('{{HEADER_BLOCK}}', headerBlock);
     html = html.replaceAll('{{TITLE_BLOCK}}', titleBlock);
-    html = html.replaceAll('{{BODY_HTML}}', Array.isArray(card.body) ? renderCardBody(card.body) : '');
+    const cardTitle = isReadingNotes && card.title
+      ? `<h2 class="reading-card-title">${escapeHtml(card.title)}</h2>`
+      : '';
+    const bodyHtml = Array.isArray(card.body) ? renderCardBody(card.body) : '';
+    html = html.replaceAll('{{CARD_CLASS}}', isReadingNotes ? ' reading-notes' : '');
+    html = html.replaceAll('{{BODY_HTML}}', `${cardTitle}${bodyHtml}`);
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophonBlock);
     html = html.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');
     html = html.replaceAll('{{BRAND_NAME}}', brandName);

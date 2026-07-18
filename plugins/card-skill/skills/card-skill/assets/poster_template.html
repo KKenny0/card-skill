@@ -22,6 +22,7 @@
                         <div class="title-area">…</div>
   {{BODY_HTML}}      — card body content (paragraphs, items,
                         highlights, dividers, data-rows, etc.)
+  {{CARD_CLASS}}     — optional card modifier class, including leading space
   {{PAGE_INFO}}      — "1 / N" page indicator text; empty for single-card
   {{COLOPHON_BLOCK}} — colophon HTML (last card only, empty for others):
                         <div class="colophon">…</div>
@@ -175,6 +176,87 @@
     margin-bottom: 24px;
   }
 
+  /* ── Reading notes variant ────────────────────────────────────── */
+  .card.reading-notes {
+    padding: 72px 76px;
+  }
+
+  .card.reading-notes .title-area {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    padding-bottom: 30px;
+    margin-bottom: 34px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .card.reading-notes .title-area h1 {
+    max-width: 880px;
+    font-size: 64px;
+    line-height: 1.12;
+    margin-bottom: 12px;
+  }
+
+  .card.reading-notes .title-area .subtitle {
+    font-size: 30px;
+    line-height: 1.4;
+  }
+
+  .card.reading-notes .header {
+    margin-bottom: 34px;
+  }
+
+  .card.reading-notes .body-content {
+    min-height: 0;
+  }
+
+  .reading-card-title {
+    font: 400 48px/1.22 var(--zh-serif) !important;
+    margin-bottom: 28px !important;
+  }
+
+  .reading-unit {
+    padding: 28px 0;
+  }
+
+  .reading-card-title + .reading-unit,
+  .reading-unit:first-child {
+    padding-top: 0;
+  }
+
+  .reading-unit + .reading-unit {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .reading-label {
+    font: 500 24px/1.2 var(--mono);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+  }
+
+  .reading-quote blockquote {
+    padding-left: 24px;
+    border-left: 2px solid var(--accent);
+  }
+
+  .reading-quote p,
+  .reading-thought p {
+    font: 400 36px/1.62 var(--zh-serif);
+    margin-bottom: 0;
+  }
+
+  .reading-thought {
+    margin-top: 24px;
+    padding: 22px 24px;
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+
+  .reading-thought .reading-label {
+    color: var(--ink-muted);
+  }
+
   /* ── Highlight (golden sentence) ───────────────────────────────── */
   .highlight {
     padding: 28px 32px;
@@ -307,7 +389,7 @@
 </style>
 </head>
 <body>
-<div class="card">
+<div class="card{{CARD_CLASS}}">
 
   {{HEADER_BLOCK}}
 

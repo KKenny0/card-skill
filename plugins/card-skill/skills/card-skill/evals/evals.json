@@ -531,9 +531,14 @@
     {
       "id": 13,
       "name": "weread-personal-notes-poster",
-      "prompt": "把下面这份由官方 WeChatReading Skill 返回并脱敏的个人笔记做成 poster 卡组。不要调用网络。划线原文必须逐字保留；个人想法放在对应划线下；没有 range 的章节点评保持独立；来源写到最后一张。\n\n书名：《秩序与边界》\n作者：林川\n来源：微信读书 · 《秩序与边界》 · 林川\n\n个人划线：\n- chapterUid=101, range=120-154, 章节=第一章 约束，markText=真正的自由，不是没有边界，而是知道边界在哪里。\n- chapterUid=102, range=88-121, 章节=第二章 选择，markText=选择之所以困难，是因为每个答案都在放弃另一种生活。\n\n个人想法：\n- chapterUid=101, range=120-154, abstract=真正的自由，不是没有边界，而是知道边界在哪里。, content=边界不是自由的反面，而是自由得以落地的条件。\n- chapterUid=102, chapterName=第二章 选择, content=这一章让我重新理解了沉没成本。",
+      "prompt": "把下面这份由官方 WeChatReading Skill 返回并脱敏的个人笔记做成 poster + reading-notes 卡组。不要调用网络。首卡必须同时有系列标题和实际笔记内容；划线原文必须逐字保留；个人想法放在对应划线下；孤立划线保持原样；没有 range 的章节点评和整本书评保持独立；来源写到最后一张。\n\n书名：《秩序与边界》\n作者：林川\n来源：微信读书 · 《秩序与边界》 · 林川\n\n个人划线：\n- chapterUid=101, range=120-154, 章节=第一章 约束，markText=真正的自由，不是没有边界，而是知道边界在哪里。\n- chapterUid=102, range=88-121, 章节=第二章 选择，markText=选择之所以困难，是因为每个答案都在放弃另一种生活。\n- chapterUid=103, range=40-72, 章节=第三章 行动，markText=行动让抽象的边界变成可以检验的承诺。\n\n个人想法：\n- chapterUid=101, range=120-154, abstract=真正的自由，不是没有边界，而是知道边界在哪里。, content=边界不是自由的反面，而是自由得以落地的条件。\n- chapterUid=102, chapterName=第二章 选择, content=这一章让我重新理解了沉没成本。\n- reviewType=book, content=整本书最有价值的地方，是把边界写成了行动条件。",
       "files": [],
       "assertions": [
+        {
+          "name": "reading_notes_variant",
+          "check": "Poster output uses the explicit reading-notes variant instead of a new mode or ordinary poster composition.",
+          "auto": { "type": "html_match", "pattern": "class=\"card reading-notes\"" }
+        },
         {
           "name": "multiple_cards",
           "check": "At least three poster cards are generated so the two paired/standalone note units and source-bearing close remain readable.",
@@ -553,6 +558,16 @@
           "name": "thought_labels_clear",
           "check": "Visible copy distinguishes 原文划线 from 我的想法 or 章节点评.",
           "auto": { "type": "text_match", "pattern": "原文划线|我的想法|章节点评" }
+        },
+        {
+          "name": "standalone_note_labels_clear",
+          "check": "Standalone chapter and whole-book reviews keep their own labels.",
+          "auto": { "type": "text_match", "pattern": "章节点评.*整本书评|整本书评.*章节点评" }
+        },
+        {
+          "name": "first_card_has_content",
+          "check": "The first card contains both the series title and at least one visible reading unit; it is not title-only.",
+          "auto": { "type": "manual" }
         },
         {
           "name": "source_present",
@@ -621,6 +636,62 @@
           "name": "output_is_png",
           "check": "PNG files were successfully generated for the reading report.",
           "auto": { "type": "file_count_min", "min": 1, "glob": "*.png" }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "weread-reading-notes-selection",
+      "prompt": "把下面 12 个合成的个人读书内容单元做成默认 poster + reading-notes 卡组。不要调用网络。这是超过 8 个单元的默认精选场景：按主题整理成 6–8 张卡，每张约 2–4 个相关单元，优先保留带个人想法和形成转折的划线；主题标题不得冒充书中小节；交付说明本次使用 X / 可用 12。\n\n1. 原文划线：观察先于判断。｜我的想法：先记录，再解释。\n2. 原文划线：边界让协作可预期。\n3. 原文划线：例外会暴露规则的形状。\n4. 原文划线：选择意味着放弃其他路径。｜我的想法：成本常藏在未选择的一侧。\n5. 原文划线：行动给抽象概念留下证据。\n6. 原文划线：反馈把承诺变成循环。\n7. 原文划线：沉默也会改变共同预期。\n8. 原文划线：复盘把结果送回判断。\n9. 原文划线：责任需要清楚的解释边界。\n10. 原文划线：共同语言降低协作摩擦。\n11. 章节点评：这一章从规则转向了关系。\n12. 整本书评：全书最终把边界落到了行动上。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "reading_notes_variant",
+          "check": "The output uses poster + reading-notes.",
+          "auto": { "type": "html_match", "pattern": "class=\"card reading-notes\"" }
+        },
+        {
+          "name": "six_to_eight_cards",
+          "check": "Default selection produces 6–8 coherent cards, never a single overfilled poster or long image.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "thoughts_prioritized",
+          "check": "Units carrying personal thoughts and the standalone chapter/book reviews are retained before weaker duplicate material.",
+          "auto": { "type": "text_match", "pattern": "先记录，再解释|成本常藏在未选择的一侧" }
+        },
+        {
+          "name": "selection_disclosed",
+          "check": "Delivery states 本次使用 X / 可用 12 instead of silently implying completeness.",
+          "auto": { "type": "manual" }
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "weread-reading-notes-all-units",
+      "prompt": "把下面 9 条合成划线全部做成 poster + reading-notes。用户明确要求每条都要：保持 1→9 的原始顺序，不做精选，不静默丢弃；如果需要分批，每批最多 8 张卡。不要调用网络。\n\n1. 第一个观察保留原序。\n2. 第二个观察保留原序。\n3. 第三个观察保留原序。\n4. 第四个观察保留原序。\n5. 第五个观察保留原序。\n6. 第六个观察保留原序。\n7. 第七个观察保留原序。\n8. 第八个观察保留原序。\n9. 第九个观察保留原序。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "all_units_present",
+          "check": "All nine quotations are present exactly once; none is silently dropped.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "order_preserved",
+          "check": "Visible order remains 1 through 9 across cards and batches.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "batch_boundary",
+          "check": "No reading-notes render batch contains more than 8 cards.",
+          "auto": { "type": "manual" }
+        },
+        {
+          "name": "first_and_last_present",
+          "check": "The first and last synthetic quotations are both rendered.",
+          "auto": { "type": "text_match", "pattern": "第一个观察保留原序[\\s\\S]*第九个观察保留原序" }
         }
       ]
     }

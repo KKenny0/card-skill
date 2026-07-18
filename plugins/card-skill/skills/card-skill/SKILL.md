@@ -48,7 +48,7 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | 正文解释图 / 关系图 / 流程图 / 边界图 | `article-diagram` |
 | 长文章 / 深度阅读 / 保留段落节奏 | `long` |
 | 小红书 / 社媒卡片 | 单一观点优先 `big`，多观点或系列优先 `poster`，结构化知识优先 `infograph` |
-| 微信读书个人划线 / 想法 | 默认 `poster`；单句 `big`，长文笔记 `long`，显式结构压缩 `article-diagram` |
+| 微信读书个人划线 / 想法 | 默认 `poster` + `reading-notes`；单句 `big`，长文笔记 `long`，显式结构压缩 `article-diagram` |
 | 微信读书阅读月报 / 年报 | `poster`，只渲染官方回包实际提供的统计模块 |
 | 推理过程 / 关系梳理 / 白板 | `whiteboard` |
 | 有冲突、转折或人物动作的叙事 | `comic` |
@@ -121,7 +121,7 @@ node scripts/card.js --input <system_temp>/card_input_{timestamp}.json --output 
 big: `{ mode, phrase, design?, accent_words?, ghost_char?, attribution? }`
 long: `{ mode, title, body: [{type, text, ...}], design?, kicker?, subtitle?, theme? }`
 whiteboard: `{ mode, title, steps: [{type, ...}], design?, subtitle?, accent_words? }`
-poster: `{ mode, title, cards: [{body: [{type, ...}]}], design?, subtitle?, source? }`
+poster: `{ mode, variant?, title, cards: [{title?, body: [{type, ...}]}], design?, subtitle?, source? }`；个人读书笔记使用 `variant: "reading-notes"`，配对内容单元为 `{ type: "reading_unit", quote, thought? }`
 editorial-image: `{ mode, title, use?, aspect?, visual_metaphor?, cover_motif?, art_direction?, content_html?, custom_css?, composition_required?, design?, editorial_tone? }`；文章型 `use=cover` 选择 `cover_motif`，`use=in-article` / `metaphor` 必须带 `composition_required: true`、`content_html` 与 `custom_css`
 article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, label, note?}], relations?}, render_plan?, caption?, design? }`；legacy: `{ mode, family, title, nodes, links?, zones? }`
 
@@ -153,6 +153,15 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 **获取**：URL → WebFetch / 粘贴文本 → 直接用 / 文件路径 → Read
 
 **微信读书可选来源**：只有用户明确提到微信读书，或明确说明当前划线、想法、统计来自微信读书时，才进入 `references/source-weread.md`。先读取已安装的官方 `Tencent/WeChatReading` Skill 的完整 `SKILL.md` 和当前请求对应的能力文档，由官方 Skill 负责认证、版本、分页、字段含义与 deepLink；card-skill 只接收规范化后的个人内容或统计并负责制图。普通书名、未注明平台的个人阅读统计、通用读书卡或文章请求不得隐式读取个人账号。官方 Skill 未安装、Key 缺失、升级提示、数据不可用和隐私降级规则全部见该 reference。
+
+个人划线与想法进入默认 Poster 路线时，必须显式使用 `variant: "reading-notes"`：
+
+- 一条原文划线及其精确配对的个人想法组成一个 `reading_unit`；`quote` 逐字保留，`thought` 只有在来源层已经精确配对时才写入。
+- 没有配对 quote 的章节点评与整本书评继续使用 `items` / `paragraph`，并分别标明 `章节点评`、`整本书评`；不能伪装成 `我的想法`。
+- 1–8 个内容单元全部保留；超过 8 个且用户未要求全量时，按章节与主题整理为 6–8 张卡，每张约 2–4 个相关单元，并在交付中说明 `本次使用 X / 可用 Y`。
+- 主题标题只是整理标签，不得冒充书中小节；必要时写明 `主题整理`。
+- 用户明确要求每条都要时，不做隐式精选；保持原始顺序，分成每批最多 8 张卡。
+- 第一张卡必须同时包含系列标题和实际内容，不能生成 title-only 首卡。
 
 **分析**：提取内容的三维特征（详见 `references/mode-infograph.md`）
 

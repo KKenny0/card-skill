@@ -53,11 +53,12 @@ const SCHEMAS = {
   },
   poster: {
     required: ['mode', 'title', 'cards'],
-    optional: ['design', 'subtitle', 'source', 'logo', 'brand_name'],
+    optional: ['variant', 'design', 'subtitle', 'source', 'logo', 'brand_name'],
     types: {
       mode: 'string',
       title: 'string',
       cards: 'array',
+      variant: 'string',
       design: 'string',
       subtitle: 'string',
       source: 'string',
@@ -149,7 +150,8 @@ const SCHEMAS = {
 
 const LONG_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'blockquote', 'layer_card', 'section_break']);
 const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight']);
-const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider']);
+const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider', 'reading_unit']);
+const POSTER_VARIANTS = new Set(['reading-notes']);
 const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
 const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
 const EDITORIAL_COVER_MOTIFS = new Set(['paper-stack', 'drawer', 'window', 'lens', 'path', 'archive', 'layers']);
@@ -157,6 +159,22 @@ const ARTICLE_DIAGRAM_FAMILIES = new Set(['concept-map', 'process-flow', 'bounda
 const ARTICLE_DIAGRAM_ASPECTS = new Set(['body-2-1', 'body-3-2', 'body-4-3']);
 const ARTICLE_DIAGRAM_RENDER_PLANS = new Set(['auto', 'summary', 'structure', 'split']);
 const DESIGN_NAMES = listDesigns().map(design => design.name);
+
+function hasPosterContent(body) {
+  const hasText = value => typeof value === 'string' && value.trim() !== '';
+  return body.some((el) => {
+    if (!el || typeof el !== 'object') return false;
+    if (el.type === 'reading_unit') return hasText(el.quote);
+    if (el.type === 'items') {
+      return Array.isArray(el.entries) && el.entries.some(entry => hasText(entry?.label) && hasText(entry?.text));
+    }
+    if (el.type === 'data_row') return hasText(el.key) && hasText(el.value);
+    if (['paragraph', 'heading', 'highlight'].includes(el.type)) {
+      return hasText(el.text);
+    }
+    return false;
+  });
+}
 
 function validate(input) {
   const errors = [];
@@ -219,10 +237,25 @@ function validate(input) {
   }
 
   if (mode === 'poster' && Array.isArray(input.cards)) {
+    if (input.variant && !POSTER_VARIANTS.has(input.variant)) {
+      errors.push(`variant must be one of: ${[...POSTER_VARIANTS].join(', ')}`);
+    }
     if (input.cards.length === 0) errors.push('cards[] must have at least 1 card');
+    if (input.variant === 'reading-notes' && input.cards.length > 8) {
+      errors.push('poster variant "reading-notes" supports at most 8 cards per batch');
+    }
     input.cards.forEach((card, i) => {
+      if (card.title !== undefined && (typeof card.title !== 'string' || card.title.trim() === '')) {
+        errors.push(`cards[${i}].title must be a non-empty string when provided`);
+      }
+      if (card.title !== undefined && input.variant !== 'reading-notes') {
+        errors.push(`cards[${i}].title is only supported by poster variant "reading-notes"`);
+      }
       if (!Array.isArray(card.body)) errors.push(`cards[${i}]: missing "body" array`);
       else {
+        if (input.variant === 'reading-notes' && !hasPosterContent(card.body)) {
+          errors.push(`cards[${i}].body must contain actual content for variant "reading-notes"`);
+        }
         card.body.forEach((el, j) => {
           if (!el.type) errors.push(`cards[${i}].body[${j}]: missing "type"`);
           else if (!POSTER_BODY_TYPES.has(el.type)) errors.push(`cards[${i}].body[${j}]: unknown type "${el.type}". Allowed: ${[...POSTER_BODY_TYPES].join(', ')}`);
@@ -230,6 +263,17 @@ function validate(input) {
             el.entries.forEach((e, k) => {
               if (!e.label || !e.text) errors.push(`cards[${i}].body[${j}].entries[${k}]: items entries require "label" and "text"`);
             });
+          }
+          if (el.type === 'reading_unit') {
+            if (input.variant !== 'reading-notes') {
+              errors.push(`cards[${i}].body[${j}]: reading_unit requires poster variant "reading-notes"`);
+            }
+            if (typeof el.quote !== 'string' || el.quote.trim() === '') {
+              errors.push(`cards[${i}].body[${j}].quote must be a non-empty string`);
+            }
+            if (el.thought !== undefined && typeof el.thought !== 'string') {
+              errors.push(`cards[${i}].body[${j}].thought must be a string when provided`);
+            }
           }
         });
       }
@@ -439,6 +483,7 @@ module.exports = {
   LONG_BODY_TYPES,
   WHITEBOARD_STEP_TYPES,
   POSTER_BODY_TYPES,
+  POSTER_VARIANTS,
   EDITORIAL_ASPECTS,
   EDITORIAL_USES,
   EDITORIAL_COVER_MOTIFS,

@@ -6,6 +6,11 @@
   "required": ["mode", "title", "cards"],
   "properties": {
     "mode": { "type": "string", "const": "poster" },
+    "variant": {
+      "type": "string",
+      "enum": ["reading-notes"],
+      "description": "Optional composition variant. reading-notes preserves highlight-to-thought pairs and enables reading_unit body elements."
+    },
     "design": {
       "type": "string",
       "description": "Design system name. Defaults to 'stripe'. See scripts/lib/designs.js for full list.",
@@ -34,6 +39,11 @@
         "type": "object",
         "required": ["body"],
         "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Optional theme-organizing title. In reading-notes it is an editorial label, not a claimed source heading."
+          },
           "body": {
             "type": "array",
             "description": "Array of body elements for this card.",
@@ -43,9 +53,25 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider"]
+                  "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider", "reading_unit"]
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "description": "Verbatim source highlight. Required and non-empty for reading_unit."
+                },
+                "thought": {
+                  "type": "string",
+                  "description": "Optional personal thought paired to the quote by the source adapter."
                 }
-              }
+              },
+              "allOf": [
+                {
+                  "if": { "properties": { "type": { "const": "reading_unit" } } },
+                  "then": { "required": ["quote"] }
+                }
+              ]
             }
           }
         }
@@ -60,6 +86,90 @@
       "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["variant"],
+        "properties": { "variant": { "const": "reading-notes" } }
+      },
+      "then": {
+        "properties": {
+          "cards": {
+            "maxItems": 8,
+            "items": {
+              "properties": {
+                "body": {
+                  "minItems": 1,
+                  "contains": {
+                    "anyOf": [
+                      {
+                        "required": ["type", "quote"],
+                        "properties": {
+                          "type": { "const": "reading_unit" },
+                          "quote": { "type": "string", "pattern": "\\S" }
+                        }
+                      },
+                      {
+                        "required": ["type", "text"],
+                        "properties": {
+                          "type": { "enum": ["paragraph", "heading", "highlight"] },
+                          "text": { "type": "string", "pattern": "\\S" }
+                        }
+                      },
+                      {
+                        "required": ["type", "entries"],
+                        "properties": {
+                          "type": { "const": "items" },
+                          "entries": {
+                            "type": "array",
+                            "contains": {
+                              "required": ["label", "text"],
+                              "properties": {
+                                "label": { "type": "string", "pattern": "\\S" },
+                                "text": { "type": "string", "pattern": "\\S" }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "required": ["type", "key", "value"],
+                        "properties": {
+                          "type": { "const": "data_row" },
+                          "key": { "type": "string", "pattern": "\\S" },
+                          "value": { "type": "string", "pattern": "\\S" }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "cards": {
+            "items": {
+              "not": { "required": ["title"] },
+              "properties": {
+                "body": {
+                  "items": {
+                    "properties": {
+                      "type": {
+                        "enum": ["paragraph", "heading", "highlight", "items", "data_row", "divider"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "examples": [
     {
       "mode": "poster",
@@ -76,6 +186,24 @@
           "body": [
             { "type": "heading", "text": "找到第一个付费客户" },
             { "type": "paragraph", "text": "付费是最好的产品验证。" }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "poster",
+      "variant": "reading-notes",
+      "title": "边界练习｜第一章",
+      "source": "微信读书 · 《边界练习》",
+      "cards": [
+        {
+          "title": "边界让选择落地",
+          "body": [
+            {
+              "type": "reading_unit",
+              "quote": "清楚的边界，让每一次选择都能被看见。",
+              "thought": "限制不是目的，能解释自己的选择才是。"
+            }
           ]
         }
       ]

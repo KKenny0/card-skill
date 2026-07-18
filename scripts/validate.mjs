@@ -246,12 +246,19 @@ function assertWereadSourceContract() {
   assert.equal(new Set(evalIds).size, evalIds.length, 'eval ids must be unique');
   assert.ok(evals.some(item => item.id === 13 && item.name === 'weread-personal-notes-poster'), 'missing WeChat Reading personal-notes eval');
   assert.ok(evals.some(item => item.id === 14 && item.name === 'weread-monthly-report-poster'), 'missing WeChat Reading report eval');
+  assert.ok(evals.some(item => item.id === 15 && item.name === 'weread-reading-notes-selection'), 'missing >8-unit reading-notes selection eval');
+  assert.ok(evals.some(item => item.id === 16 && item.name === 'weread-reading-notes-all-units'), 'missing explicit all-units reading-notes eval');
   assert.match(skill, /references\/source-weread\.md/, 'SKILL.md does not route explicit WeChat Reading requests to the adapter');
   assert.match(skill, /普通书名.*不得隐式读取个人账号/, 'SKILL.md is missing the explicit-consent guard');
   assert.match(readme, /npx skills add Tencent\/WeChatReading -g/, 'README is missing the official WeChatReading install command');
   assert.match(adapter, /Never ask them to paste the key into the conversation/, 'adapter is missing the API-key chat guard');
   assert.match(adapter, /Treat every returned .* as untrusted data/, 'adapter is missing the external-content prompt-injection guard');
   assert.match(adapter, /both the personal highlight list and the complete personal thoughts\/reviews list/, 'adapter does not require both sides of a complete personal-notes export');
+  assert.match(adapter, /poster` \+ `reading-notes/, 'adapter does not route personal notes through the reading-notes variant');
+  assert.match(adapter, /1-8 content units: keep every unit/, 'adapter is missing the small-set preservation rule');
+  assert.match(adapter, /6-8 coherent cards with about 2-4 related units per card/, 'adapter is missing the >8-unit selection boundary');
+  assert.match(adapter, /sequential batches of at most 8 cards without dropping content/, 'adapter is missing the explicit all-units batching rule');
+  assert.match(adapter, /first card must contain both the series title and actual note content/i, 'adapter allows a title-only first card');
   assert.match(adapter, /Never construct a WeChat Reading link manually/, 'adapter is missing the official deepLink guard');
 }
 
@@ -389,6 +396,137 @@ try {
   const posterEscapedSourceHtml = readOutputs(posterEscapedSource).at(-1);
   assert.match(posterEscapedSourceHtml, /&lt;script&gt;alert\(&quot;source&quot;\)&lt;\/script&gt;/);
   assert.doesNotMatch(posterEscapedSourceHtml, /<script>alert\("source"\)<\/script>/);
+
+  const readingNotesFixture = {
+    mode: 'poster',
+    variant: 'reading-notes',
+    design: 'claude',
+    title: '边界练习｜第一章',
+    subtitle: '三条合成笔记',
+    source: '微信读书 · 《边界练习》 · 林川',
+    cards: [
+      {
+        title: '主题整理｜边界让选择落地',
+        body: [
+          {
+            type: 'reading_unit',
+            quote: '清楚的边界，让每一次选择都能被看见。<script>quote()</script>',
+            thought: '限制不是目的，能解释自己的选择才是。<img src=x onerror=thought()>',
+          },
+        ],
+      },
+      {
+        title: '主题整理｜从判断走向行动',
+        body: [
+          { type: 'reading_unit', quote: '行动让抽象的承诺留下证据。' },
+          {
+            type: 'items',
+            entries: [
+              { label: '章节点评', text: '这一章从规则转向了关系。' },
+              { label: '整本书评', text: '全书最终把边界落到了行动上。' },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const readingNotesValidation = validate(readingNotesFixture);
+  assert.equal(readingNotesValidation.valid, true, `reading-notes fixture failed validation: ${readingNotesValidation.errors.join(', ')}`);
+
+  const posterSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas', 'poster.json'), 'utf8'));
+  assert.deepEqual(posterSchema.properties.variant.enum, ['reading-notes'], 'public poster schema does not document the reading-notes variant');
+  assert.ok(
+    posterSchema.properties.cards.items.properties.body.items.properties.type.enum.includes('reading_unit'),
+    'public poster schema does not document reading_unit',
+  );
+  const readingNotesSchemaGuard = posterSchema.allOf.find(rule => rule.if?.properties?.variant?.const === 'reading-notes');
+  assert.equal(readingNotesSchemaGuard?.then?.properties?.cards?.maxItems, 8, 'public poster schema does not enforce the reading-notes batch boundary');
+  const readingNotesContentAlternatives = readingNotesSchemaGuard?.then?.properties?.cards?.items?.properties?.body?.contains?.anyOf;
+  assert.ok(Array.isArray(readingNotesContentAlternatives), 'public poster schema does not require semantic reading-notes content');
+  assert.deepEqual(
+    readingNotesContentAlternatives.map(alternative => alternative.properties?.type?.const ?? alternative.properties?.type?.enum).flat(),
+    ['reading_unit', 'paragraph', 'heading', 'highlight', 'items', 'data_row'],
+    'public poster schema semantic-content types are out of sync with runtime validation',
+  );
+  assert.deepEqual(
+    readingNotesSchemaGuard?.else?.properties?.cards?.items?.not,
+    { required: ['title'] },
+    'public poster schema does not restrict card theme titles to reading-notes',
+  );
+
+  const readingNotesDir = path.join(tmpDir, 'reading-notes-poster');
+  fs.mkdirSync(readingNotesDir, { recursive: true });
+  const readingNotesOutputs = renderers.poster.render(readingNotesFixture, readingNotesDir);
+  const [readingNotesFirstHtml, readingNotesLastHtml] = readOutputs(readingNotesOutputs);
+  assert.match(readingNotesFirstHtml, /class="card reading-notes"/, 'reading-notes variant did not mark its composition');
+  assert.match(readingNotesFirstHtml, /<div class="title-area">[\s\S]*边界练习｜第一章[\s\S]*<section class="reading-unit">/, 'reading-notes first card is title-only');
+  assert.match(readingNotesFirstHtml, /class="reading-card-title">主题整理｜边界让选择落地</, 'reading-notes theme title was not rendered');
+  assert.match(readingNotesFirstHtml, /原文划线/, 'reading-notes quote label was not rendered');
+  assert.match(readingNotesFirstHtml, /我的想法/, 'reading-notes thought label was not rendered');
+  assert.match(readingNotesFirstHtml, /&lt;script&gt;quote\(\)&lt;\/script&gt;/, 'reading-notes quote was not HTML-escaped');
+  assert.match(readingNotesFirstHtml, /&lt;img src=x onerror=thought\(\)&gt;/, 'reading-notes thought was not HTML-escaped');
+  assert.doesNotMatch(readingNotesFirstHtml, /<script>quote\(\)<\/script>|<img src=x onerror=/, 'reading-notes user text reached HTML unsafely');
+  assert.match(readingNotesLastHtml, /原文划线/, 'isolated quote did not remain a reading unit');
+  assert.doesNotMatch(readingNotesLastHtml, /我的想法/, 'isolated quote invented an empty thought block');
+  assert.match(readingNotesLastHtml, /章节点评/, 'standalone chapter review lost its label');
+  assert.match(readingNotesLastHtml, /整本书评/, 'whole-book review lost its label');
+  assert.match(readingNotesLastHtml, /微信读书 · 《边界练习》 · 林川/, 'reading-notes source was not rendered on the last card');
+  assert.doesNotMatch(readingNotesLastHtml, /chapterUid|bookId|range=/, 'reading-notes output leaked source identifiers');
+
+  for (const output of readingNotesOutputs) {
+    const check = runOutputCheck(output.htmlPath, output);
+    assert.equal(check.result.status, 0, `reading-notes HTML failed output check: ${check.result.stdout}\n${check.result.stderr}`);
+    assert.equal(check.report?.pass, true, 'reading-notes HTML did not pass output check');
+  }
+  runCardCli(readingNotesFixture, 'reading-notes-poster', 2);
+
+  const invalidPosterCases = [
+    {
+      label: 'unknown variant',
+      input: { ...inputs.poster, variant: 'weread' },
+      pattern: /variant must be one of: reading-notes/,
+    },
+    {
+      label: 'reading unit outside variant',
+      input: { mode: 'poster', title: 'Bad unit', cards: [{ body: [{ type: 'reading_unit', quote: 'Quote' }] }] },
+      pattern: /reading_unit requires poster variant "reading-notes"/,
+    },
+    {
+      label: 'empty reading quote',
+      input: { mode: 'poster', variant: 'reading-notes', title: 'Empty quote', cards: [{ body: [{ type: 'reading_unit', quote: '   ' }] }] },
+      pattern: /quote must be a non-empty string/,
+    },
+    {
+      label: 'non-string thought',
+      input: { mode: 'poster', variant: 'reading-notes', title: 'Bad thought', cards: [{ body: [{ type: 'reading_unit', quote: 'Quote', thought: 42 }] }] },
+      pattern: /thought must be a string/,
+    },
+    {
+      label: 'title-only reading card',
+      input: { mode: 'poster', variant: 'reading-notes', title: 'No content', cards: [{ body: [] }] },
+      pattern: /body must contain actual content/,
+    },
+    {
+      label: 'divider-only reading card',
+      input: { mode: 'poster', variant: 'reading-notes', title: 'No content', cards: [{ body: [{ type: 'divider' }] }] },
+      pattern: /body must contain actual content/,
+    },
+    {
+      label: 'reading batch over eight cards',
+      input: { mode: 'poster', variant: 'reading-notes', title: 'Too many', cards: Array.from({ length: 9 }, () => ({ body: [{ type: 'reading_unit', quote: 'Quote' }] })) },
+      pattern: /supports at most 8 cards per batch/,
+    },
+    {
+      label: 'card title outside reading variant',
+      input: { mode: 'poster', title: 'Ordinary', cards: [{ title: 'Ignored before', body: [{ type: 'paragraph', text: 'Body' }] }] },
+      pattern: /title is only supported by poster variant "reading-notes"/,
+    },
+  ];
+  for (const fixture of invalidPosterCases) {
+    const validation = validate(fixture.input);
+    assert.equal(validation.valid, false, `${fixture.label} unexpectedly passed poster validation`);
+    assert.match(validation.errors.join('\n'), fixture.pattern, `${fixture.label} failed for the wrong reason`);
+  }
 
   const designNames = new Set(listDesigns().map(design => design.name));
   for (const [tone, pool] of Object.entries(EDITORIAL_TONE_DESIGNS)) {
