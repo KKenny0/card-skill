@@ -177,7 +177,7 @@ node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 
 支持的 CLI modes：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。
 
-`editorial-image` 的高质量最终图优先使用 `content_html` + `custom_css` 做具体主视觉；默认 scaffold 只是比例安全的兜底，适合快速验证，不应作为复杂正文配图的终点。完整的 skill 行为与输入边界见 [`SKILL.md`](SKILL.md)。
+`editorial-image` 的文章封面会用确定性的 `cover_motif` 把文章张力落到右侧主视觉；复杂头图、概念隐喻和正文配图仍优先使用 `content_html` + `custom_css`。`in-article` 与 `metaphor` 不会再静默回退到默认 scaffold。完整的 skill 行为与输入边界见 [`SKILL.md`](SKILL.md)。
 
 默认 PNG 无损，长文卡可能达到 10–17MB。如需更小体积，可以单独使用 `pngquant`：
 

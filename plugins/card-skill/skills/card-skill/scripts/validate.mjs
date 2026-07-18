@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const { validate } = require('./lib/schema');
+const { validate, EDITORIAL_COVER_MOTIFS } = require('./lib/schema');
 const { EDITORIAL_TONE_DESIGNS, listDesigns, resolveEditorialDesignName } = require('./lib/designs');
 
 const renderers = {
@@ -205,6 +205,35 @@ function runOutputCheck(htmlPath, output) {
   }
 
   return { result, report };
+}
+
+function readComputedStyles(htmlPath, selector, property) {
+  const script = `
+    const { chromium } = require('playwright');
+    const [targetHtml, targetSelector, targetProperty] = process.argv.slice(1);
+    (async () => {
+      const browser = await chromium.launch({ headless: true });
+      try {
+        const page = await browser.newPage();
+        await page.goto('file://' + targetHtml);
+        const values = await page.locator(targetSelector).evaluateAll((nodes, cssProperty) => (
+          nodes.map(node => getComputedStyle(node).getPropertyValue(cssProperty))
+        ), targetProperty);
+        process.stdout.write(JSON.stringify(values));
+      } finally {
+        await browser.close();
+      }
+    })().catch(error => {
+      console.error(error.stack || error.message);
+      process.exit(1);
+    });
+  `;
+  const result = spawnSync(process.execPath, ['-e', script, htmlPath, selector, property], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, `computed-style probe failed: ${result.stderr || result.stdout}`);
+  return JSON.parse(result.stdout);
 }
 
 function assertWereadSourceContract() {
@@ -401,13 +430,25 @@ try {
   assert.equal(invalidToneValidation.valid, false, 'invalid editorial tone unexpectedly passed validation');
   assert.match(invalidToneValidation.errors.join('\n'), /editorial_tone must be one of: reflective, sharp, warm, technical/);
 
-  const inArticleValidation = validate({
+  const incompleteInArticleValidation = validate({
     mode: 'editorial-image',
     title: 'Attention has a boundary',
     use: 'in-article',
     aspect: 'body-3-2',
   });
-  assert.equal(inArticleValidation.valid, true, `editorial-image in-article mapping failed: ${inArticleValidation.errors.join(', ')}`);
+  assert.equal(incompleteInArticleValidation.valid, false, 'in-article input without an open composition unexpectedly passed');
+  assert.match(incompleteInArticleValidation.errors.join('\n'), /requires composition_required=true/);
+
+  const completeInArticleValidation = validate({
+    mode: 'editorial-image',
+    title: 'Attention has a boundary',
+    use: 'in-article',
+    aspect: 'body-3-2',
+    composition_required: true,
+    content_html: '<section class="valid-in-article"></section>',
+    custom_css: '.valid-in-article { width: 100%; height: 100%; }',
+  });
+  assert.equal(completeInArticleValidation.valid, true, `complete in-article composition failed: ${completeInArticleValidation.errors.join(', ')}`);
 
   const invalidUseValidation = validate({
     mode: 'editorial-image',
@@ -416,6 +457,68 @@ try {
   });
   assert.equal(invalidUseValidation.valid, false, 'aspect value in use unexpectedly passed validation');
   assert.match(invalidUseValidation.errors.join('\n'), /use must be one of: cover, in-article, metaphor/);
+
+  const invalidCoverMotifValidation = validate({
+    mode: 'editorial-image',
+    title: 'Unknown motif',
+    use: 'cover',
+    cover_motif: 'paper-brain',
+  });
+  assert.equal(invalidCoverMotifValidation.valid, false, 'unknown cover motif unexpectedly passed validation');
+  assert.match(invalidCoverMotifValidation.errors.join('\n'), /cover_motif must be one of:/);
+
+  const creativeCoverMotifValidation = validate({
+    mode: 'editorial-image',
+    title: 'Wrong motif use',
+    use: 'metaphor',
+    cover_motif: 'drawer',
+    composition_required: true,
+    content_html: '<section></section>',
+    custom_css: 'section { width: 100%; height: 100%; }',
+  });
+  assert.equal(creativeCoverMotifValidation.valid, false, 'cover motif unexpectedly passed for a creative sub-scenario');
+  assert.match(creativeCoverMotifValidation.errors.join('\n'), /cover_motif is only supported/);
+
+  const editorialSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas', 'editorial-image.json'), 'utf8'));
+  const creativeSchemaGuard = editorialSchema.allOf.find(rule => rule.if?.properties?.use?.enum?.includes('metaphor'));
+  assert.deepEqual(
+    creativeSchemaGuard?.then?.not,
+    { required: ['cover_motif'] },
+    'public editorial-image schema does not reject cover_motif for creative sub-scenarios',
+  );
+
+  for (const motif of EDITORIAL_COVER_MOTIFS) {
+    const coverMotifInput = {
+      mode: 'editorial-image',
+      title: 'Memory returns',
+      use: 'cover',
+      aspect: 'blog-hero',
+      design: 'stripe',
+      cover_motif: motif,
+      visual_metaphor: `A ${motif} carries the article tension.`,
+    };
+    const coverMotifValidation = validate(coverMotifInput);
+    assert.equal(coverMotifValidation.valid, true, `${motif} cover motif failed validation: ${coverMotifValidation.errors.join(', ')}`);
+
+    const coverMotifPath = path.join(tmpDir, `cover-motif-${motif}.html`);
+    const coverMotifOutput = renderers['editorial-image'].render(coverMotifInput, coverMotifPath);
+    const coverMotifHtml = stripComments(fs.readFileSync(coverMotifPath, 'utf8'));
+    assert.match(coverMotifHtml, new RegExp(`data-cover-motif="${motif}"`), `${motif} cover motif was not marked in HTML`);
+    assert.match(coverMotifHtml, new RegExp(`cover-motif-${motif}`), `${motif} cover motif did not render its visible subject`);
+    if (motif !== 'paper-stack') {
+      assert.doesNotMatch(coverMotifHtml, /<div class="paper-stack/, `${motif} cover motif fell back to paper-stack markup`);
+    }
+    const coverMotifCheck = runOutputCheck(coverMotifPath, coverMotifOutput);
+    assert.equal(coverMotifCheck.result.status, 0, `${motif} cover motif failed output check: ${coverMotifCheck.result.stdout}\n${coverMotifCheck.result.stderr}`);
+    assert.equal(coverMotifCheck.report?.pass, true, `${motif} cover motif did not pass output check`);
+    if (motif === 'window') {
+      assert.deepEqual(
+        readComputedStyles(coverMotifPath, '.cover-motif-window .window-field i', 'border-top-width'),
+        ['1px', '1px', '1px', '1px'],
+        'window motif detail dots lost their visible border',
+      );
+    }
+  }
 
   const incompleteCompositionValidation = validate({
     mode: 'editorial-image',
@@ -444,6 +547,15 @@ try {
     () => renderers['editorial-image'].render({ ...completeCompositionInput, custom_css: '' }, path.join(tmpDir, 'incomplete-required-composition.html')),
     /composition_required=true requires non-empty "custom_css"/,
     'renderer did not defend the required composition contract',
+  );
+  assert.throws(
+    () => renderers['editorial-image'].render({
+      mode: 'editorial-image',
+      title: 'A missing scene',
+      use: 'metaphor',
+    }, path.join(tmpDir, 'metaphor-scaffold-fallback.html')),
+    /requires composition_required=true/,
+    'renderer allowed a metaphor to fall back to the cover scaffold',
   );
 
   const requiredCompositionPath = path.join(tmpDir, 'required-composition.html');
@@ -498,6 +610,7 @@ try {
     title: 'Attention has a boundary',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     visual_metaphor: 'A narrow beam illuminates the center of a paper workbench while outer pages fade away.',
     content_html: `
       <section class="attention-workbench">
@@ -532,6 +645,7 @@ try {
     title: 'Controlled font stack',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     content_html: `
       <section class="font-fixture">
         <div class="font-fixture-body">Controlled font stack</div>
@@ -552,6 +666,7 @@ try {
     title: 'Rejected font stack',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     content_html: `
       <section class="font-fixture">
         <div class="font-fixture-body">Rejected font stack</div>
@@ -577,6 +692,7 @@ try {
     title: 'Framed label fits',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     content_html: `
       <section class="box-fixture">
         <div class="label-box"><span>COMMANDS</span></div>
@@ -598,6 +714,7 @@ try {
     title: 'Framed label overflows',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     content_html: `
       <section class="box-fixture">
         <div class="label-box"><span>COMMANDS</span></div>
@@ -624,6 +741,7 @@ try {
     title: 'Visual system drift',
     use: 'in-article',
     aspect: 'body-3-2',
+    composition_required: true,
     content_html: `
       <section class="visual-fixture">
         <div class="loud-module"><span>MODULE</span></div>

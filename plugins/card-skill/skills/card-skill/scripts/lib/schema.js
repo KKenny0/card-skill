@@ -75,6 +75,7 @@ const SCHEMAS = {
       'kicker',
       'subtitle',
       'visual_metaphor',
+      'cover_motif',
       'art_direction',
       'text_plan',
       'composition_required',
@@ -94,6 +95,7 @@ const SCHEMAS = {
       kicker: 'string',
       subtitle: 'string',
       visual_metaphor: 'string',
+      cover_motif: 'string',
       art_direction: 'string',
       text_plan: 'string',
       composition_required: 'boolean',
@@ -150,6 +152,7 @@ const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider']);
 const EDITORIAL_ASPECTS = new Set(['wechat-cover', 'blog-hero', 'body-3-2', 'body-4-3', 'cinematic', 'square']);
 const EDITORIAL_USES = new Set(['cover', 'in-article', 'metaphor']);
+const EDITORIAL_COVER_MOTIFS = new Set(['paper-stack', 'drawer', 'window', 'lens', 'path', 'archive', 'layers']);
 const ARTICLE_DIAGRAM_FAMILIES = new Set(['concept-map', 'process-flow', 'boundary-model']);
 const ARTICLE_DIAGRAM_ASPECTS = new Set(['body-2-1', 'body-3-2', 'body-4-3']);
 const ARTICLE_DIAGRAM_RENDER_PLANS = new Set(['auto', 'summary', 'structure', 'split']);
@@ -243,7 +246,18 @@ function validate(input) {
     if (input.use && !EDITORIAL_USES.has(input.use)) {
       errors.push(`use must be one of: ${[...EDITORIAL_USES].join(', ')}`);
     }
-    if (input.composition_required === true) {
+    if (input.cover_motif && !EDITORIAL_COVER_MOTIFS.has(input.cover_motif)) {
+      errors.push(`cover_motif must be one of: ${[...EDITORIAL_COVER_MOTIFS].join(', ')}`);
+    }
+    if (input.cover_motif && input.use && input.use !== 'cover') {
+      errors.push('cover_motif is only supported when use is "cover" (or omitted, which defaults to cover behavior)');
+    }
+
+    const creativeUse = input.use === 'in-article' || input.use === 'metaphor';
+    if (creativeUse && input.composition_required !== true) {
+      errors.push(`editorial-image use=${input.use} requires composition_required=true with non-empty "content_html" and "custom_css"`);
+    }
+    if (input.composition_required === true || creativeUse) {
       if (typeof input.content_html !== 'string' || input.content_html.trim() === '') {
         errors.push('composition_required=true requires non-empty "content_html"');
       }
@@ -427,6 +441,7 @@ module.exports = {
   POSTER_BODY_TYPES,
   EDITORIAL_ASPECTS,
   EDITORIAL_USES,
+  EDITORIAL_COVER_MOTIFS,
   EDITORIAL_TONES,
   ARTICLE_DIAGRAM_FAMILIES,
   ARTICLE_DIAGRAM_ASPECTS,

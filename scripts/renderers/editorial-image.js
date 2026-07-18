@@ -21,6 +21,8 @@ const ASPECTS = {
   square: { width: 1080, height: 1080, label: '1:1' },
 };
 
+const COVER_MOTIFS = new Set(['paper-stack', 'drawer', 'window', 'lens', 'path', 'archive', 'layers']);
+
 function defaultAspect(input) {
   if (input.aspect) return input.aspect;
   if (input.use === 'in-article') return 'body-3-2';
@@ -28,24 +30,100 @@ function defaultAspect(input) {
   return 'blog-hero';
 }
 
+function resolveCoverMotif(input) {
+  const motif = input.cover_motif || 'paper-stack';
+  if (!COVER_MOTIFS.has(motif)) {
+    throw new Error(`Unknown editorial-image cover_motif: ${motif}`);
+  }
+  return motif;
+}
+
+function renderCoverMotif(motif) {
+  switch (motif) {
+    case 'drawer':
+      return `
+        <div class="cover-motif cover-motif-drawer">
+          <div class="drawer-sheet drawer-sheet-back"></div>
+          <div class="drawer-sheet drawer-sheet-front"></div>
+          <div class="drawer-box"><i></i><i></i><i></i></div>
+          <div class="drawer-handle"></div>
+        </div>
+      `;
+    case 'window':
+      return `
+        <div class="cover-motif cover-motif-window">
+          <div class="window-field"><i></i><i></i><i></i><i></i></div>
+          <div class="window-frame"><b></b><b></b></div>
+          <div class="window-slit"></div>
+        </div>
+      `;
+    case 'lens':
+      return `
+        <div class="cover-motif cover-motif-lens">
+          <div class="lens-ring lens-ring-outer"></div>
+          <div class="lens-ring lens-ring-inner"></div>
+          <div class="lens-core"></div>
+          <div class="lens-beam"></div>
+        </div>
+      `;
+    case 'path':
+      return `
+        <div class="cover-motif cover-motif-path">
+          <div class="path-step path-step-a"></div>
+          <div class="path-step path-step-b"></div>
+          <div class="path-step path-step-c"></div>
+          <div class="path-thread path-thread-a"></div>
+          <div class="path-thread path-thread-b"></div>
+        </div>
+      `;
+    case 'archive':
+      return `
+        <div class="cover-motif cover-motif-archive">
+          <div class="archive-case"><i></i><i></i><i></i><i></i></div>
+          <div class="archive-file archive-file-a"></div>
+          <div class="archive-file archive-file-b"></div>
+          <div class="archive-file archive-file-c"></div>
+        </div>
+      `;
+    case 'layers':
+      return `
+        <div class="cover-motif cover-motif-layers">
+          <div class="layer-sheet layer-sheet-a"><i></i></div>
+          <div class="layer-sheet layer-sheet-b"><i></i></div>
+          <div class="layer-sheet layer-sheet-c"><i></i></div>
+          <div class="layer-axis"></div>
+        </div>
+      `;
+    case 'paper-stack':
+      return `
+        <div class="cover-motif cover-motif-paper-stack">
+          <div class="paper-stack paper-stack-a"></div>
+          <div class="paper-stack paper-stack-b"></div>
+          <div class="paper-mark"></div>
+          <div class="paper-thread"></div>
+        </div>
+      `;
+    default:
+      throw new Error(`Unknown editorial-image cover_motif: ${motif}`);
+  }
+}
+
 function renderDefaultContent(input, aspect) {
   const kicker = input.kicker ? `<p class="editorial-kicker">${escapeHtml(input.kicker)}</p>` : '';
   const title = escapePhrase(input.title);
   const subtitle = input.subtitle ? `<p class="editorial-subtitle">${escapeHtml(input.subtitle)}</p>` : '';
   const metaphor = escapeHtml(input.visual_metaphor || input.art_direction || '');
+  const coverMotif = resolveCoverMotif(input);
 
   return `
-    <section class="editorial-frame editorial-${aspect.key}" data-metaphor="${metaphor}">
+    <section class="editorial-frame editorial-${aspect.key}" data-metaphor="${metaphor}" data-cover-motif="${coverMotif}">
       <div class="editorial-copy">
         ${kicker}
         <h1>${title}</h1>
         ${subtitle}
       </div>
       <div class="editorial-visual" aria-hidden="true">
-        <div class="paper-stack paper-stack-a"></div>
-        <div class="paper-stack paper-stack-b"></div>
-        <div class="paper-mark"></div>
-        <div class="paper-thread"></div>
+        ${renderCoverMotif(coverMotif)}
       </div>
     </section>
   `;
@@ -82,7 +160,6 @@ function baseCss(input, design, aspect) {
       --surface-2: ${design.surface2};
       --hairline: ${design.hairline};
       --radius: ${design.radius};
-      --paper-shadow: color-mix(in srgb, var(--ink) 7%, transparent);
     }
 
     html, body {
@@ -163,13 +240,19 @@ function baseCss(input, design, aspect) {
       filter: saturate(0.92);
     }
 
+    .cover-motif {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
     .paper-stack {
       position: absolute;
       border: 1px solid var(--hairline);
       background:
         linear-gradient(180deg, color-mix(in srgb, var(--surface-1) 94%, var(--bg)), color-mix(in srgb, var(--surface-2) 38%, var(--bg)));
       border-radius: var(--radius);
-      box-shadow: 0 12px 28px var(--paper-shadow);
+      box-shadow: none;
     }
 
     .paper-stack-a {
@@ -213,6 +296,119 @@ function baseCss(input, design, aspect) {
       opacity: 0.9;
     }
 
+    .cover-motif-drawer .drawer-sheet,
+    .cover-motif-drawer .drawer-box,
+    .cover-motif-window .window-field,
+    .cover-motif-window .window-frame,
+    .cover-motif-path .path-step,
+    .cover-motif-archive .archive-case,
+    .cover-motif-archive .archive-file,
+    .cover-motif-layers .layer-sheet {
+      position: absolute;
+      border: 1px solid var(--hairline);
+      background: color-mix(in srgb, var(--surface-1) 86%, var(--bg));
+      border-radius: var(--radius);
+    }
+
+    .cover-motif-drawer .drawer-sheet-back {
+      left: 9%; top: 9%; width: 58%; height: 62%; transform: rotate(5deg); opacity: .48;
+    }
+
+    .cover-motif-drawer .drawer-sheet-front {
+      left: 15%; top: 13%; width: 58%; height: 62%; transform: rotate(-4deg); opacity: .78;
+    }
+
+    .cover-motif-drawer .drawer-box {
+      right: 5%; bottom: 10%; width: 61%; height: 39%; padding: 17px 21px;
+      display: grid; grid-template-rows: repeat(3, 1fr); gap: 13px; border-color: var(--ink);
+    }
+
+    .cover-motif-drawer .drawer-box i {
+      display: block; border-top: 1px solid var(--hairline);
+    }
+
+    .cover-motif-drawer .drawer-handle {
+      position: absolute; right: 27%; bottom: 27%; width: 27%; border-top: 2px solid var(--accent); opacity: .8;
+    }
+
+    .cover-motif-window .window-field {
+      left: 7%; top: 11%; width: 58%; height: 64%; background: color-mix(in srgb, var(--surface-2) 38%, var(--bg));
+    }
+
+    .cover-motif-window .window-field i {
+      position: absolute; width: 9px; height: 9px; border: 1px solid var(--ink-light); border-radius: 50%; opacity: .62;
+    }
+
+    .cover-motif-window .window-field i:nth-child(1) { left: 17%; top: 24%; }
+    .cover-motif-window .window-field i:nth-child(2) { left: 43%; top: 48%; }
+    .cover-motif-window .window-field i:nth-child(3) { left: 67%; top: 23%; }
+    .cover-motif-window .window-field i:nth-child(4) { left: 76%; top: 72%; }
+
+    .cover-motif-window .window-frame {
+      right: 5%; top: 22%; width: 56%; height: 55%; border-color: var(--ink); background: var(--surface-1);
+    }
+
+    .cover-motif-window .window-frame b {
+      position: absolute; display: block; background: var(--hairline);
+    }
+
+    .cover-motif-window .window-frame b:first-child { left: 50%; top: 0; bottom: 0; width: 1px; }
+    .cover-motif-window .window-frame b:last-child { left: 0; right: 0; top: 49%; height: 1px; }
+
+    .cover-motif-window .window-slit {
+      position: absolute; left: 42%; right: 2%; bottom: 14%; border-top: 2px solid var(--accent); opacity: .72;
+    }
+
+    .cover-motif-lens .lens-ring,
+    .cover-motif-lens .lens-core {
+      position: absolute; border-radius: 50%;
+    }
+
+    .cover-motif-lens .lens-ring-outer {
+      left: 15%; top: 11%; width: 67%; aspect-ratio: 1; border: 1px solid var(--ink);
+    }
+
+    .cover-motif-lens .lens-ring-inner {
+      left: 28%; top: 24%; width: 41%; aspect-ratio: 1; border: 1px solid var(--hairline);
+    }
+
+    .cover-motif-lens .lens-core {
+      left: 45%; top: 41%; width: 8%; aspect-ratio: 1; background: var(--accent); opacity: .72;
+    }
+
+    .cover-motif-lens .lens-beam {
+      position: absolute; left: 0; right: 5%; bottom: 18%; border-top: 1px solid var(--accent); transform: rotate(-12deg); opacity: .72;
+    }
+
+    .cover-motif-path .path-step { width: 31%; height: 25%; }
+    .cover-motif-path .path-step-a { left: 6%; bottom: 16%; }
+    .cover-motif-path .path-step-b { left: 35%; top: 37%; }
+    .cover-motif-path .path-step-c { right: 4%; top: 10%; }
+
+    .cover-motif-path .path-thread {
+      position: absolute; height: 1px; background: var(--accent); transform-origin: left center; opacity: .7;
+    }
+
+    .cover-motif-path .path-thread-a { left: 27%; top: 62%; width: 31%; transform: rotate(-33deg); }
+    .cover-motif-path .path-thread-b { left: 55%; top: 40%; width: 34%; transform: rotate(-35deg); }
+
+    .cover-motif-archive .archive-case {
+      left: 17%; top: 12%; width: 57%; height: 67%; padding: 14px 17px; display: grid; grid-template-rows: repeat(4, 1fr); gap: 11px;
+    }
+
+    .cover-motif-archive .archive-case i { display: block; border-top: 1px solid var(--hairline); }
+    .cover-motif-archive .archive-file { width: 32%; height: 45%; }
+    .cover-motif-archive .archive-file-a { right: 5%; top: 12%; transform: rotate(5deg); opacity: .6; }
+    .cover-motif-archive .archive-file-b { right: 0; top: 29%; transform: rotate(-4deg); opacity: .78; }
+    .cover-motif-archive .archive-file-c { right: 11%; bottom: 7%; transform: rotate(7deg); opacity: .5; }
+
+    .cover-motif-layers .layer-sheet { width: 63%; height: 65%; }
+    .cover-motif-layers .layer-sheet i { position: absolute; left: 15%; right: 15%; top: 48%; border-top: 1px solid var(--accent); opacity: .62; }
+    .cover-motif-layers .layer-sheet-a { left: 8%; top: 13%; transform: rotate(-6deg); opacity: .48; }
+    .cover-motif-layers .layer-sheet-b { left: 18%; top: 18%; transform: rotate(3deg); opacity: .7; }
+    .cover-motif-layers .layer-sheet-c { right: 4%; top: 25%; transform: rotate(8deg); }
+    .cover-motif-layers .layer-axis { position: absolute; left: 7%; right: 3%; bottom: 14%; border-top: 1px solid var(--hairline); }
+
     .editorial-square {
       grid-template-columns: 1fr;
       align-content: center;
@@ -230,6 +426,10 @@ function baseCss(input, design, aspect) {
 }
 
 function render(input, outputHtmlPath) {
+  const creativeUse = input.use === 'in-article' || input.use === 'metaphor';
+  if (creativeUse && input.composition_required !== true) {
+    throw new Error(`editorial-image use=${input.use} requires composition_required=true with non-empty "content_html" and "custom_css"`);
+  }
   if (input.composition_required === true) {
     if (typeof input.content_html !== 'string' || input.content_html.trim() === '') {
       throw new Error('composition_required=true requires non-empty "content_html"');
@@ -237,6 +437,10 @@ function render(input, outputHtmlPath) {
     if (typeof input.custom_css !== 'string' || input.custom_css.trim() === '') {
       throw new Error('composition_required=true requires non-empty "custom_css"');
     }
+  }
+
+  if (input.cover_motif && !COVER_MOTIFS.has(input.cover_motif)) {
+    throw new Error(`Unknown editorial-image cover_motif: ${input.cover_motif}`);
   }
 
   const designName = resolveEditorialDesignName(input);
@@ -287,4 +491,4 @@ function render(input, outputHtmlPath) {
   };
 }
 
-module.exports = { render, ASPECTS, defaultAspect };
+module.exports = { render, ASPECTS, COVER_MOTIFS, defaultAspect };

@@ -31,7 +31,7 @@ editorial-image 不是单一稳定性承诺。它的 3 个子场景按不同 tie
 
 | Sub-scenario | `use` | Tier | Renderer path |
 |--------------|-------|------|---------------|
-| 公众号封面 / 博客 hero | `cover` | Stable | CLI scaffold（kicker + title + subtitle + 静态 paper-stack）足够 |
+| 公众号封面 / 博客 hero | `cover` | Stable | CLI scaffold（kicker + title + subtitle + 确定性 `cover_motif`）足够 |
 | 正文氛围插图 | `in-article` | Creative | 必须由 AI 写 `content_html` + `custom_css`；scaffold 只用于验证 |
 | 概念隐喻图 | `metaphor` | Creative | 必须由 AI 写 `content_html` + `custom_css`；scaffold 不应作为最终产出 |
 
@@ -52,6 +52,8 @@ Use when the user asks for:
 Default shape: horizontal cover, low text, generous crop-safe margin.
 
 Goal: the image can sit above the article and survive sharing previews.
+
+For article-specific covers, choose one concrete `cover_motif` for the right-side visual: `drawer`, `window`, `lens`, `path`, `archive`, or `layers`. The renderer keeps this finite vocabulary deterministic so a cover remains reliable while its visible object follows the article tension. `paper-stack` is only the deliberately generic fallback for legacy or title-only covers.
 
 ### 2. In-Article Mood Illustration
 
@@ -92,6 +94,8 @@ Examples:
 | concept metaphor or visual stance image | `metaphor` | `blog-hero` |
 
 Do not put an aspect value such as `body-3-2` or `wechat-cover` into `use`. If the user gives a destination in natural language, map it to both fields before rendering.
+
+`cover_motif` is a separate decision from `visual_metaphor`: the metaphor is the semantic sentence; the motif is the renderer-safe object that must become visible. Use `drawer` for durable write-back, `window` for reportable access, `lens` for interpretation, `path` for handoff or execution flow, `archive` for retrieval, and `layers` for stacked system views. Do not use `cover_motif` with `in-article` or `metaphor`.
 
 Optional attribution fields are `brand_name`, `logo`, and `source`. Do not use `author` or `photo` aliases; they are not part of the structured renderer contract.
 
@@ -213,17 +217,17 @@ Do not propose three colorways of the same image. That is styling, not direction
 
 The structured fields are guardrails, not the final visual language.
 
-Use fields like `use`, `aspect`, `title`, `visual_metaphor`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
+Use fields like `use`, `aspect`, `title`, `visual_metaphor`, `cover_motif`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
 
 When a selected direction depends on a concrete object, action, scene, spatial relationship, or concept metaphor that the default scaffold cannot show, set `composition_required: true`. This makes executability part of the render contract: schema validation and the renderer require both non-empty `content_html` and `custom_css`. Keep the flag in the final CLI input. Omit it or set it to `false` only when the default scaffold is deliberately the final composition; `use=cover` alone is not sufficient evidence.
 
-For final rendering, use a custom composition when the brief has a real article tension, concept metaphor, or in-article mood illustration job:
+For final rendering, use a custom composition when the brief has a real article tension that cannot be carried by a cover motif, or when it is a concept metaphor or in-article mood illustration job:
 
 - `content_html` for the chosen visual structure
 - `custom_css` for the actual composition, spacing, symbolic objects, and atmosphere
 - `visual_metaphor` and `art_direction` as hidden guidance, not necessarily visible text
 
-The default CLI renderer is an aspect-safe Quiet Paper scaffold, not a separate cover-template universe. It is useful for validation and simple covers, but it must still feel like a card-skill paper object: warm canvas, Xiangcui/DM editorial type, low-saturation ink, hairline surfaces, subtle grain, and almost no shadow. High-quality editorial images should use a custom composition derived from the selected direction.
+The default CLI renderer is an aspect-safe Quiet Paper scaffold, not a separate cover-template universe. Its Stable cover path pairs the title with one deterministic `cover_motif`; it is useful for simple covers and must still feel like a card-skill paper object: warm canvas, Xiangcui/DM editorial type, low-saturation ink, hairline surfaces, subtle grain, and almost no shadow. High-quality editorial images should use a custom composition when the selected direction exceeds that bounded vocabulary.
 
 The composition needs one dominant visible subject: an object, scene, gesture, spatial relationship, or concrete diagram metaphor. A stack of paper rectangles, loose lines, decorative frames, or empty negative space is not enough unless it has been transformed into a specific metaphor tied to the article. If hiding the title makes the image feel generic, rebuild the custom composition before capture.
 
@@ -270,7 +274,7 @@ Custom CSS should not create a separate visual universe. If the composition need
 
 - Text should usually take less than 20% of the image.
 - Visible text must belong to the artwork. It may be the article title, a section title, a real term, a short excerpt, a byline, or a label attached to a visual object.
-- For `use=in-article` and `metaphor` sub-scenarios (Creative), the final image should have one concrete dominant subject; do not let a safe scaffold or abstract paper stack stand in for the article's visual idea. For `use=cover` (Stable), the CLI scaffold (kicker + title + subtitle + paper-stack) is the expected final output and does not need a custom dominant subject unless the user explicitly asks for one.
+- For `use=in-article` and `metaphor` sub-scenarios (Creative), the final image must set `composition_required: true` and have one concrete dominant subject; the renderer rejects a scaffold fallback. For `use=cover` (Stable), the CLI scaffold pairs kicker, title, subtitle, and an article-specific `cover_motif`; use a custom composition only when that bounded object vocabulary cannot carry the selected direction.
 - Do not print generation notes, usage notes, or internal rationale into the artwork. Avoid sentences like `给这一节使用`, `用作正文配图`, `安静、低干扰`, `像文章中间的一次停顿`, or `visual pause`.
 - For in-article mood images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.

@@ -51,6 +51,7 @@ try {
     use: 'in-article',
     aspect: 'body-3-2',
     editorial_tone: 'technical',
+    composition_required: true,
     visual_metaphor: 'A narrow beam illuminates the center of a paper workbench while outer pages fade away.',
     content_html: `
       <section class="attention-workbench">
@@ -76,6 +77,21 @@ try {
   assert.equal(editorial.stdout.trim(), editorialOutputPath, 'editorial-image stdout did not contain only the output path');
   assert.equal(editorial.stderr, '', 'editorial-image success wrote unexpected stderr output');
   assert.deepEqual(readPngSize(editorialOutputPath), { width: 2160, height: 1440 });
+
+  const coverOutputPath = path.join(harnessDir, 'editorial-cover.png');
+  const cover = runCard({
+    mode: 'editorial-image',
+    title: 'Memory returns',
+    use: 'cover',
+    aspect: 'blog-hero',
+    editorial_tone: 'reflective',
+    cover_motif: 'drawer',
+    visual_metaphor: 'A drawer keeps the work that the next task can retrieve.',
+  }, coverOutputPath);
+  assert.equal(cover.status, 0, cover.stderr || cover.stdout || 'editorial cover CLI failed');
+  assert.equal(cover.stdout.trim(), coverOutputPath, 'editorial cover stdout did not contain only the output path');
+  assert.equal(cover.stderr, '', 'editorial cover success wrote unexpected stderr output');
+  assert.deepEqual(readPngSize(coverOutputPath), { width: 2160, height: 1216 });
 
   const articleDiagramOutputPath = path.join(harnessDir, 'article-diagram.png');
   const articleDiagram = runCard({

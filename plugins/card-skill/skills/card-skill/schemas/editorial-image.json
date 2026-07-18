@@ -42,6 +42,11 @@
       "type": "string",
       "description": "One-sentence visual metaphor or scene idea."
     },
+    "cover_motif": {
+      "type": "string",
+      "enum": ["paper-stack", "drawer", "window", "lens", "path", "archive", "layers"],
+      "description": "Deterministic right-side visual for use=cover. Choose the concrete article object: drawer for durable write-back, window for reportable access, lens for interpretation, path for a handoff or workflow, archive for retrieval, and layers for stacked system views. Omit only for the deliberately generic legacy paper-stack cover."
+    },
     "art_direction": {
       "type": "string",
       "description": "Freeform art direction. Used as guidance and fallback visual caption."
@@ -52,7 +57,7 @@
     },
     "composition_required": {
       "type": "boolean",
-      "description": "Set true when the selected direction cannot be delivered by the default scaffold. Final render input must then include both content_html and custom_css."
+      "description": "Required and true for use=in-article and use=metaphor. Set true for any cover direction that cannot be delivered by the title plus cover_motif scaffold. Final render input must then include both content_html and custom_css."
     },
     "content_html": {
       "type": "string",
@@ -88,6 +93,21 @@
           "custom_css": { "type": "string", "minLength": 1, "pattern": "\\S" }
         }
       }
+    },
+    {
+      "if": {
+        "properties": { "use": { "enum": ["in-article", "metaphor"] } },
+        "required": ["use"]
+      },
+      "then": {
+        "not": { "required": ["cover_motif"] },
+        "properties": {
+          "composition_required": { "const": true },
+          "content_html": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "custom_css": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        },
+        "required": ["composition_required", "content_html", "custom_css"]
+      }
     }
   ],
   "examples": [
@@ -99,7 +119,8 @@
       "kicker": "ESSAY",
       "title": "工具让人遗忘什么",
       "subtitle": "一篇关于自动化、记忆和写作边界的札记",
-      "visual_metaphor": "A writing desk with one labeled drawer missing."
+      "visual_metaphor": "A writing desk with one labeled drawer missing.",
+      "cover_motif": "drawer"
     }
   ]
 }
