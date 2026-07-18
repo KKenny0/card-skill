@@ -5,55 +5,64 @@
 <p align="center"><strong>把文章、观点和论证，做成可以直接发布的图片。</strong><br>
 <sub>Turn articles, ideas, and arguments into publish-ready visual cards.</sub></p>
 
-给 Claude Code、Codex、OpenCode、Pi 等 coding agents 使用的内容制图 skill。输入文章、笔记、观点或 URL，它会理解内容结构，自动选择合适的版式与 Quiet Paper 气质，输出经过检查的 PNG。
+<p align="center">
+  <a href="#quick-start">最快开始</a> ·
+  <a href="#choose-a-format">选择模具</a> ·
+  <a href="#gallery">完整样张</a> ·
+  <a href="#advanced">高级说明</a>
+</p>
 
-## 看看它能做什么
+给 Claude Code、Codex、OpenCode、Pi 等 coding agents 使用的内容制图 skill。输入文章、笔记、观点、URL，或你明确指定的微信读书数据；card-skill 会理解内容结构，自动选择版式与 Quiet Paper 气质，输出经过检查的 PNG。
+
+## 先看它能做什么
+
+同一套安静的纸面骨架，可以承载不同的发布任务：封面负责制造张力，社媒卡片负责拆解观点，白板负责把推理关系画清楚。
 
 <table>
 <tr>
 <td width="33.33%" valign="top">
-<img src="assets/gallery/poster.png" width="100%" alt="小红书与社媒卡片示例 — poster"><br>
+<img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="公众号头图示例"><br>
+<strong>公众号 / 博客头图</strong>
+</td>
+<td width="33.33%" valign="top">
+<img src="assets/gallery/poster.png" width="100%" alt="社媒系列卡片示例"><br>
 <strong>小红书 / 社媒卡片</strong>
 </td>
 <td width="33.33%" valign="top">
-<img src="assets/gallery/whiteboard.png" width="100%" alt="白板推演示例 — whiteboard"><br>
+<img src="assets/gallery/whiteboard.png" width="100%" alt="白板推演示例"><br>
 <strong>白板推演</strong>
-</td>
-<td width="33.33%" valign="top">
-<img src="assets/gallery/infograph.png" width="100%" alt="结构化信息图示例 — infograph"><br>
-<strong>结构化信息图</strong>
-</td>
-</tr>
-<tr>
-<td width="33.33%" valign="top">
-<img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="公众号头图示例 — editorial image"><br>
-<strong>公众号头图</strong>
-</td>
-<td width="33.33%" valign="top">
-<img src="assets/gallery/editorial-blog-hero.png" width="100%" alt="博客头图示例 — editorial image"><br>
-<strong>博客 / 文章封面</strong>
-</td>
-<td width="33.33%" valign="top">
-<img src="assets/gallery/article-diagram-formula-card.png" width="100%" alt="正文解释图公式卡示例 — article diagram"><br>
-<strong>正文公式卡</strong>
 </td>
 </tr>
 </table>
 
-## 60 秒安装
+<a id="quick-start"></a>
+## 最快开始
 
-card-skill 需要完整安装包，因为渲染脚本、模板、字体和检查器都在 `scripts/`、`assets/`、`schemas/`、`references/` 里。不要裸装 `KKenny0/card-skill`；当前 `skills add` 会把仓库根目录的 `SKILL.md` 当成单文件 skill，agent 会看不到渲染脚本和模板。
+### Codex（推荐）
 
-安装到 Codex：
+card-skill 是完整安装包，渲染脚本、模板、字体、schema 和检查器都在包内。不要裸装仓库根目录；请安装插件：
 
 ```bash
 codex plugin marketplace add KKenny0/card-skill
 codex plugin add card-skill@card-skill
 ```
 
-Codex 插件安装器只复制 skill 文件，不会执行 npm 生命周期脚本。首次制图时，agent 会在已安装的 skill 目录执行一次 `node scripts/setup-runtime.mjs`，安装锁定的 npm 依赖和 Playwright Chromium；后续使用会先快速检查并复用现有运行时。
+Codex 插件安装器不会执行 npm 生命周期脚本。首次制图时，agent 会在已安装的 skill 目录执行一次 `node scripts/setup-runtime.mjs`，安装锁定的 npm 依赖和 Playwright Chromium；后续使用会复用现有运行时。
 
-普通 agent 安装完整 skill 包：
+### 复制一段自然语言请求
+
+```text
+把下面这篇文章做成一张公众号头图。不要复述摘要，提炼文章的核心张力，用安静的纸张质感呈现，完成后检查裁切、换行和可读性：
+
+[在这里粘贴文章或 URL]
+```
+
+不需要 slash command；中文、英文自然语言都可以触发。默认不会先让你挑风格，也不会自动加入作者名或头像。
+
+<details>
+<summary>其他 agent 或临时使用</summary>
+
+普通 agent 可以安装完整 skill 包；将 `-a codex` 换成对应 agent ID：
 
 ```bash
 npx skills add KKenny0/card-skill/plugins/card-skill/skills/card-skill -a codex -g -y
@@ -62,27 +71,16 @@ npm install
 npx playwright install chromium
 ```
 
-Claude Code、OpenCode 或 Pi 用户把 `-a codex` 改为对应 agent ID，例如 `-a claude-code`、`-a opencode` 或 `-a pi`。
-
-如果只想临时用一次，不做长期安装，可以用：
+只想临时使用一次：
 
 ```bash
 npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill card-skill
 ```
 
-然后把一段内容或文章链接交给 agent，并直接说：
+</details>
 
-```text
-把下面这篇文章做成一张公众号头图。不要复述摘要，提炼文章的核心张力，用安静的纸张质感呈现，完成后检查裁切、换行和可读性：
-
-[在这里粘贴文章或 URL]
-```
-
-完成一次性环境设置后，agent 会自动选择 `editorial-image` 模式和适合的视觉方向，渲染、检查并返回一张 PNG（默认写入 `~/Downloads/`）；默认不会先让你挑风格，也不会自动加入作者名或头像。
-
-不需要 slash command；中文、英文自然语言都可以触发。
-
-### Codex 对话预览（可选）
+<details>
+<summary>可选：在 Codex 对话中先看方向</summary>
 
 在支持对话内交互卡片的 Codex 桌面会话中，可以明确要求先看方向，再决定是否出图：
 
@@ -90,138 +88,88 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 先给我 3 个公众号头图方向，用卡片展示每个方向的视觉隐喻、比例、适用理由和风险；我选定后再渲染 PNG。
 ```
 
-选择后仍由现有 Stable / Creative 流程渲染、截图、检查并返回 PNG。普通请求不会被强制插入选择步骤；Codex CLI、IDE 或其他 agent 会退回文字候选列表，不影响原有流程。
+选择后仍由现有 Stable / Creative 流程渲染、截图、检查并返回 PNG。普通请求不会被强制插入选择步骤；Codex CLI、IDE 或其他 agent 会退回文字候选列表。
 
-## 从你要发布的东西开始
+</details>
 
-### 微信读书划线与阅读报告（可选）
+<a id="choose-a-format"></a>
+## 按任务选择模具
 
-card-skill 可以和腾讯官方 [WeChatReading Skill](https://github.com/Tencent/WeChatReading) 组合使用，把你明确指定的一本书里的个人划线与想法做成卡组，或把个人阅读统计做成月报 / 年报。card-skill 不读取任意章节正文，也不会因为只看到一本书名就扫描你的账号。
-
-先单独安装官方来源 Skill：
-
-```bash
-npx skills add Tencent/WeChatReading -g
-```
-
-再按官方说明在本地设置 `WEREAD_API_KEY`。不要把 API Key 粘贴到对话、卡片输入或仓库文件中。
-
-```text
-把我在《千脑智能》里的个人划线和想法做成一组卡片。原文不要改写，把我的想法放在对应划线下面；没有明确对应关系的想法单独放，最后标明来源。
-```
-
-```text
-把我这个月的微信读书数据做成阅读月报。只使用真实返回的时长、天数、读完数量和偏好；缺少的模块直接省略，不要补造洞察。
-```
-
-只有明确提出微信读书请求时才会访问个人数据，并且只查询当前任务需要的书或统计周期。腾讯 Skill 负责认证和读取；个人内容会进入当前 Agent / 模型上下文用于整理，PNG 渲染与检查由本地脚本完成，不会自动上传或发布成品。
-
-### 公众号 / 博客配图
-
-适合文章头图、博客 hero 和正文里的氛围插图。它不会把文章再总结成 bullet points，而是提炼情绪、核心张力和视觉隐喻。
-
-```text
-给这篇关于 AI 如何改变个人知识管理的文章做一张公众号头图。画面要表达“记忆从仓库变成流动的工作台”，少字、克制，不要通用科技感。
-```
-
-### 正文解释图
-
-适合放在文章中间压缩一个局部论点。它不追求封面感，而是把章节压成一张可带走的公式卡：主结论、1-3 行关系式和 1-2 行解释旁注共享一条阅读轴。renderer 会先测量真实字体，再选择语义分行、字号档和常见画布比例。输入整篇文章时，会先筛出值得压缩的章节，并为这些章节分别出图；可见文字默认跟随原文语言，中文文章不会自动改成英文标签。
-
-```text
-把这段关于多 agent 写入边界的内容做成正文解释图：压缩成一个公式和一句话。
-```
-
-### 小红书 / 社媒卡片
-
-适合观点、方法论、章节拆解与系列内容。根据内容密度，可做单张大字报、信息图或多卡 poster。
-
-```text
-把这段“独立开发者如何判断一个功能值不值得做”的笔记做成 4 张社媒卡片。第一张提出冲突，中间两张讲判断标准，最后一张给行动清单；保留原意，不要写成营销文案。
-```
-
-### 白板推演
-
-适合论证、系统关系、技术选型和决策链。重点是把推理关系画清楚，而不是装饰。
-
-```text
-把这段关于“为什么小团队应该先做单体应用”的论证画成白板推演：问题 → 约束 → 两条备选路径 → 决策。标出最脆弱的假设，不要补造数据。
-```
+| 你要做什么 | 推荐 mode | 结果 |
+|---|---|---|
+| 公众号或博客头图 | `editorial-image` | 提炼情绪、核心张力和视觉隐喻，不把文章改写成 bullet points。 |
+| 正文中的解释图 | `article-diagram` | 把局部论点压成公式卡、关系图、流程图或边界模型。 |
+| 小红书或社媒系列 | `poster` / `big` / `long` | 从一句观点到多卡拆解，按内容密度选择画布。 |
+| 论证、系统关系、技术决策 | `whiteboard` | 把问题、约束、路径和决策关系画清楚。 |
+| 数据、叙事或个人反思 | `infograph` / `comic` / `sketchnote` | 在信息密度、冲突转折和手记感之间选择表达方式。 |
 
 ## 9 种内容模具
 
-card-skill 把 9 个 mode 分两层，承诺不同：
+Stable 适合出版场景、批量生产和品牌一致性：走结构化 renderer、schema 校验和 `check-output`，输入正确时输出更确定。Creative 适合概念隐喻、叙事张力和个性化表达：布局更开放，需要人工审美兜底。
 
-- **Stable**：走结构化 CLI renderer，schema 校验 + 双重 check-output。输入对了，输出就确定。失败时 schema 直接报错，不会乱出图。
-- **Creative**：保留开放布局给真正需要创意的 mode，每次产物有差异，更依赖人工审美兜底。
+| Mode | Tier | 最适合 | 详细说明 |
+|---|---|---|---|
+| `editorial-image` | Stable / Creative | 公众号头图、博客 hero、正文氛围插图 | [mode-editorial-image](references/mode-editorial-image.md) |
+| `article-diagram` | Stable | 正文公式卡、关系图、流程图、边界模型 | [mode-article-diagram](references/mode-article-diagram.md) |
+| `poster` | Stable | 社媒系列卡片、章节拆分 | [mode-poster](references/mode-poster.md) |
+| `whiteboard` | Stable | 论证、因果链、系统关系与技术决策 | [mode-whiteboard](references/mode-whiteboard.md) |
+| `long` | Stable | 文章型长卡片与沉浸阅读 | [mode-long](references/mode-long.md) |
+| `big` | Stable | 一句话观点、标题与宣言 | [mode-big](references/mode-big.md) |
+| `infograph` | Creative | 数据、比较、层级与高密度信息 | [mode-infograph](references/mode-infograph.md) |
+| `comic` | Creative | 冲突、转折或前后变化的叙事 | [mode-comic](references/mode-comic.md) |
+| `sketchnote` | Creative | 个人反思、经验与温暖叙事 | [mode-sketchnote](references/mode-sketchnote.md) |
 
-| Mode | Tier | 最适合 |
-|---|---|---|
-| `editorial-image` | Stable（封面）/ Creative（正文） | 公众号头图与博客封面走 Stable CLI scaffold；正文氛围插图与概念隐喻需 AI 写 `content_html`，归 Creative |
-| `article-diagram` | Stable | 正文解释图；默认产出公式卡，旧关系图/流程图/边界模型作为兼容路径 |
-| `poster` | Stable | 小红书、社媒系列卡片、章节拆分 |
-| `whiteboard` | Stable | 论证、因果链、系统关系与技术决策 |
-| `long` | Stable | 文章型长卡片与沉浸阅读 |
-| `big` | Stable | 一句话观点、标题与宣言 |
-| `infograph` | Creative | 数据、比较、层级与高密度信息 |
-| `comic` | Creative | 有冲突、转折或前后变化的叙事 |
-| `sketchnote` | Creative | 个人反思、经验与温暖叙事 |
+## Quiet Paper 与输出原则
 
-需要确定性输出（出版场景、批量生产、品牌一致性）优先选 Stable；需要画面创意（概念隐喻、叙事张力、个性化表达）选 Creative。
+所有模式共享同一套安静的纸面骨架：温暖纸色、克制墨色、细分隔线、小圆角、极少阴影。内容色调和品牌气质只改变表面温度、强调色和节奏，不把作品变成品牌皮肤拼盘。
 
-## Quiet Paper
+- 默认根据内容结构、密度、情绪和发布用途自动选择 mode、design 与画面方向。
+- `editorial-image` 会先判断 `reflective`、`sharp`、`warm` 或 `technical` 气质，再落到真实可渲染的 Quiet Paper design。
+- `article-diagram` 会先筛出值得压缩的章节，再为每个章节生成公式卡；不适合压缩的铺垫、情绪和结论章节会被跳过。
+- 默认署名、头像和来源字段为空；只有输入明确提供时才使用 `brand_name`、`logo`、`source`。
 
-所有模式共享同一套安静的纸面骨架：温暖纸色、克制墨色、细分隔线、小圆角、极少阴影。18 种品牌气质与 8 种内容色调只改变表面温度、强调色和节奏，不把作品变成品牌皮肤拼盘。
+## 它怎样工作
 
-`editorial-image` 和 `article-diagram` 都会被约束在这套视觉体系里：字体、纸面色、边框、强调色和阴影都要保持克制，避免一张图突然变成粗边框、亮色块或重阴影的流程图。
+1. 读取 URL、粘贴文本、微信读书返回的数据或本地文件。
+2. 分析内容结构、密度、情绪与发布用途。
+3. 匹配 mode、Quiet Paper design 和画面方向。
+4. 使用结构化 renderer 或创意布局流程生成画面。
+5. 在截图前后检查占位符、溢出、裁切、坏图、可读性、标题换行、字体栈和视觉体系漂移。
+6. 通过 Playwright 截图并输出 PNG；默认写入 `~/Downloads/`。
 
-默认会根据内容的结构、密度与情绪自动选择 mode、design 和画面方向。`editorial-image` 会先判断 `reflective`、`sharp`、`warm` 或 `technical` 气质，再落到真实可渲染的 Quiet Paper design；`article-diagram` 会先筛选值得压缩的章节，再为每个章节生成公式卡。只有你明确要求“给我几个方向”“先选风格”时，它才暂停等待选择；也可以直接指定 `Apple`、`Stripe`、`Linear`、`Claude`、`IBM`、`Notion` 等气质。
+<a id="advanced"></a>
+<details>
+<summary>高级：运行环境、更新与隐私</summary>
 
-## 环境与首次运行
+### 运行环境
 
-安装 skill 需要 Node.js 22+ 与 npm。PNG 截图依赖 Playwright 和 Chromium；Codex 插件首次运行由 `scripts/setup-runtime.mjs` 补齐依赖，普通 agent 也可以手动运行同一个脚本。
-
-如果首次渲染提示缺少依赖，请进入本 skill 的安装目录后运行：
+安装 skill 需要 Node.js 22+ 与 npm。PNG 截图依赖 Playwright 和 Chromium；如果首次渲染提示缺少依赖，请在 skill 安装目录运行：
 
 ```bash
 npm install
 npx playwright install chromium
 ```
 
-字体随 skill 一起分发。`assets/fonts/` 包含 4 个 OFL 1.1 开源字体（XiangcuiDengcusong、香萃打字机体 W15/W40、NanxiChuxiasong），共 ~57MB。安装时 `npx skills add` 自动拉取，无需额外下载。字体 license 见 `assets/fonts/LICENSE-fonts.md` 与 `assets/fonts/OFL-1.1.txt`。预检脚本会在每次出图时验证字体是否真加载，避免静默 fallback 到系统中文字体。
+字体随 skill 一起分发。`assets/fonts/` 包含 4 个 OFL 1.1 开源字体，共约 57MB；字体 license 见 [`assets/fonts/LICENSE-fonts.md`](assets/fonts/LICENSE-fonts.md) 与 [`assets/fonts/OFL-1.1.txt`](assets/fonts/OFL-1.1.txt)。预检脚本会验证字体是否真加载，避免静默 fallback 到系统中文字体。
 
-默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同模式和比例会有不同高度，不应理解为固定的 4K 宽图。
+默认 `--dpr 2`。以常见的 1080 CSS 像素画布为例，导出的 PNG 宽度为 2160px；不同 mode 和比例会有不同高度，不应理解为固定的 4K 宽图。
 
 ### 更新提醒与隐私
 
-每次 agent 开始使用 card-skill 时，会先运行一个非阻塞更新检查：一天最多一次，只读取 GitHub 上公开的 `VERSION` 文件；不会上传你的文章、prompt、路径或图片。检查失败会静默跳过，不影响出图。有新版时只提醒你运行：
+每次 agent 开始使用 card-skill 时，会先运行一个非阻塞更新检查：一天最多一次，只读取 GitHub 上公开的 `VERSION` 文件；不会上传文章、prompt、路径或图片。检查失败会静默跳过，不影响出图。有新版时只提醒运行：
 
 ```bash
 npx skills update card-skill -g -y
 ```
 
-如需完全关闭，设置环境变量 `CARD_SKILL_DISABLE_UPDATE_CHECK=1`。
+如需完全关闭，设置 `CARD_SKILL_DISABLE_UPDATE_CHECK=1`。只有明确提出微信读书请求时才会访问个人数据；个人内容会进入当前 Agent / 模型上下文用于整理，PNG 渲染与检查由本地脚本完成，不会自动上传或发布成品。
 
-### PNG 体积优化（可选）
+</details>
 
-默认 PNG 无损 4K，长文卡可能 10-17MB，Slack / 公众号会再压缩可能损失细节。如需更小体积，单独跑一次：
+<details>
+<summary>高级：CLI、自定义布局与 PNG 体积</summary>
 
-```bash
-pngquant --quality=80-95 --force --output card.png card.png   # 11MB → 1-2MB，肉眼几乎无差
-```
-
-`pngquant` 是跨平台 CLI（macOS `brew install pngquant` / Ubuntu `apt install pngquant` / Windows 见 pngquant.org），skill 本身不依赖它。
-
-## 它怎样工作
-
-1. 读取 URL、粘贴文本或本地文件。
-2. 分析结构、密度、情绪与发布用途。
-3. 自动匹配 mode、Quiet Paper design 与画面方向；文章封面会先落到真实 design，正文解释图会先筛章节再压成公式卡。
-4. 使用结构化 renderer 或创意布局流程生成画面。
-5. 在截图前后检查占位符、溢出、裁切、坏图、正文可读性、标题换行、框内文字、字体栈与视觉体系漂移。
-6. 通过 Playwright 截图，输出 PNG；默认署名和头像均为空。
-
-结构化 CLI 也可以单独使用：
+结构化 CLI 可以单独使用：
 
 ```bash
 node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
@@ -229,76 +177,76 @@ node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 
 支持的 CLI modes：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。
 
-`editorial-image` 的高质量最终图优先使用 `content_html` + `custom_css` 做具体主视觉；默认 scaffold 只是比例安全的兜底，适合快速验证，不应作为复杂正文配图的终点。
+`editorial-image` 的高质量最终图优先使用 `content_html` + `custom_css` 做具体主视觉；默认 scaffold 只是比例安全的兜底，适合快速验证，不应作为复杂正文配图的终点。完整的 skill 行为与输入边界见 [`SKILL.md`](SKILL.md)。
 
-`article-diagram` 是正文解释图的稳定路径。输入整篇文章时，它会跳过不适合压缩的铺垫、情绪和结论章节，只为有关系、流程、边界或系统结构的章节产出公式卡；`concept-map`、`process-flow`、`boundary-model` 仍作为旧输入兼容路径保留。
+默认 PNG 无损，长文卡可能达到 10–17MB。如需更小体积，可以单独使用 `pngquant`：
 
-可选署名与来源字段使用 `brand_name`、`logo`、`source`；默认全部为空，不会自动加入作者名、头像或维护者品牌。
+```bash
+pngquant --quality=80-95 --force --output card.png card.png
+```
 
-## 更多样张
+</details>
+
+<a id="gallery"></a>
+## 完整样张
 
 <details>
-<summary>展开完整 gallery</summary>
+<summary>展开 gallery</summary>
 
 <table>
 <tr>
-<td width="50%"><img src="assets/gallery/infograph.png" width="100%" alt="infograph 示例"><br><strong>infograph</strong></td>
-<td width="50%"><img src="assets/gallery/big.png" width="100%" alt="big 示例"><br><strong>big</strong></td>
+<td width="50%"><img src="assets/gallery/editorial-blog-hero.png" width="100%" alt="博客头图示例"><br><strong>editorial-image</strong> · blog hero</td>
+<td width="50%"><img src="assets/gallery/article-diagram-formula-card.png" width="100%" alt="正文公式卡示例"><br><strong>article-diagram</strong> · formula card</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/long.png" width="100%" alt="long 示例"><br><strong>long</strong></td>
-<td><img src="assets/gallery/sketchnote.png" width="100%" alt="sketchnote 示例"><br><strong>sketchnote</strong></td>
+<td><img src="assets/gallery/infograph.png" width="100%" alt="结构化信息图示例"><br><strong>infograph</strong></td>
+<td><img src="assets/gallery/big.png" width="100%" alt="一句话观点卡示例"><br><strong>big</strong></td>
 </tr>
 <tr>
-<td><img src="assets/gallery/comic.png" width="100%" alt="comic 示例"><br><strong>comic</strong></td>
-<td><img src="assets/gallery/editorial-blog-hero.png" width="100%" alt="博客头图示例"><br><strong>editorial-image</strong> · blog hero</td>
+<td><img src="assets/gallery/long.png" width="100%" alt="长卡片示例"><br><strong>long</strong></td>
+<td><img src="assets/gallery/sketchnote.png" width="100%" alt="手记卡片示例"><br><strong>sketchnote</strong></td>
 </tr>
 <tr>
-<td><img src="assets/gallery/article-diagram-formula-card.png" width="100%" alt="正文解释图公式卡示例"><br><strong>article-diagram</strong> · formula card</td>
-<td><img src="assets/gallery/infograph.png" width="100%" alt="结构化信息图示例"><br><strong>Quiet Paper</strong> · structured information</td>
+<td><img src="assets/gallery/comic.png" width="100%" alt="叙事漫画卡片示例"><br><strong>comic</strong></td>
+<td><img src="assets/gallery/article-diagram-boundary.png" width="100%" alt="正文边界模型示例"><br><strong>article-diagram</strong> · boundary model</td>
 </tr>
 </table>
 
 </details>
 
-## 微信读书接入 Showcase
+## 微信读书（可选）
 
-下面三张图来自真实的个人阅读数据，展示 `card-skill` 如何把阅读统计与个人划线变成可以发布的视觉内容。仓库只保留最终 PNG，不保存原始 API 回包、书籍 ID 或 API Key。
+card-skill 可以和腾讯官方 [WeChatReading Skill](https://github.com/Tencent/WeChatReading) 组合使用，把你明确指定的一本书里的个人划线与想法做成卡组，或把个人阅读统计做成月报 / 年报。
+
+它不读取任意章节正文，也不会因为只看到一本书名就扫描账号。腾讯 Skill 负责认证和读取；card-skill 只整理当前任务需要的数据，并在本地完成 PNG 渲染与检查。
 
 <table>
 <tr>
 <td width="33.33%"><img src="assets/gallery/weread-annual-report.png" width="100%" alt="微信读书年度阅读报告"><br><strong>年度阅读报告</strong></td>
 <td width="33.33%"><img src="assets/gallery/weread-reading-profile.png" width="100%" alt="微信读书总体阅读画像"><br><strong>总体阅读画像</strong></td>
-<td width="33.33%"><img src="assets/gallery/weread-personal-highlights_1.png" width="100%" alt="微信读书个人划线卡组"><br><strong>个人划线卡组</strong> · 3 cards</td>
+<td width="33.33%"><img src="assets/gallery/weread-personal-highlights_1.png" width="100%" alt="微信读书个人划线卡组"><br><strong>个人划线卡组</strong></td>
 </tr>
 </table>
 
-对应的调用方式很简单：
+先单独安装官方来源 Skill，再按官方说明设置 `WEREAD_API_KEY`；不要把 API Key 粘贴到对话、卡片输入或仓库文件中：
 
-```text
-用我的微信读书年度阅读数据做一张 Quiet Paper 风格的年度报告，完成后检查裁切、换行和来源署名。
-
-用我年度阅读最多的那本书的个人划线和想法做一组卡片，区分原文划线与我的想法，不要读取热门划线。
+```bash
+npx skills add Tencent/WeChatReading -g
 ```
 
-## Showcase：让作品替工具说话
+```text
+把我在《千脑智能》里的个人划线和想法做成一组卡片。原文不要改写，把我的想法放在对应划线下面；没有明确对应关系的想法单独放，最后标明来源。
 
-如果 card-skill 帮你做出了值得发布的图，欢迎在 GitHub Issues 分享：
+把我这个月的微信读书数据做成阅读月报。只使用真实返回的时长、天数、读完数量和偏好；缺少的模块直接省略，不要补造洞察。
+```
 
-- 最终图片或公开发布链接
-- 使用的原始 prompt（敏感内容可删减）
-- mode 与你使用的 agent
-- 哪一步顺利、哪一步仍需要手工调整
+## 分享案例与维护
+
+如果 card-skill 帮你做出了值得发布的图，欢迎在 [GitHub Issues](https://github.com/KKenny0/card-skill/issues) 分享：最终图片或公开发布链接、使用的 prompt（敏感内容可删减）、mode 与 agent，以及仍需要手工调整的地方。
 
 真实案例会帮助我们判断下一步该优化哪种发布任务；经作者同意后，优秀案例也可能进入 gallery，并保留来源署名。
 
-## Support
-
-如果 card-skill 帮你做出了真实发布的图，最有帮助的是在 Issues 里分享案例。你也可以通过这里支持后续维护：
-
-<https://kkenny0.github.io/support/>
-
-支持会帮助我继续维护字体、浏览器渲染、图片压缩、模具质量和跨 agent 兼容性。
+你也可以通过 [Support](https://kkenny0.github.io/support/) 支持后续维护。支持会帮助我继续维护字体、浏览器渲染、图片压缩、模具质量和跨 agent 兼容性。
 
 ## Credits
 
