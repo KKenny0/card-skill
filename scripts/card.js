@@ -16,12 +16,21 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync, spawnSync } = require('child_process');
+const { execFileSync, spawn, spawnSync } = require('child_process');
 
-const ROOT = path.resolve(__dirname, '..');
+const ROOT_PATH = path.resolve(__dirname, '..');
+const ROOT = (() => {
+  try {
+    return fs.realpathSync.native(ROOT_PATH);
+  } catch {
+    return ROOT_PATH;
+  }
+})();
 const CAPTURE_SCRIPT = path.join(ROOT, 'assets', 'capture4k.js');
 const CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-output.mjs');
 const SETUP_SCRIPT = path.join(ROOT, 'scripts', 'setup-runtime.mjs');
+const UPDATE_CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-update.mjs');
+const { beginRender } = require('./lib/update-state');
 // ── Args ──
 
 const args = process.argv.slice(2);
@@ -65,6 +74,23 @@ if (args.includes('--list-designs')) {
   }
   console.log(`\nTotal: ${designs.length} design systems`);
   process.exit(0);
+}
+
+const renderLease = beginRender(ROOT, process.env.CARD_SKILL_UPDATE_CHECK_CACHE || null);
+if (!renderLease.ready) {
+  console.error('card-skill update is still in progress; retry this render shortly.');
+  process.exit(1);
+}
+process.once('exit', () => renderLease.end());
+
+// Keep direct CLI use covered even when the calling agent skips the skill preflight.
+// Update failures must never change the render result or stdout path contract.
+const updateCheck = spawnSync(process.execPath, [UPDATE_CHECK_SCRIPT], {
+  encoding: 'utf-8',
+  timeout: 4000,
+});
+if (updateCheck.stdout?.trim()) {
+  console.error(updateCheck.stdout.trim());
 }
 
 // Fail early with an actionable setup command instead of surfacing a nested
@@ -404,6 +430,7 @@ function publishPngs(entries) {
 }
 
 let runTmpDir = null;
+let renderSucceeded = false;
 
 try {
   runTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-'));
@@ -457,6 +484,7 @@ try {
       console.log(outputPath);
     }
   }
+  renderSucceeded = true;
 } catch (e) {
   console.error(`Render failed: ${e.message}`);
   if (e.stderr) console.error(e.stderr.toString());
@@ -466,5 +494,32 @@ try {
     if (runTmpDir) fs.rmSync(runTmpDir, { recursive: true, force: true });
   } catch (cleanupError) {
     console.error(`Warning: could not remove temporary directory ${runTmpDir}: ${cleanupError.message}`);
+  }
+  renderLease.end();
+}
+
+if (renderSucceeded) {
+  if (process.env.CARD_SKILL_AUTO_UPDATE_FOREGROUND === '1') {
+    const autoUpdate = spawnSync(process.execPath, [UPDATE_CHECK_SCRIPT, '--auto-update'], {
+      encoding: 'utf-8',
+      timeout: 15 * 60 * 1000,
+    });
+    const autoUpdateOutput = [autoUpdate.stdout, autoUpdate.stderr]
+      .filter(value => value?.trim())
+      .join('\n')
+      .trim();
+    if (autoUpdateOutput) console.error(autoUpdateOutput);
+  } else {
+    try {
+      const autoUpdate = spawn(process.execPath, [UPDATE_CHECK_SCRIPT, '--auto-update'], {
+        cwd: os.homedir(),
+        detached: true,
+        env: { ...process.env, CARD_SKILL_CALLER_CWD: process.cwd() },
+        stdio: 'ignore',
+      });
+      autoUpdate.unref();
+    } catch {
+      // Rendering is already complete; a later request can retry the update.
+    }
   }
 }

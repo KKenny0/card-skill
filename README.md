@@ -156,13 +156,21 @@ npx playwright install chromium
 
 ### 更新提醒与隐私
 
-每次 agent 开始使用 card-skill 时，会先运行一个非阻塞更新检查：一天最多一次，只读取 GitHub 上公开的 `VERSION` 文件；不会上传文章、prompt、路径或图片。检查失败会静默跳过，不影响出图。有新版时只提醒运行：
+每次 agent 开始使用 card-skill 时，会先检查 GitHub 上最新的正式 Release；Stable CLI 渲染入口也会自动再做一次防守式检查。当前输出完成后，CLI 会在后台把已安装副本升级到该 Release 解析出的固定 commit，完成版本回读与运行时准备后，下一次使用生效；当前渲染不会切换版本。检查按安装副本分别缓存，一天最多一次；并发渲染和升级会通过安装锁错开。升级失败会恢复旧副本，不改变本次出图结果，后续请求会重试。手动更新入口如下：
 
 ```bash
-npx skills update card-skill -g -y
+# npx skills 安装（将 <tag> 替换为更新提示中的 Release tag）
+npx --yes --package skills@1.5.19 -- skills add KKenny0/card-skill/plugins/card-skill/skills/card-skill#<tag> --skill card-skill -g -y
+
+# Codex 插件安装（脚本会校验 Release tag 对应的 commit）
+node scripts/check-update.mjs --auto-update
 ```
 
-如需完全关闭，设置 `CARD_SKILL_DISABLE_UPDATE_CHECK=1`。只有明确提出微信读书请求时才会访问个人数据；个人内容会进入当前 Agent / 模型上下文用于整理，PNG 渲染与检查由本地脚本完成，不会自动上传或发布成品。
+版本检查只访问 GitHub Release API；实际升级还会通过已安装的 Codex CLI，或固定版本的 `skills` CLI，从 GitHub/npm 下载对应 Release。两条路径都不会上传文章、prompt、路径或图片。只有明确提出微信读书请求时才会访问个人数据；个人内容会进入当前 Agent / 模型上下文用于整理，PNG 渲染与检查由本地脚本完成，不会自动上传或发布成品。
+
+如需完全关闭检查和自动升级，设置 `CARD_SKILL_DISABLE_UPDATE_CHECK=1`。
+
+如需保留检查但关闭自动升级，设置 `CARD_SKILL_DISABLE_AUTO_UPDATE=1`。
 
 </details>
 
