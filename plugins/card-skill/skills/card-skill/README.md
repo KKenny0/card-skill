@@ -300,6 +300,10 @@ pngquant --quality=80-95 --force --output card.png card.png
 
 </details>
 
+## Content-first editing
+
+Formatting-only requests preserve prose, voice, examples, and order. Summaries retain meaning-changing conditions and exceptions; diagrams express only source-supported relationships. Layout follows reading order: equal groups may use equal widths, and decoration must help understanding. Formula cards are used only when a faithful relation exists. Actual PNG review blocks meaning loss even when the design scores well. Existing render contracts and quality checks remain unchanged.
+
 ## FAQ
 
 ### What is card-skill?

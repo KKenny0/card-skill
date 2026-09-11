@@ -124,6 +124,7 @@ async function main() {
       await page.screenshot({
         path: path.resolve(outputPath),
         type: 'png',
+        fullPage: true,
         clip: { x: 0, y: 0, width, height: bodyHeight }
       });
     } else {

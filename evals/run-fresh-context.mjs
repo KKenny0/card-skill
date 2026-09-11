@@ -109,6 +109,7 @@ function criticPrompt(job, output, receipt, attempt, seedIssue = null) {
     : output.source_unit_ids.map(id => job.source_units.find(unit => unit.id === id));
   return [
     'You are the independent visual critic for card-skill. Inspect the attached real PNG at thumbnail and full size.',
+    'Read references/visual-review.md before scoring; compare editing intent and source evidence with the visible PNG. Treat meaning loss and unsupported relationships as blockers, regardless of style scores.',
     'Return only one Visual Review JSON matching schemas/visual-review.json.',
     'When the receipt contains visual_job_sha256, artifact_plan_sha256, and artifact_contract_sha256, copy all three fields exactly into the review.',
     'Score message_clarity, visual_hierarchy, cognitive_load, and style_consistency as integers from 0 to 5.',
@@ -194,7 +195,11 @@ function renderCandidate(installed, answerPath, candidateDir, testCase, job) {
 }
 
 function reviewCandidate(installed, job, candidateDir, attempt, testCase) {
-  const reviewSchema = path.join(installed, 'schemas', 'visual-review.json');
+  const reviewSchema = path.join(path.dirname(candidateDir), 'critic-output-schema.json');
+  const schema = JSON.parse(fs.readFileSync(path.join(installed, 'schemas', 'visual-review.json'), 'utf8'));
+  // CardBench v2/v3 reviews carry all hashes; keep the public v1 schema compatible.
+  schema.required = Object.keys(schema.properties);
+  fs.writeFileSync(reviewSchema, JSON.stringify(schema));
   const receiptNames = fs.readdirSync(candidateDir).filter(name => name.endsWith('.receipt.json')).sort();
   const reviews = [];
   for (const receiptName of receiptNames) {

@@ -2,7 +2,7 @@
 name: card-skill
 description: "Render text and evidence into polished, shareable PNG visuals with one consistent Kenny Style visual grammar. Use this skill whenever the user asks to turn words, notes, articles, quotes, arguments, stories, open-source repository or tool material, technical commands/workflows, explicit WeChat Reading highlights/thoughts, or WeChat Reading personal statistics into an 信息图/infographic, 海报/poster, 卡片/card, 大字报, whiteboard, visual summary, comic, sketchnote, social card grid, 开源工具介绍配图, 工具推荐卡片, GitHub 项目介绍插画, 小红书式竖版技术内容, 公众号头图, 博客封面, 正文配图, 正文解释图, 关系图, 流程图, 边界图, reading report, or non-summary editorial image for an essay. Trigger on phrases like 做成图, 渲染成图, 做张卡片, 卡片组, 处理这个开源工具, 技术工作流卡片, 做成漫画, 视觉笔记, 给文章配图, 微信读书划线做卡, article cover, blog hero, article diagram, process flow, and editorial image. Supports 9 output modes. Tone and explicit legacy design names affect color only; they never replace the house typography, geometry, spacing, material, or composition grammar. Do not use for websites, UI components, Figma prototypes, logos/VI systems, chart-library plotting, photo editing, or plain file conversion."
 user_invocable: true
-version: "0.10.0"
+version: "0.10.1"
 ---
 
 # card-skill
@@ -61,6 +61,17 @@ For one-off use without installing, run `npx skills use KKenny0/card-skill/plugi
 | 个人经验、反思、失败到顿悟的弧线 | `sketchnote` |
 
 这些只是入口映射；内容结构明显更适合其他现有 mode 时，自动改走更合适的路线。
+
+## 内容优先与编辑边界
+
+先明确读者、阅读后需要理解什么、不能丢失的内容；缺少受众信息时沿用原文的知识门槛，不增加问卷。将必要判断写入现有 decision.reason、visual_plan.core_message / layout_strategy，不新增字段或可见计划文案。
+
+- 仅要求排版、整理或阅读卡：使用 preserve，保留正文、语气、例子和论述顺序；不得自动摘要、润色或改成金句。来源没有标题时可用中性主题或作者最终判断命名，不得把后来推翻的初始看法、反例或带条件的说法提成无条件结论。
+- 明确要求摘要、提炼：使用 compress；可删重复和次要内容，但保留改变判断的条件、否定、例外和不确定性。
+- 明确要求改写才使用 rewrite；解释关系使用 visualize，只呈现来源支持的关系。quote / command 继续遵守逐字保留及 long / poster 的既有契约。
+- 规划时放不下：先调整合法布局，再在用户允许的范围内加长或分页，最后选择适合的现有输出形式。固定尺寸、单张与全文保留无法同时满足时说明冲突，不偷偷删字或降低可读性。
+- 运行失败后仍遵守原有错误分类、同 mode 修订与最多一次重试；不得通过改路由绕过失败。
+- 公式、图片、线框和底色都应帮助读者理解具体内容。不能解释用途时省略；有助于分组或强调时保留，不为极简牺牲可读性。
 
 ## Agent Operating Principles
 
@@ -211,10 +222,10 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 主题标签：[2-5 个关键词]
 ```
 
-**内容预处理**（Kenny Style 编辑纪律）：
+**内容预处理**（Kenny Style 编辑纪律）：仅在用户允许压缩或改写时调整措辞；preserve 任务不得套用去 AI 腔或反翻译腔来改原文。
 - 金句检测：独立段落 <25 字含核心洞察的，标记为 highlight
 - 段落切分：按语义完整性分割，不以固定字数机械切
-- 数据清洗：确保数字真实感（`47.2%` 而非 `50%`，`+1 (312) 847-1928` 而非 `1234567`）
+- 数据核对：数字逐项对照来源；不得为追求真实感改变整数、精度或补造数据。
 - 文案去 AI 腔：禁用"赋能/无缝/释放/下一代/深度赋能"等 AI 典型用词（完整清单见 `references/taste.md` 第 5 节）
 - 反翻译腔：禁用"是…的"/"在…的过程中"/"进行+名词"（完整规则见 `references/mode-sketchnote.md` 六条公理）
 
@@ -280,7 +291,7 @@ article-diagram: `{ mode, title, formula, sentence, structure: {nodes: [{id, lab
 
 当用户要求 `正文解释图` / `关系图` / `流程图` / `边界图` / `权限边界` / `安全边界` / `trust boundary` / `article diagram` / `concept map` / `process flow` 时，进入 `article-diagram` 流程。
 
-先读取 `references/mode-article-diagram.md`。默认采用统一 compression pack，不再先问“选哪种图型”，而是问“这段内容能被压成什么公式、什么一句话、什么结构骨架”。
+先读取 `references/mode-article-diagram.md`。先判断是否存在值得用公式表达、且不会改变原意的关系；成立后才生成 compression pack。运算符必须能用原文解释，必要条件必须在 formula 或 sentence 中可见。无合适关系时不强行出公式；完整论述在规划阶段选阅读卡入口。精确拓扑超出当前公式卡能力时说明边界，不伪造公式。
 
 压缩三件套：
 
@@ -394,7 +405,7 @@ Comic 的画面路线仍由 `references/mode-comic.md` 决定，但 tone 也只�
 
 字体不在此表——由 mode 固定决定，见 `references/taste.md` 第 2 节。
 
-**字号、排版、间距与几何遵循 Kenny Style，不随 tone 或 design 改变。** 配色层只提供 canvas、ink、accent、surface 与 hairline 颜色。字号规则保留移动端优先标准：正文 ≥36px，标注 ≥24px。元素比例按模式分级：big≥10:1, infograph≥6:1, comic≥8:1, sketchnote≥5:1, long/poster/whiteboard≥4:1（详见 `references/taste.md`）。
+**字号、排版、间距与几何遵循 Kenny Style，不随 tone 或 design 改变。** 配色层只提供 canvas、ink、accent、surface 与 hairline 颜色。字号规则保留移动端优先标准：正文 ≥36px，标注 ≥24px。层级由内容关系决定，不要求固定的元素大小比例；保留可读字号和现有机器检查。
 
 **Quiet Paper 材料基底**：所有输出应遵循 `references/taste.md` 的纸质美学要求——暖色纸张或深色卡纸、墨感文字、降饱和度强调色、极细 hairline 边框、少卡片、少阴影，像完成的纸面而非网页截图。
 
@@ -456,7 +467,7 @@ node scripts/check-output.mjs --html <html_path> --width 1080 --height 800 --dpr
 
 - [ ] 视觉形式从内容生长出来？换内容这布局还说得出吗？
 - [ ] 去色后仍能认出同一套 Kenny Style 几何、排版与材料纪律？
-- [ ] 元素比例达到模式最低标准？（big≥10:1, infograph≥6:1, comic≥8:1, sketchnote≥5:1, 其他≥4:1）
+- [ ] 主次符合内容关系，同级内容没有被造型误导为不同等级？
 - [ ] 弹点色保持克制？（强 accent ≤2 处，弱 accent ≤3 处视觉突出点）
 - [ ] 正文 ≥36px，标注 ≥24px？
 - [ ] 多卡模式：每张卡只覆盖一个章节/话题？不同主题的内容没有被混在同一张卡上？

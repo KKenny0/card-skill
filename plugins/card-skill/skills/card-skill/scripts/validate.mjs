@@ -530,6 +530,16 @@ try {
   ], { encoding: 'utf8' });
   assert.notEqual(oversizedCapture.status, 0, 'capture4k accepted an unbounded capture contract');
   assert.match(oversizedCapture.stderr, /Capture width and height|output pixels/);
+  const tallCapturePath = path.join(tmpDir, 'tall-capture.html');
+  const tallPngPath = path.join(tmpDir, 'tall-capture.png');
+  fs.writeFileSync(tallCapturePath, '<!doctype html><style>body{margin:0;width:400px;height:1200px}footer{position:absolute;top:1100px;height:100px}</style><footer>Final condition</footer>');
+  const tallCapture = spawnSync(process.execPath, [
+    path.join(ROOT, 'assets', 'capture4k.js'), tallCapturePath, tallPngPath, '400', '200', '1', 'fullpage',
+  ], { encoding: 'utf8' });
+  assert.equal(tallCapture.status, 0, tallCapture.stderr);
+  const tallPng = fs.readFileSync(tallPngPath);
+  assert.equal(tallPng.readUInt32BE(16), 400);
+  assert.equal(tallPng.readUInt32BE(20), 1200, 'full-page capture must include content below the viewport');
   const captureSource = fs.readFileSync(path.join(ROOT, 'assets', 'capture4k.js'), 'utf8');
   const checkerSource = fs.readFileSync(path.join(ROOT, 'scripts', 'check-output.mjs'), 'utf8');
   const publisherSource = fs.readFileSync(path.join(ROOT, 'scripts', 'publish-reviewed-job.mjs'), 'utf8');

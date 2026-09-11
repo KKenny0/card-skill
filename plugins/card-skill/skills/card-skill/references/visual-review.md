@@ -16,6 +16,16 @@ Issues use a safe type slug, `blocker` / `major` / `minor` severity, and a concr
 
 Review one receipt artifact at a time. Copy `metaphor_required` from the renderer receipt; this prevents a planned metaphor from being silently excluded from the score. When one render contract emits multiple PNGs, `artifact_index` identifies the attached card; sibling cards are reviewed separately and must not be treated as missing from the current PNG.
 
+## Meaning before scoring
+
+Compare the source, requested editing intent, render contract, and actual PNG. Conditions stored only in hidden or non-rendered input do not count as delivered content.
+
+Review titles and other newly added visible copy too: promoting a rejected initial belief, counterexample, or conditional claim into an unconditional headline is a meaning-loss blocker, even when the body remains intact.
+
+Use an existing blocker issue for unauthorized prose edits in formatting-only tasks; lost meaning-changing conditions, negation, exceptions, or uncertainty; unsupported causal/quantitative relationships; or necessary explanation absent from the PNG. Suggested issue slugs: unauthorized-edit, meaning-loss, unsupported-relation, missing-explanation. These blockers cannot be offset by style or other scores.
+
+Check the reading start and sequence at the intended reading size, and whether peers retain equal semantic weight. Ask what information or guidance would be lost by removing each line, frame, fill, or image. Redundancy is ordinarily a revision suggestion; block only when it obscures content or misleads grouping or reading order. Useful emphasis is allowed. Mechanical defects stay with check-output. Existing score fields, threshold, hash binding, and revision limits are unchanged.
+
 Workflow:
 
 ```text

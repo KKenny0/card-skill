@@ -8,13 +8,19 @@ This mode creates in-article compression formula cards. Its default job is not t
 
 Use it when the image must help the reader carry away the article's logic after reading a section. It is not an editorial cover, not a mood image, and not a whole-article summary card.
 
+## Eligibility before compression
+
+First ask whether the section contains a useful relation that a formula can express without changing meaning. Explain each arrow, equality, or operator from the source; do not manufacture arithmetic for a slogan. Meaning-changing conditions must appear in formula or sentence, not only the unrendered structure.
+
+Skip ineligible sections. For formatting or full-prose requests, choose an existing reading-card publishing target during planning. If an explicitly requested precise topology exceeds the formula surface, explain that limitation rather than inventing a formula. This does not change taxonomy, auto → summary, the experimental status of structure/split, or post-failure routing restrictions.
+
 ## Core Belief
 
 正文解释图的工作不是装饰文章，而是把理解压缩成可带走的结构。
 
 The useful question is no longer "which family fits?" The useful question is:
 
-- What is the section's formula?
+- Does this section have a source-supported relation worth expressing as a formula?
 - What is the one sentence the reader should remember?
 - What structure makes that sentence true?
 
@@ -250,8 +256,8 @@ Do not use these families for new article compression unless the user explicitly
 
 Compression formula cards use a real-font measure pass before final rendering. The planner enumerates readable semantic line groups, rejects candidates outside the approved density and whitespace range, then selects the lowest-scoring candidate. If no candidate fits, simplify the input first:
 
-- shorten `formula`
-- shorten `sentence`
+- shorten `formula` only without losing meaning or conditions
+- shorten `sentence` only without losing meaning or conditions
 - let the planner use `body-3-2` when three formula rows or a two-line annotation need the taller ratio
 - do not lower formula terms below the approved small scale or annotations below 27px
 

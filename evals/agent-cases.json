@@ -298,6 +298,132 @@
       "forbidden_terms": ["LegacyDesk", "2023"]
     },
     {
+      "id": "content-preserve-voice",
+      "forbidden_titles": ["框越少越好"],
+      "request": "把下面短文排成一张长阅读卡。只做排版。只输出 Visual Job JSON。",
+      "source_text": "我起初觉得框越少越好。后来试了一次，发现没有分组，读起来反而更费劲。现在我会先看内容；如果一条线能让关系清楚，就留着。",
+      "publish_target": "long-read",
+      "tier": "stable",
+      "modes": [
+        "long"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "body"
+      ],
+      "required_terms": [
+        "我起初觉得框越少越好。",
+        "后来试了一次，发现没有分组，读起来反而更费劲。",
+        "现在我会先看内容；如果一条线能让关系清楚，就留着。"
+      ]
+    },
+    {
+      "id": "content-summary-conditions",
+      "request": "把下面短文提炼成一张长阅读卡。只输出 Visual Job JSON。",
+      "source_text": "缓存可以减少重复读取，但仅当数据仍然有效时才能复用。除非已经确认过期，否则不必重新读取。数据过期时必须重新读取。",
+      "publish_target": "long-read",
+      "tier": "stable",
+      "modes": [
+        "long"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "body"
+      ],
+      "required_terms": [
+        "仅当",
+        "有效",
+        "除非",
+        "过期",
+        "重新读取"
+      ]
+    },
+    {
+      "id": "content-peer-groups",
+      "request": "把三个同级注意事项排成一张长阅读卡，保留原文。只输出 Visual Job JSON。",
+      "source_text": "字号：让文字看得清。间距：让分组看得清。对齐：让顺序看得清。",
+      "publish_target": "long-read",
+      "tier": "stable",
+      "modes": [
+        "long"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "body"
+      ],
+      "required_terms": [
+        "字号：让文字看得清。",
+        "间距：让分组看得清。",
+        "对齐：让顺序看得清。"
+      ]
+    },
+    {
+      "id": "content-no-fake-formula",
+      "request": "把这个观点整理成一张长阅读卡。只输出 Visual Job JSON。",
+      "source_text": "舒服的排版让人愿意继续读。适当留白有帮助，但必要的解释不能因为画面空一些就删掉。",
+      "publish_target": "long-read",
+      "tier": "stable",
+      "modes": [
+        "long"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "body"
+      ],
+      "required_terms": [
+        "必要的解释",
+        "不能"
+      ],
+      "forbidden_terms": [
+        "=",
+        "×",
+        "÷",
+        "→"
+      ]
+    },
+    {
+      "id": "content-supported-formula",
+      "request": "为下面关系做一张正文公式卡。只输出 Visual Job JSON。",
+      "source_text": "总时长 = 等待时长 + 执行时长。两段依次发生，互不重叠；如果并行执行，就不能直接相加。",
+      "publish_target": "article-body",
+      "tier": "stable",
+      "modes": [
+        "article-diagram"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "formula",
+        "sentence",
+        "structure"
+      ],
+      "required_terms": [
+        "总时长",
+        "等待时长",
+        "执行时长",
+        "不重叠",
+        "并行"
+      ]
+    },
+    {
       "id": "revise-text-heavy",
       "kind": "revision",
       "request": "根据视觉批评减少次要文字并重新建立单一焦点。Visual Job 必须恰好一个 output，poster contract 必须恰好包含一张 cards[0]，不得用增加卡片分散文字；artifact 的 visual_plan.visual_metaphor 使用 null。",
