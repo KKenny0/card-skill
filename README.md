@@ -353,7 +353,7 @@ Install Tencent's official WeChatReading Skill separately and set `WEREAD_API_KE
 <details>
 <summary>Expand gallery</summary>
 
-<p><sub>All samples are conceptual retellings of *A Thousand Brains* (Jeff Hawkins). Reading-note samples are labeled as non-account highlights.</sub></p>
+<p><sub>Samples explore concepts from *A Thousand Brains* (Jeff Hawkins). The reading-notes sample quotes a repository-owned study note verbatim; it is neither a book quotation nor an account highlight.</sub></p>
 
 | Job | mode | What the image solves |
 |---|---|---|
@@ -364,7 +364,7 @@ Install Tencent's official WeChatReading Skill separately and set `WEREAD_API_KE
 | Long reading card | `long` | Intelligence as modeling |
 | Whiteboard | `whiteboard` | Knowing a cup |
 | Boundary model (legacy sample) | `article-diagram` | reference frame model |
-| Reading notes (conceptual) | `poster` | Highlight-style knowledge cards, not live account data |
+| Reading notes (owned source) | `poster` | Verbatim study note paired with a thought, not live account data |
 | Infograph | `infograph` | Local models to shared judgment |
 | Comic | `comic` | After touching one edge |
 | Sketchnote | `sketchnote` | Sensation, location, prediction |
@@ -385,7 +385,7 @@ Install Tencent's official WeChatReading Skill separately and set `WEREAD_API_KE
 </tr>
 <tr>
 <td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="A Thousand Brains legacy boundary-model sample"><br><strong>article-diagram</strong> · reference frame model</td>
-<td><img src="assets/gallery/reading-notes.png" width="100%" alt="A Thousand Brains conceptual reading-notes card, not live account highlights"><br><strong>poster</strong> · reading notes (conceptual)</td>
+<td><img src="assets/gallery/reading-notes.png" width="100%" alt="Reading-notes card quoting a repository-owned study note, not a book quotation or account highlight"><br><strong>poster</strong> · reading notes (owned source)</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/infograph.png" width="100%" alt="A Thousand Brains infograph: local models to shared judgment"><br><strong>infograph</strong> · local models to shared judgment</td>
@@ -408,7 +408,7 @@ It does not read arbitrary chapter text, and it will not scan an account from a 
 <table>
 <tr>
 <td width="50%"><img src="assets/gallery/reading-report.png" width="100%" alt="Reading guide sample built from real reading structure"><br><strong>Reading guide</strong></td>
-<td width="50%"><img src="assets/gallery/reading-notes.png" width="100%" alt="Conceptual notes sample with highlight and thought pairing"><br><strong>Conceptual notes</strong></td>
+<td width="50%"><img src="assets/gallery/reading-notes.png" width="100%" alt="Repository-owned study note with verbatim text and thought pairing"><br><strong>Owned study notes</strong></td>
 </tr>
 </table>
 

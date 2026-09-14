@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.10.0",
+  "card_skill_version": "0.10.2",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -11,9 +11,9 @@
       "tone": "sharp",
       "dpr": 2,
       "width": 2160,
-      "height": 1600,
+      "height": 2880,
       "render_contract_sha256": "df2cf5bad248f317dd5b99525ccac948619ffff99cc4edd2a9794d2422b3c6ab",
-      "png_sha256": "f4c64ef2843108c5810ac62093f324c09f28fed655f0f7c662668d93cd2870f8"
+      "png_sha256": "a3a39ae8990889a8a1c57e36ec0266e6eccf8ef9d18678318869b0bb8368f786"
     },
     {
       "fixture": "evals/gallery/creative/infograph.json",
@@ -102,9 +102,9 @@
       "tone": "warm",
       "dpr": 2,
       "width": 2160,
-      "height": 1600,
+      "height": 2242,
       "render_contract_sha256": "6e17e7dfe501e32016529b555520fc31bfc345ac1c2c06fa5513158c4acf5309",
-      "png_sha256": "3a418cae1d415a4d9f3c3691bccc695d17c17af2ac2773b915135f6f8490d065"
+      "png_sha256": "1e609dace7cfde7855a2f6e809ebcdfff089832f96b9df3c0c04395090b21950"
     },
     {
       "fixture": "evals/gallery/jobs/poster.json",
@@ -129,8 +129,8 @@
       "dpr": 2,
       "width": 2160,
       "height": 2880,
-      "render_contract_sha256": "925c5b330c495baa08873c5a11235e23a576a6e97044946b5c961f258f9f3b75",
-      "png_sha256": "77439f24fec1b300cd999e009e324a7665b4e4f0614816c44b55e7c009854dc0"
+      "render_contract_sha256": "da4f05eeb2f629cd18144cd7752541443572e3e2e9d48b3064be3bb0ef41699d",
+      "png_sha256": "0de7731f641a6050af30caa988085830e6d2e02949682cfd868ee2ed6694bfa1"
     },
     {
       "fixture": "evals/gallery/jobs/reading-report.json",

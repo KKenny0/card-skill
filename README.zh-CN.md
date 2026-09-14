@@ -353,7 +353,7 @@ Stable（如 `big`、`poster`、`whiteboard`、多数封面）走命令行结构
 <details>
 <summary>展开 gallery</summary>
 
-<p><sub>全部样张基于《千脑智能》（Jeff Hawkins）的概念转述；阅读笔记样张会明确标注为非原文划线。</sub></p>
+<p><sub>样张围绕《千脑智能》（Jeff Hawkins）的概念展开；阅读笔记逐字引用仓库自有学习札记，并非书中原句或真实账户划线。</sub></p>
 
 | 任务 | mode | 画面在解决什么 |
 |---|---|---|
@@ -364,7 +364,7 @@ Stable（如 `big`、`poster`、`whiteboard`、多数封面）走命令行结构
 | 长阅读卡 | `long` | 智能是建模 |
 | 白板推演 | `whiteboard` | 认识一个杯子 |
 | 边界模型（兼容样张） | `article-diagram` | 参考系边界模型 |
-| 阅读笔记（概念转述） | `poster` | 划线式知识卡，非原文账号数据 |
+| 阅读笔记（自有原文） | `poster` | 自有札记原文与想法配对，非真实账户数据 |
 | 信息图 | `infograph` | 局部模型到共同判断 |
 | 漫画 | `comic` | 摸到一条边以后 |
 | 视觉手记 | `sketchnote` | 感觉、定位与预测 |
@@ -385,7 +385,7 @@ Stable（如 `big`、`poster`、`whiteboard`、多数封面）走命令行结构
 </tr>
 <tr>
 <td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="《千脑智能》参考系边界模型兼容样张"><br><strong>article-diagram</strong> · 参考系边界模型</td>
-<td><img src="assets/gallery/reading-notes.png" width="100%" alt="《千脑智能》概念转述阅读笔记卡，非原文划线"><br><strong>poster</strong> · 阅读笔记（概念转述）</td>
+<td><img src="assets/gallery/reading-notes.png" width="100%" alt="逐字引用仓库自有学习札记的阅读笔记卡，非书中原句或账户划线"><br><strong>poster</strong> · 阅读笔记（自有原文）</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/infograph.png" width="100%" alt="《千脑智能》信息图：局部模型到共同判断"><br><strong>infograph</strong> · 局部模型到共同判断</td>
@@ -408,7 +408,7 @@ card-skill 可以和腾讯官方 [WeChatReading Skill](https://github.com/Tencen
 <table>
 <tr>
 <td width="50%"><img src="assets/gallery/reading-report.png" width="100%" alt="阅读导览示例：基于真实阅读结构整理的导览卡"><br><strong>阅读导览</strong></td>
-<td width="50%"><img src="assets/gallery/reading-notes.png" width="100%" alt="概念转述笔记示例：划线与想法配对呈现"><br><strong>概念转述笔记</strong></td>
+<td width="50%"><img src="assets/gallery/reading-notes.png" width="100%" alt="自有学习札记示例：原文与想法配对呈现"><br><strong>自有学习札记</strong></td>
 </tr>
 </table>
 
