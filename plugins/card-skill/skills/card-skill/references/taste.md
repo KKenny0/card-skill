@@ -1,6 +1,6 @@
 # Kenny Style 视觉语法（所有 mode 共用）
 
-所有 mode 生成 HTML 前都要经过本准则校验。这不是一个可选 `design`，而是 card-skill 唯一的 house grammar：决定编辑取舍、排版、比例、构图、材质与节奏。
+所有 mode 遵循本准则。结构化 renderer 已实现基础样式；Agent 写完整构图或处理视觉问题时读取本文件。这不是一个可选 `design`，而是 card-skill 唯一的 house grammar：决定编辑取舍、排版、比例、构图、材质与节奏。
 
 ## 0. Kenny Style
 
@@ -31,6 +31,10 @@ Kenny Style 从当前纸面实践中继续生长，不与其他 style 并列，�
 
 ## 2. 排版工程
 
+### 自定义构图边界
+
+初稿与修订稿都要核对每个可见元素的矩形：必须同时落在所属布局容器和捕获画布内。绝对定位的 `left + width`、`top + height` 不得超过父容器尺寸；透明父容器也有边界。编号、标记和说明需要放在卡片上方时，把它们作为更大布局的兄弟元素或在容器内预留空间，不使用负定位把文字挂到父框外。`overflow:hidden` 不免除这些检查；阴影范围不超过 8px。
+
 ### 字体由 mode 固定决定，不受 tone 或 palette 影响
 
 Kenny Style 决定字体、正文尺度、卡片纪律和纸面材质。tone 与显式 palette 不得影响这些属性；字体由 mode 唯一决定。
@@ -57,10 +61,11 @@ Kenny Style 决定字体、正文尺度、卡片纪律和纸面材质。tone 与
 | 西文正文 | DM Sans | `font-family: 'DM Sans', -apple-system, sans-serif` |
 | 数字/代码 | JetBrains Mono | `font-family: 'JetBrains Mono', monospace` |
 
-Google Fonts CDN 引用：
-```html
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-```
+字体由包内 `assets/fonts/` 与 renderer 加载；完整构图沿用模板字系，不引入 Google Fonts CDN 或其他远程资源。
+
+### 多卡一致性
+
+同一批次共享颜色、字系、语义字号层级和间距节奏。结构化模式复用同一 renderer contract；完整 HTML/CSS 构图在各卡中保留相同的基础 token，只让布局随内容变化。无需向用户输出 CSS 变量表。
 
 **中文 CSS 变量（由 mode 决定）：**
 - `--zh-serif`: 阅读类 = `'XiangcuiDengcusong', serif` / 表现类 = `'XiangcuiDazijiti', serif`

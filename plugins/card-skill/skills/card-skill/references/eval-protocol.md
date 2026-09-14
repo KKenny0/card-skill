@@ -1,6 +1,22 @@
 # CardBench and fresh-context evaluation protocol
 
+## Local maintenance
+
+For behavior, schema, renderer, or skill-instruction changes, run `npm run package-skill`, `npm test`, `npm run smoke`, and `git diff --check`. Inspect the generated mirror diff; never edit the mirror independently. The local suite uses disposable fixtures, including real browser captures; run it without a per-command approval round. `npm run check-output` only prints CLI help and is not a test gate.
+
+Review representative actual PNGs when changing visual behavior or instructions. Palette changes require reflective/sharp/warm/technical plus one explicit design; article-diagram changes require a formula card and the three legacy families. Use `scripts/gallery-jobs.mjs` for gallery verification; mode-specific regression fixtures remain in `scripts/validate.mjs`.
+
 `npm test` proves L0 only: fixture definitions, Visual Job validation, and output checks work. It does not call a model.
+
+## Discovery versus production planning
+
+`npm run eval:discovery -- --report <report.json>` runs six serial, read-only catalog/routing probes: cover, verbatim quote, tool cards, requested preview, repository analysis without images, and a React UI card. It presents only the skill's name/description before the model decides whether to load SKILL.md; selected workflows follow the skill's own reference routing. `--skill-root <installed-directory>` permits an unchanged baseline install, `--case <id>` selects one probe, and `--list-cases` lists them without model calls. Use the same runner, requests, and host model for baseline and changed packages.
+
+Reports retain declared selection/checkpoint/reference decisions, observed shell commands, usage when returned by Codex, and elapsed time. Selection and checkpoints determine pass/fail; expected-reference coverage is diagnostic, since a routing-only probe may find enough information in SKILL.md. Audit the commands before claiming a file was actually read. This is a single-skill routing probe, not a full catalog competition test or evidence of PNG quality. Self-reported decisions cannot prove every execution behavior; use real production planning/rendering cases below for those claims. Do not compare one noisy timing sample as a performance benchmark.
+
+The production planning runner uses `prompt_profile: skill-routed-v1`: it still specifies the evaluation's JSON output, source boundary, job identity, and publish target, but leaves supporting-document selection and mode-specific guidance to SKILL.md. It no longer preloads the open-source adapter for every v3 case or adds CSS/layout advice outside the installed skill. Older reports without this profile describe the previous coached prompt and are not directly comparable.
+
+Discovery stops on a CLI/runtime error and writes completed results plus the error to the requested report. `summary.errors` and `summary.skipped` distinguish unavailable execution from failed decisions; do not present a partial run as complete. Resume only the affected cases after the external issue is resolved.
 
 Before a minor release, run `npm run eval:fresh -- --report evals/fresh-context-results.json`. The runner copies the generated package mirror into a temporary install root, runs `npm ci` there, verifies Playwright resolves inside that isolated root, and prepares the declared runtime. It then starts one ephemeral, read-only Codex process per case from that install, with no prior conversation or user configuration. It validates each produced Visual Job with `evals/check-job-assertions.mjs`, renders it through the installed `scripts/render-job.mjs`, and requires real passing receipts.
 
@@ -8,7 +24,9 @@ Before a minor release, run `npm run eval:fresh -- --report evals/fresh-context-
 
 ## Host orchestration
 
-Do not run CardBench in the main interactive context. Delegate every `npm run eval:cardbench` invocation to the host's low-cost independent execution facility, such as a subagent, background task, or isolated session, including `--list-cases`, single, tail, and full runs. Choose the lowest-cost configuration that can perform real rendering and image review. The delegated worker must use PowerShell 7, run cases serially, avoid code changes and caches, wait for completion, validate the requested scope/report fields, and return only progress plus the result or first failure. The main context may inspect the finished report and package the mirror, but must not own the CardBench process. Do not parallelize case or Critic model calls. If the host has no independent execution facility, disclose the expected cost and obtain user confirmation before running CardBench interactively.
+Delegate model-running CardBench invocations to the host's low-cost independent execution facility, such as a subagent, background task, or isolated session. Choose the lowest-cost configuration that can perform real rendering and image review. The delegated worker must use PowerShell 7, run cases serially, avoid code changes and caches, wait for completion, validate the requested scope/report fields, and return only progress plus the result or first failure. The main context may inspect finished reports and package the mirror. Do not parallelize case or Critic model calls. If no independent facility is available, an already-authorized bounded evaluation may run in the current context; ask about budget only when scope or cost remains unspecified.
+
+`--list-cases` is a local read-only operation: it does not install dependencies, invoke a model, or require delegation/confirmation. Run it directly when selecting evaluation scope.
 
 During development, give the delegated worker one of these commands instead of repeatedly spending the full 29-case gate:
 

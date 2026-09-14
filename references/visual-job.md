@@ -108,7 +108,7 @@ Versions 1 and 2 remain accepted for compatibility. New natural-language tasks u
 }
 ```
 
-`artifact_index` is one-based and follows renderer order. Its count must equal the contract's deterministic artifact count: poster cards, split article diagrams, or one for other contracts. Every V3 artifact must reference at least one source unit whose evidence is both `primary` and `current`. `stale`, `unknown`, or `unusable` evidence may remain in the inventory for an auditable rejection, but cannot carry an artifact.
+`artifact_index` starts at 1 within each output and follows that renderer's order; it is not a job-wide sequence. A three-card poster contract has one output with artifact indices 1, 2, 3; separate single-artifact outputs each use index 1. Group a same-mode series in one shared render contract. The artifact count must equal the contract's deterministic artifact count: poster cards, split article diagrams, or one for other contracts. Every V3 artifact must reference at least one source unit whose evidence is both `primary` and `current`. `stale`, `unknown`, or `unusable` evidence may remain in the inventory for an auditable rejection, but cannot carry an artifact.
 
 Evidence kinds are `claim`, `quote`, `command`, `interface`, `output`, `benchmark`, `architecture`, `case`, and `hero`. `strength` is `primary`, `supporting`, or `unusable`; `freshness` is `current`, `stale`, or `unknown`. A reason is mandatory for unusable or non-current evidence.
 
@@ -116,7 +116,7 @@ Each artifact must claim an independent current primary unit. Runtime identity p
 
 `command` and `quote` units require a non-empty `excerpt`, `transformation: "preserve"`, and an exact match in text that the specific artifact deterministically renders. Non-visible IDs, relation metadata, hidden HTML, series text shown on another card, and suppressed diagram labels do not count. Exact evidence is limited to `long` and `poster`; Studio CSS, diagram layout, Big accent markup, and Whiteboard inline markup may interpret, hide, normalize, or truncate source characters.
 
-`schemas/visual-job.json` documents the public shape. `scripts/lib/visual-job.js` is the runtime authority, and `scripts/lib/mode-selector.js` owns taxonomy. `decision.mode` is the single output mode or `mixed`; it must equal the aggregate of actual contracts. Stable and Studio outputs cannot be mixed in one job.
+`schemas/visual-job.json` documents the public shape. `scripts/lib/visual-job.js` is the runtime authority, and `scripts/lib/mode-selector.js` owns taxonomy. `decision.mode` is the single output mode or `mixed`; it must equal the aggregate of actual contracts. For a mixed big + article-diagram job, both `outputs[0].artifacts[0].artifact_index` and `outputs[1].artifacts[0].artifact_index` are 1. Stable and Studio outputs cannot be mixed in one job.
 
 Use `tone` for `reflective`, `sharp`, `warm`, or `technical`; these select internal Kenny Style color palettes and are not design names. An exact `design` remains an explicit compatibility palette from `references/design-index.md`. Tone and design may change colors only, never typography, geometry, spacing, layout, wrapping, metaphor, or content structure.
 
@@ -128,7 +128,7 @@ Visual Job v2 and v3 render only as candidates:
 node scripts/render-job.mjs --input visual-job.json --output-dir <candidate-dir> --candidate --json
 ```
 
-After the host Agent inspects every actual PNG and writes matching `*.review.json` files, publish the sealed Visual Job v2/v3 candidate with:
+After the image-capable host Agent inspects every actual PNG and writes matching `*.review.json` files, publish the sealed Visual Job v2/v3 candidate with the commands below. Ordinary local delivery needs no additional user approval; preserve any checkpoint explicitly requested by the user.
 
 ```bash
 approved_sha=$(node scripts/hash-reviewed-candidate.mjs --candidate-dir <candidate-dir>)

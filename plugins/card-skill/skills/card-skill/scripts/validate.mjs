@@ -197,6 +197,7 @@ function assertPackagedSkill() {
     'evals/check-assertions.mjs',
     'evals/check-job-assertions.mjs',
     'evals/run-fresh-context.mjs',
+    'evals/run-discovery.mjs',
     'evals/agent-cases.json',
     'evals/evals.json',
     'scripts/lib/schema.js',
@@ -223,6 +224,7 @@ function assertPackagedSkill() {
     'references/source-weread.md',
     'references/visual-job.md',
     'references/eval-protocol.md',
+    'references/runtime.md',
     'docs/current-architecture.md',
     'assets/capture4k.js',
     'assets/big_template.html',
@@ -330,11 +332,10 @@ function assertWereadSourceContract() {
 function assertCodexPreviewContract() {
   const skill = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
   const preview = fs.readFileSync(path.join(ROOT, 'references', 'codex-inline-preview.md'), 'utf8');
-  const step3 = skill.match(/### Step 3: 候选确认（仅按需）([\s\S]*?)### Step 3\.5:/)?.[1];
-
-  assert.ok(step3, 'SKILL.md is missing the bounded Step 3 fallback contract');
-  assert.match(step3, /Card Decision Brief\.candidates/, 'Step 3 fallback does not source candidates from the current decision brief');
-  assert.doesNotMatch(step3, /\b(?:linear|claude|stripe|notion)\b/, 'Step 3 fallback hard-codes design candidates');
+  assert.match(skill, /references\/codex-inline-preview\.md/, 'SKILL.md does not route requested previews to the preview contract');
+  assert.match(skill, /只有用户明确要求先选方向时，才等待选择/, 'ordinary requests may stop for unrequested direction approval');
+  assert.match(preview, /Card Decision Brief\.candidates/, 'text fallback does not use the current decision brief');
+  assert.match(preview, /用户要求先选时仍等待选择/, 'preview failure must not bypass a requested checkpoint');
   assert.match(preview, /轻量选择器 \+ 单一主预览 \+ 选中详情 \+ 单一确认动作/, 'Codex preview is missing the single-preview composition');
   assert.match(preview, /不要把多行说明[\s\S]*放进 `\.btn` \/ `\.btn-block`/, 'Codex preview is missing the rich-button overflow guard');
   assert.match(preview, /window\.openai\.sendFollowUpMessage/, 'Codex preview is missing the follow-up handoff contract');
@@ -403,9 +404,10 @@ function assertOpenSourceShowcase() {
 function assertCardBenchDelegationContract() {
   const skill = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
   const protocol = fs.readFileSync(path.join(ROOT, 'references', 'eval-protocol.md'), 'utf8');
-  assert.match(skill, /任何 `npm run eval:cardbench`[\s\S]*低成本独立执行单元[\s\S]*主交互上下文只接收进度与最终报告/, 'SKILL.md does not delegate every CardBench run away from the main interactive context');
+  assert.match(skill, /references\/eval-protocol\.md/, 'SKILL.md does not route maintenance to the evaluation protocol');
   assert.doesNotMatch(skill, /gpt-5\.6-terra|medium reasoning/, 'SKILL.md hard-codes a host-specific CardBench model');
-  assert.match(protocol, /low-cost independent execution facility[\s\S]*Do not parallelize case or Critic model calls[\s\S]*obtain user confirmation/, 'eval protocol is missing the portable delegated CardBench boundary');
+  assert.match(protocol, /low-cost independent execution facility[\s\S]*Do not parallelize case or Critic model calls/, 'eval protocol is missing the portable delegated CardBench boundary');
+  assert.match(protocol, /`--list-cases` is a local read-only operation/, 'listing cases must not require a model worker');
 }
 
 function runCardCli(input, outputName, expectedCount = 1) {
@@ -1078,6 +1080,7 @@ try {
   const readingNotesOutputs = renderers.poster.render(readingNotesFixture, readingNotesDir);
   const [readingNotesFirstHtml, readingNotesLastHtml] = readOutputs(readingNotesOutputs);
   assert.match(readingNotesFirstHtml, /class="card reading-notes"/, 'reading-notes variant did not mark its composition');
+  assert.match(readingNotesFirstHtml, /<h1 style="font-size:64px">/, 'ordinary poster title sizing overrides the reading-notes 64px title');
   assert.match(readingNotesFirstHtml, /<div class="title-area">[\s\S]*边界练习｜第一章[\s\S]*<section class="reading-unit">/, 'reading-notes first card is title-only');
   assert.match(readingNotesFirstHtml, /class="reading-card-title">主题整理｜边界让选择落地</, 'reading-notes theme title was not rendered');
   assert.match(readingNotesFirstHtml, /原文划线/, 'reading-notes quote label was not rendered');

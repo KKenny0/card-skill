@@ -37,6 +37,8 @@ Default `render_plan` is `auto`, which renders one formula card:
 
 The default card does not render title, page number, template label, top-right summary copy, bottom caption, or the supporting `structure`.
 
+Keep `formula` focused on the complete relation, including the nouns that identify its terms. Put readable conditions and exceptions in `sentence`; do not turn the main formula into a list of caveats. Both visible fields together must express the qualified claim without relying on the hidden title or structure.
+
 Use `render_plan: "summary"` as an explicit alias for the default formula card. Use `render_plan: "structure"` or `render_plan: "split"` only when the user explicitly asks to experiment with a supporting structure view. The structure view is not the default product surface.
 
 ## Routing

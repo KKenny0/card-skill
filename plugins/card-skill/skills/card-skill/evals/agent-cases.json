@@ -435,7 +435,8 @@
       "artifact_outputs": [1, 1],
       "required_contract_fields": ["cards"],
       "required_terms": ["下一次", "找到"],
-      "seed_issue": "too_text_heavy"
+      "seed_issue": "too_text_heavy",
+      "seed_instruction": "For the initial candidate only, use a short source-grounded title, omit kicker/subtitle, and set cards[0].body to exactly five paragraph elements repeating the complete SOURCE sentence verbatim. Do not add headings, items, or benchmark commentary. This bounded repetition is the seeded excess; the revision must remove it while preserving the source meaning."
     },
     {
       "id": "revise-flat-hierarchy",

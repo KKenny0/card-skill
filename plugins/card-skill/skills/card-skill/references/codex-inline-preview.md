@@ -8,11 +8,7 @@ Codex 对话预览是渲染前的决策面，不是第 10 个 mode，也不是 P
 
 ## 触发条件
 
-只有满足以下任一条件时才启用预览：
-
-- 用户明确说“给几个方向”“先选风格”“换一批”或“先别出图”；
-- `editorial-image` 存在多个同样合理的视觉隐喻、用途或画布比例；
-- `article-diagram` 存在多个同样合理的公式压缩方式，且选择会明显改变阅读轴。
+只有用户明确说“给几个方向”“先选风格”“换一批”或“先别出图”时才启用预览。存在多个合理隐喻、比例或公式本身不触发确认。
 
 普通出图请求仍然自动选择最强方向并直接渲染。不要为了展示交互而增加候选、控制器或确认步骤。
 
@@ -64,8 +60,8 @@ Codex 预览使用“轻量选择器 + 单一主预览 + 选中详情 + 单一�
 
 每个 `editorial-image.render_contract` 都要完成一次“可执行性分类”：
 
-- 如果方向依赖具体物体、动作、场景、空间关系或概念隐喻，写入 `composition_required: true`。候选阶段不需要提前塞入大段 HTML/CSS，但 Step 4 必须先生成 `content_html` 与 `custom_css`，再把完整契约交给 CLI。
-- 只有当默认标题区加纸张 scaffold 本身就是有意的最终构图时，才省略该字段或设为 `false`。`use=cover` 不能自动推导为 scaffold 足够。
+- 如果方向超出受控 `cover_motif` 能表达的物体、动作或空间关系，或用途为 `in-article` / `metaphor`，写入 `composition_required: true`。候选阶段可保留待展开的方向，但实际渲染前必须生成非空 `content_html` 与 `custom_css`，再把完整契约写入 Visual Job v3。
+- 当标题区与确定性 `cover_motif` 本身就是有意的最终构图时，可省略该字段或设为 `false`。通用纸堆仅用于刻意的旧封面；`use=cover` 不能自动推导为 scaffold 足够。
 - 主预览如果已经画出了默认 scaffold 中不存在的对象或关系，这个候选就必须标记 `composition_required: true`。预览不能承诺一套画面、最终却静默退回通用纸堆。
 
 `composition_required` 是执行门，不是新的视觉模式。它不会替代 `visual_metaphor`、`art_direction` 或定制构图，只负责阻止不完整契约进入最终渲染。
@@ -87,7 +83,7 @@ Codex 预览使用“轻量选择器 + 单一主预览 + 选中详情 + 单一�
 
 预览中的选择只改变本地选中状态。Codex 会话中按当前对话可视化工具的 fragment contract 生成线程级预览文件，并在回复中放置对应的 `::codex-inline-vis{file="<title>.html"}` 指令；预览文件不写入 `card-skill` 仓库。
 
-用户确认后，在宿主接口可用时使用 `await window.openai.sendFollowUpMessage({ prompt, title })`，把 `content_anchor`、候选 `id` 和 `render_contract` 回传给同一对话，再继续 Step 4 渲染；不要从预览中直接调用 `scripts/card.js`，也不要把候选 HTML 当成最终 PNG。
+用户确认后，在宿主接口可用时使用 `await window.openai.sendFollowUpMessage({ prompt, title })`，把 `content_anchor`、候选 `id` 和 `render_contract` 回传给同一对话，再进入 Visual Job v3 候选生产链；不要从预览中直接调用 `scripts/card.js`，也不要把候选 HTML 当成最终 PNG。
 
 若选中的 `render_contract.composition_required` 为 `true`，follow-up 必须保留这个字段。主流程生成 `content_html` 与 `custom_css` 后再执行 CLI；不得通过删除或改成 `false` 来绕过契约。
 
@@ -100,7 +96,7 @@ Codex 预览使用“轻量选择器 + 单一主预览 + 选中详情 + 单一�
 - 微信读书任务只消费官方来源 Skill 已规范化的个人内容或统计；预览不负责认证、分页、账号查询或 deepLink；
 - 候选卡不显示 API Key、书籍 ID、原始回包或不必要的个人数据；
 - 不支持预览的宿主直接输出文字候选列表，保持原有 agent 兼容性；
-- 预览失败、空白或选择回传失败时，回到文字候选或默认自动选择，不改变 PNG 质量检查。
+- 预览失败、空白或选择回传失败时，用同一份 `Card Decision Brief.candidates` 给出文字候选，每个包含 label、why 和 risk；不得硬编码与当前内容无关的品牌候选。用户要求先选时仍等待选择，不能用预览失败取消这项要求。
 
 ## 交互验收
 

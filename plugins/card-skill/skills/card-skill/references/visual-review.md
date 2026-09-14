@@ -2,6 +2,8 @@
 
 Visual Review is the subjective gate after a candidate has passed `check-output`. The host Agent must inspect the actual PNG. Renderers do not call a model, hold provider credentials, or assign aesthetic scores.
 
+For ordinary requests, an image-capable host Agent performs this review and authorizes local file publication. This does not require a separate user approval. Wait for the user only when they requested a preview/review checkpoint. If the host cannot inspect images, report that limitation rather than inventing a passing review. Maintainer judgment in release evaluations remains a separate evidence level.
+
 Each review binds to the Visual Job/output identity, artifact index, render-contract SHA-256, and PNG SHA-256. Visual Job v2 and v3 candidates also copy `visual_job_sha256`, `artifact_plan_sha256`, and `artifact_contract_sha256` from the receipt so the sealed job and the specific rendered card survive publication; v3 additionally gives those hashes evidence responsibility semantics. Scores are integers from 0 to 5:
 
 - `message_clarity`
@@ -18,7 +20,7 @@ Review one receipt artifact at a time. Copy `metaphor_required` from the rendere
 
 ## Meaning before scoring
 
-Compare the source, requested editing intent, render contract, and actual PNG. Conditions stored only in hidden or non-rendered input do not count as delivered content.
+Compare the source, requested editing intent, render contract, and actual PNG. Read the selected mode reference to establish which fields are visible before reporting missing content. For example, default article-diagram renders formula and sentence, not title or structure; an absent non-rendered title is not itself a defect. Necessary source meaning must still be present in the visible fields. Conditions stored only in hidden or non-rendered input do not count as delivered content.
 
 Review titles and other newly added visible copy too: promoting a rejected initial belief, counterexample, or conditional claim into an unconditional headline is a meaning-loss blocker, even when the body remains intact.
 
@@ -30,7 +32,7 @@ Workflow:
 
 ```text
 render-job --candidate -> inspect PNG -> review
-  pass   -> hash-reviewed-candidate -> approve hash -> publish-reviewed-job --expected-candidate-sha256
+  pass   -> host records hash-reviewed-candidate digest outside candidate -> publish-reviewed-job --expected-candidate-sha256
   revise -> edit only visual_plan + render_contract -> rerender/review once
   fail   -> do not publish a success artifact
 ```

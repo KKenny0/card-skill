@@ -35,17 +35,10 @@ function promptFor(testCase, intentionallyFlawed = false) {
   const jobVersion = testCase.visual_job_version || 3;
   return [
     'You are evaluating card-skill from a completely fresh context.',
-    jobVersion === 3
-      ? 'Read SKILL.md, references/source-material.md, references/source-open-source-tool.md, references/visual-job.md, references/visual-taxonomy.md, and schemas/visual-job.json before deciding.'
-      : 'Read SKILL.md, references/visual-job.md, references/visual-taxonomy.md, and schemas/visual-job.json before deciding.',
+    'Read SKILL.md and follow its routing to only the references needed for this request.',
     jobVersion === 3
       ? 'Return Visual Job v3. Every source unit needs evidence metadata; every renderer artifact needs its own complete artifact plan before the shared render_contract.'
       : 'Return Visual Job v2. Every output must include a complete visual_plan before its render_contract.',
-    'Keep visual_hierarchy to 1-5 strings and avoid_patterns to at most 32 strings.',
-    'After taxonomy chooses a mode, read its schemas/{mode}.json and references/mode-*.md files; obey the supported element types, composition, font, and fit contract.',
-    'For custom CSS, keep every visible element bounding box inside the capture viewport; overflow:hidden does not excuse negative inset/top/left/right/bottom values. Keep shadows at 8px or less.',
-    'For poster cards, use compact heading labels rather than long clauses; move the full claim into paragraph, highlight, items, or data_row content so headings do not leave a short orphan line.',
-    'For comic compositions, do not override template .card or .panels dimensions, do not hard-code grid rows beyond the available content area, and do not insert manual <br> in short framed text.',
     'Do not render, edit files, browse, or use prior conversation context.',
     'Return only one Visual Job JSON object that can be validated and rendered by this installed skill.',
     `Set job_id exactly to "${testCase.id}".`,
@@ -69,7 +62,7 @@ function revisionPrompt(testCase, job, reviews) {
   const v3 = job.schema_version === 3;
   return [
     'Revise this Card Skill Visual Job exactly once from structured Visual Reviews.',
-    'Read SKILL.md, references/visual-job.md, references/visual-review.md, schemas/visual-job.json, and the selected references/mode-*.md contract before editing.',
+    'Read SKILL.md and follow its revision and reference routing.',
     `Return only the complete revised Visual Job v${job.schema_version} JSON.`,
     'Keep schema_version, job_id, publish_target, source, source_units, artifact/output ids, basenames, roles, source assignments, transformations, decision mode/tier/tone/selection_source, and factual meaning unchanged.',
     v3
@@ -88,7 +81,7 @@ function renderFailureRevisionPrompt(testCase, job, failure) {
   const v3 = job.schema_version === 3;
   return [
     'Revise this Card Skill Visual Job exactly once after schema/render/capture/checker failure.',
-    'Read SKILL.md, references/visual-job.md, and the selected mode reference.',
+    'Read SKILL.md and follow its failure and reference routing.',
     `Return only the complete revised Visual Job v${job.schema_version} JSON.`,
     'Keep schema_version, job_id, publish_target, source, source_units, artifact/output ids, basenames, roles, source assignments, transformations, decision mode/tier/tone/selection_source, and factual meaning unchanged.',
     v3
@@ -409,6 +402,7 @@ try {
   };
   const report = {
     schema_version: 2,
+    prompt_profile: 'skill-routed-v1',
     scope,
     level: cardbench ? 'L2-agent-critic' : 'L1',
     installed_runtime: 'isolated-temp-install',

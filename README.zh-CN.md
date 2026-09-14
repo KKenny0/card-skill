@@ -152,7 +152,7 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 
 ## card-skill 支持哪些视觉格式
 
-Stable 适合出版场景、批量生产和品牌一致性。Studio 适合概念隐喻、叙事张力和个性化表达。两者都走正式 schema、renderer、截图和 `check-output`；Studio 额外要求完整构图契约与人工视觉验收。
+Stable 适合出版场景、批量生产和品牌一致性。Studio 适合概念隐喻、叙事张力和个性化表达。两者都走正式 schema、renderer、截图和 `check-output`；Studio 额外要求完整构图契约与具备看图能力的宿主 Agent 视觉验收。
 
 | Mode | Tier | 最适合 | 详细说明 |
 |---|---|---|---|
@@ -170,7 +170,7 @@ Stable 适合出版场景、批量生产和品牌一致性。Studio 适合概念
 
 - **一套视觉语法，9 种输出形式：** Kenny Style 贯穿 `editorial-image`、`article-diagram`、`poster`、`big`、`long`、`whiteboard`、`infograph`、`comic`、`sketchnote`
 - **证据主导的 Poster 区块：** 当前本地 PNG/JPEG/WebP 证据会在浏览器截图前封存为有资源上限的私有快照，2–5 步原生流程直接占据版面；不引入卡中卡外框、不让浏览器读取原始来源路径，renderer 也不联网。
-- **两层交付：** Stable（命令行确定性渲染）与 Studio（完整构图契约 + 人工视觉验收）
+- **两层交付：** Stable（命令行确定性渲染）与 Studio（完整构图契约 + 具备看图能力的宿主 Agent 视觉验收）
 - **Kenny Style：** 证据主导的构图、受控字系、清晰层级、克制留白、固定小圆角，以及 Quiet Paper 材料感
 - **只改颜色的 tone：** `reflective` / `sharp` / `warm` / `technical`；26 个旧 design 名仅作为显式兼容调色板，不能改变布局与几何
 - **默认输出：** 默认 2 倍像素密度 PNG；以常见 1080 CSS 像素画布为例，导出宽度约 2160px（高度随 mode 与比例变化）
@@ -214,6 +214,8 @@ Stable 适合出版场景、批量生产和品牌一致性。Studio 适合概念
 
 ## 从文本到 PNG 经历哪些步骤
 
+技能入口按需指向来源、模式和审核文档。普通请求直接完成本地 PNG 交付；只有明确要求先选候选时才暂停等待选择。具备看图能力的宿主 Agent 检查实际 PNG，Studio 完整构图与结构化模式共用 Visual Job v3 生产链。
+
 1. 读取 URL、粘贴文本、开源项目材料、微信读书返回的数据或本地文件。
 2. 在决定卡数前，盘点有边界的证据、新鲜度与素材使用权。
 3. 为每张预期 PNG 指定唯一证据职责与 Visual Plan；开源工具系列在 1–4 张之间自适应，不重复凑数。
@@ -242,7 +244,7 @@ npx playwright install chromium
 
 ### 更新提醒与隐私
 
-每次 agent 开始使用 card-skill 时，会先检查 GitHub 上最新的正式 Release；Stable 命令行渲染入口也会自动再做一次防守式检查。当前输出完成后，命令行会在后台把已安装副本升级到该 Release 解析出的固定 commit，完成版本回读与运行时准备后，下一次使用生效；当前渲染不会切换版本。检查按安装副本分别缓存，一天最多一次；并发渲染和升级会通过安装锁错开。升级失败会恢复旧副本，不改变本次出图结果，后续请求会重试。手动更新入口如下：
+命令行渲染入口自动检查 GitHub 上最新的正式 Release；只有在渲染前展示用户要求的候选预览时，Agent 才单独检查。审核交付完成后，Agent 运行支持的自动更新命令；直接调用 card.js 时由 CLI 在后台发起更新。更新器把已安装副本升级到该 Release 解析出的固定 commit，完成版本回读与运行时准备后，下一次使用生效；当前渲染不会切换版本。检查按安装副本分别缓存，一天最多一次；并发渲染和升级会通过安装锁错开。升级失败会恢复旧副本，不改变本次出图结果，后续请求会重试。手动更新入口如下：
 
 ```bash
 # npx skills 安装（将 <tag> 替换为更新提示中的 Release tag）
@@ -273,7 +275,7 @@ claude plugin update card-skill@card-skill
 node scripts/card.js --input /path/to/input.json --output ~/Downloads/card.png
 ```
 
-Stable 命令行模式：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。Studio 命令行模式：`infograph`、`comic`、`sketchnote`；它们要求完整的 `content_html` + `custom_css` 构图契约，并仍需人工视觉验收。
+Stable 命令行模式：`big`、`long`、`whiteboard`、`poster`、`editorial-image`、`article-diagram`。Studio 命令行模式：`infograph`、`comic`、`sketchnote`；它们要求完整的 `content_html` + `custom_css` 构图契约，并仍需具备看图能力的宿主 Agent 视觉验收。
 
 自然语言任务使用 Visual Job v3。每个 artifact 都要写明证据、职责、文件名、转换方式与 Visual Plan。先渲染候选：
 

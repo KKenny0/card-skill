@@ -56,6 +56,8 @@ V3 separates a renderer output from its produced artifacts. One poster output ca
 
 ## Routing and modes
 
+`SKILL.md` is the production entry and a conditional reference router. Source adapters, mode documents, runtime recovery, and evaluation instructions are loaded for their specific task. An explicit candidate-selection request is the only default direction checkpoint; an image-capable host Agent otherwise completes local delivery through review and publication.
+
 Source routing precedes mode selection. A source adapter such as `source-open-source-tool.md` chooses evidence responsibilities and an adaptive artifact count; it never adds a renderer or bypasses taxonomy. `scripts/lib/mode-selector.js` then maps publish target, content type, and argument structure to one of the existing nine modes. A user may explicitly override a mode; an Agent may not silently do so.
 
 Stable modes are `big`, `long`, `whiteboard`, `poster`, `article-diagram`, and cover-form `editorial-image`. Studio modes are `infograph`, `comic`, `sketchnote`, and composition-required `editorial-image`. Studio contracts still use the same schema, capture, checker, receipt, review, and publication chain.
@@ -73,3 +75,5 @@ Renderers never fetch repository pages or provider content. Source adapters norm
 ## Evaluation
 
 `npm test` runs deterministic L0 contract and regression checks without a model. `npm run eval:fresh` evaluates fresh planning cases, including evidence-first open-source routing. `npm run eval:cardbench` adds forced-revision cases, real PNG Critic calls, one-revision enforcement, and Content/Visual/Agent scores. Reports keep unmeasured levels as `null`; Agent critique is not presented as maintainer or real-user evidence.
+
+`npm run eval:discovery` separately probes catalog selection, conditional reference routing, and requested versus unrequested user checkpoints. It records model-reported decisions and observed commands; it does not render or establish end-to-end visual quality. Fresh planning reports identify their prompt profile so results from the former coached prompt are not silently compared with skill-routed runs.

@@ -31,11 +31,11 @@ editorial-image 不是单一稳定性承诺。它的 3 个子场景按不同 tie
 
 | Sub-scenario | `use` | Tier | Renderer path |
 |--------------|-------|------|---------------|
-| 公众号封面 / 博客 hero | `cover` | Stable | CLI scaffold（kicker + title + subtitle + 确定性 `cover_motif`）足够 |
-| 正文氛围插图 | `in-article` | Studio | 必须由 AI 写 `content_html` + `custom_css`；scaffold 只用于验证 |
+| 公众号封面 / 博客 hero | `cover` | Stable，完整构图时 Studio | CLI scaffold（kicker + title + subtitle + 确定性 `cover_motif`）；超出受控 motif 时使用完整构图 |
+| 正文氛围插图 | `in-article` | Studio | 必须由 AI 写 `content_html` + `custom_css`；缺失时拒绝渲染 |
 | 概念隐喻图 | `metaphor` | Studio | 必须由 AI 写 `content_html` + `custom_css`；scaffold 不应作为最终产出 |
 
-判断规则：如果 scaffold 拿掉 `content_html` 也能撑住这张图，说明是 Stable 子场景；否则是 Studio 子场景。`use=cover` 默认 Stable，`use=in-article` / `metaphor` 默认 Studio。
+判断规则：受控 motif 能兑现的 `use=cover` 使用 Stable；需要完整构图时设置 `composition_required: true`，并提供非空 `content_html` 与 `custom_css`，包括超出 motif 能力的封面。`use=in-article` / `metaphor` 必须使用该完整契约。所有子场景均通过 Visual Job v3 渲染、审核和本地发布。
 
 ## Supported Outputs
 
@@ -270,7 +270,7 @@ Visual weight rules:
 
 Custom CSS should not create a separate visual universe. If the composition needs stronger contrast, increase hierarchy through scale, position, or negative space before adding thick borders, bright fills, or heavy shadows.
 
-Every visible custom-composition element must keep its own bounding box inside the capture viewport. `overflow: hidden` does not make negative `inset` / `top` / `left` / `right` / `bottom` positions acceptable to `check-output`; build beams and edge fields from in-bounds boxes. Keep any shadow extent at 8px or less.
+Every visible custom-composition element must keep its own bounding box inside both its containing layout box and the capture viewport. For absolutely positioned children, check offset plus width/height against the parent's dimensions; enlarge the parent or reposition the child when it does not fit. A transparent parent still has a layout boundary. `overflow: hidden` does not make negative `inset` / `top` / `left` / `right` / `bottom` positions acceptable to `check-output`; build beams and edge fields from in-bounds boxes. Keep any shadow extent at 8px or less.
 
 ## Rendering Rules
 

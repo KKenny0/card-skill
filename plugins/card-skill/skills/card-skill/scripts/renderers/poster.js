@@ -161,7 +161,7 @@ function render(input, outputDir) {
     // Build title block (only for first card)
     let titleBlock = '';
     if (isFirst) {
-      const titleFontSize = calcPosterTitleFontSize(input.title);
+      const titleFontSize = Math.min(calcPosterTitleFontSize(input.title), isReadingNotes ? 64 : 92);
       titleBlock = `<div class="title-area"><h1 style="font-size:${titleFontSize}px">${escapeHtml(input.title)}</h1>${input.subtitle ? `<div class="subtitle">${escapeHtml(input.subtitle)}</div>` : ''}</div>`;
     }
 

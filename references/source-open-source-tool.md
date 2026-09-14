@@ -1,6 +1,6 @@
 # Open-source tool routing
 
-Use this adapter when the user provides an open-source repository, release page, README, documentation, screenshots, commands, benchmarks, or asks for 开源工具介绍配图、工具推荐卡片、系列海报、小红书式技术内容、GitHub 项目介绍插画、安装/工作流卡片、overview 或 carousel planning.
+Use this adapter when a requested PNG visual uses an open-source repository, release page, README, documentation, screenshots, commands, or benchmarks as evidence. Examples include 开源工具介绍配图、工具推荐卡片、系列海报、GitHub 项目介绍插画、安装/工作流卡片 and carousel planning. Merely analyzing a repository or editing its README does not activate this adapter.
 
 Read `references/source-material.md` first. This adapter selects evidence responsibilities and narrative shape; it does not add a renderer mode or let the renderer access GitHub.
 

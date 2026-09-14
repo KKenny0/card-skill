@@ -28,7 +28,11 @@ Read `assets/poster_template.html`
 
 当输入是多条个人划线 / 想法，且没有明确要求长图或结构图时，使用 `mode: "poster"` + `variant: "reading-notes"`。这不是新的 mode，也不改变普通 Poster 的默认行为。
 
+reading-notes 是固定文字布局：首卡书名 → 每卡主题标签 → 划线与配对想法，续卡用页眉显示系列信息。它不绘制图形隐喻，也不支持自定义字号或位置；`visual_plan.visual_metaphor` 用 `null`，计划描述实际阅读顺序，不承诺重排模板层级或把引用边线当成概念图。
+
 普通 Poster 只使用 contract 顶层 `title`；不要给 `cards[]` 添加 `title`。`cards[].title` 仅由下面的 `reading-notes` 变体支持。
+
+标题、副标题和 heading 使用短标签，完整长句放 paragraph 或 highlight；不需要副标题时省略，不重复整段正文。固定 1080×1440 画布中，所有标题、段落、条目和留白共享高度预算；视觉重量估计不能代替真实 PNG 的边界和换行检查。
 
 ```json
 {
