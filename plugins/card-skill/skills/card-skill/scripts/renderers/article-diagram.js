@@ -898,7 +898,115 @@ function renderSingleHtml(input, outputHtmlPath, positions, compressionView = nu
   };
 }
 
-function render(input, outputHtmlPath, positions) {
+// Salvage: layout-fit failures this renderer can retry with a more
+// compact attempt. The flag replaces cross-seam message sniffing: callers
+// ask isSalvageableError(error) instead of regex-matching error text.
+// Non-recoverable failures (too narrow, inner-zone overlap) stay plain
+// throws because no salvage attempt changes their geometry.
+function salvageableError(message) {
+  const error = new Error(message);
+  error.salvageable = true;
+  return error;
+}
+
+const SALVAGEABLE_ISSUE_CODES = new Set([
+  'article_diagram_label_collision',
+  'article_diagram_caption_layout',
+  'article_diagram_band_header_overlap',
+]);
+
+function isSalvageableError(error) {
+  if (error?.salvageable === true) return true;
+  const codes = new Set((error?.report?.issues || []).map(item => item.code));
+  for (const code of SALVAGEABLE_ISSUE_CODES) {
+    if (codes.has(code)) return true;
+  }
+  return false;
+}
+
+function cloneSalvageInput(baseInput, { aspect, salvage = {} } = {}) {
+  const clone = JSON.parse(JSON.stringify(baseInput));
+  if (aspect) clone.aspect = aspect;
+  if (Object.keys(salvage).length > 0) clone.__articleDiagramSalvage = salvage;
+  return clone;
+}
+
+// The salvage ladder: an ordered list of attempt inputs, base contract
+// first, each later attempt trading visual density for fit. The renderer
+// owns the ladder; callers only iterate it and stop at the first attempt
+// whose render passes the output check.
+function renderAttempts(baseInput) {
+  const family = baseInput.family;
+  const hasTallAspect = baseInput.aspect === 'body-4-3';
+  const attempts = [{ label: 'base', input: cloneSalvageInput(baseInput) }];
+
+  if (family === 'concept-map') {
+    attempts.push(
+      { label: 'concept-one-label', input: cloneSalvageInput(baseInput, { salvage: { linkLabelLimit: 1 } }) },
+      { label: 'concept-no-labels', input: cloneSalvageInput(baseInput, { salvage: { hideLinkLabels: true } }) },
+    );
+    if (!hasTallAspect) {
+      attempts.push(
+        { label: 'concept-tall-one-label', input: cloneSalvageInput(baseInput, { aspect: 'body-4-3', salvage: { linkLabelLimit: 1 } }) },
+        { label: 'concept-tall-no-labels', input: cloneSalvageInput(baseInput, { aspect: 'body-4-3', salvage: { hideLinkLabels: true } }) },
+      );
+    }
+  } else if (family === 'boundary-model') {
+    attempts.push(
+      { label: 'boundary-compact', input: cloneSalvageInput(baseInput, { salvage: { boundaryCompactLevel: 1 } }) },
+      { label: 'boundary-more-compact', input: cloneSalvageInput(baseInput, { salvage: { boundaryCompactLevel: 2 } }) },
+    );
+    if (!hasTallAspect) {
+      attempts.push(
+        { label: 'boundary-tall-compact', input: cloneSalvageInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 1 } }) },
+        { label: 'boundary-tall-more-compact', input: cloneSalvageInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 2 } }) },
+      );
+    }
+  } else if (family === 'process-flow') {
+    attempts.push({ label: 'process-caption-compact', input: cloneSalvageInput(baseInput, { salvage: { captionCompact: true } }) });
+    if (!hasTallAspect) {
+      attempts.push({ label: 'process-tall-caption-compact', input: cloneSalvageInput(baseInput, { aspect: 'body-4-3', salvage: { captionCompact: true } }) });
+    }
+  }
+
+  const seen = new Set();
+  return attempts.filter((attempt) => {
+    const key = JSON.stringify({
+      aspect: attempt.input.aspect || '',
+      salvage: attempt.input.__articleDiagramSalvage || {},
+    });
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function measureHtmlPathFor(outputHtmlPath) {
+  return String(outputHtmlPath).replace(/\.html$/i, '') + '_measure.html';
+}
+
+function resolvePositions(input, bboxes) {
+  if (!input.family) return layoutFormulaCard(input, bboxes);
+  const aspect = ASPECTS[defaultAspect(input)];
+  if (input.family === 'concept-map') return layoutConceptMap(input, bboxes, aspect);
+  if (input.family === 'boundary-model') return layoutBoundaryModel(input, bboxes, aspect);
+  return undefined;
+}
+
+function render(input, outputHtmlPath, ctx = {}) {
+  // ctx.measure is the injected browser measure adapter: it receives the
+  // measure pass spec {htmlPath, captureWidth, captureHeight} and returns
+  // node bounding boxes. Production callers pass capture4k --measure; tests
+  // may pass canned bboxes. Without ctx.measure, render falls back to the
+  // single-pass legacy layout.
+  let positions;
+  if (typeof ctx.measure === 'function') {
+    const measureOut = renderMeasure(input, measureHtmlPathFor(outputHtmlPath));
+    if (measureOut) {
+      positions = resolvePositions(input, ctx.measure(measureOut));
+    }
+  }
+
   if (!isCompressionPack(input)) {
     return renderSingleHtml(input, outputHtmlPath, positions);
   }
@@ -917,12 +1025,14 @@ function render(input, outputHtmlPath, positions) {
   return renderSingleHtml(input, outputHtmlPath, positions, 'summary');
 }
 
-// ── Two-pass measure-then-place (concept-map only for Phase 1) ──
+// ── Two-pass measure-then-place ──
 //
-// Legacy render() takes hardcoded positions from CONCEPT_POSITIONS. For
-// concept-map, card.js calls renderMeasure() → capture4k --measure →
-// layoutConceptMap() → render(positions=) to compute positions from actual
-// node sizes. Boundary-model and process-flow keep the legacy path for now.
+// Legacy layout takes hardcoded positions from CONCEPT_POSITIONS. The
+// measure choreography (renderMeasure() → browser measure → layoutConceptMap
+// / layoutBoundaryModel / layoutFormulaCard → positioned render) is internal
+// to this renderer and reached through render(input, htmlPath, ctx.measure).
+// Boundary-model and process-flow keep the legacy path when no measure
+// adapter is injected.
 
 const MEASURE_NODE_WIDTH = 220; // matches .diagram-node width in baseCss
 
@@ -1290,7 +1400,7 @@ function layoutBands(input, bboxes, aspect, zones) {
   const totalNeeded = totalMin + totalGaps;
 
   if (totalNeeded > stage.height + 0.5) {
-    throw new Error(
+    throw salvageableError(
       `boundary-model bands: total content height ${Math.round(totalNeeded)}px (min per zone: ${zoneMinHeights.map(h => Math.round(h)).join('+')}px + gaps) exceeds stage height ${Math.round(stage.height)}px. Shorten notes, drop zone descriptions, or reduce the zone count.`
     );
   }
@@ -1354,7 +1464,7 @@ function layoutBands(input, bboxes, aspect, zones) {
       if (cy + halfHeightPx > innerBottomPx) cy = innerBottomPx - halfHeightPx;
 
       if (cy - halfHeightPx < innerTopPx - 0.5) {
-        throw new Error(
+        throw salvageableError(
           `boundary-model bands: zone "${zone.id}" cannot fit node "${node.id}" in its band.`
         );
       }
@@ -1443,7 +1553,7 @@ function layoutBoundaryModel(input, bboxes, aspect) {
         nodeCenterYPx = innerBottomPx - halfHeightPx;
       }
       if (nodeCenterYPx - halfHeightPx < innerTopPx) {
-        throw new Error(
+        throw salvageableError(
           `boundary-model: zone "${zone.id}" cannot fit node "${node.id}" (height ${nodeBbox.height}px) below its ${headerPx}px header. Shorten the note, remove the zone description, or simplify the diagram.`
         );
       }
@@ -1563,11 +1673,11 @@ function layoutBoundaryModel(input, bboxes, aspect) {
 
 module.exports = {
   render,
-  renderMeasure,
-  layoutFormulaCard,
-  layoutConceptMap,
-  layoutBoundaryModel,
+  renderAttempts,
+  isSalvageableError,
   analyzeFormulaCardContent,
-  ASPECTS,
+  // defaultAspect is a pure policy seam kept for this renderer's own tests
+  // (validate.mjs asserts aspect selection without a layout run). Not for
+  // render orchestration — callers read the aspect from render()'s output.
   defaultAspect,
 };

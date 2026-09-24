@@ -344,128 +344,49 @@ function captureWithOutputCheck(out, pngPath) {
   return report;
 }
 
-function issueCodes(error) {
-  return new Set((error?.report?.issues || []).map(item => item.code));
-}
+// Browser measure adapter injected into renderer.render(ctx.measure).
+// Production adapter: capture4k --measure. Renderer tests can pass canned
+// bboxes instead — two adapters, one seam.
+function measurePass(measureOut) {
+  const measureResult = spawnSync(process.execPath, [
+    CAPTURE_SCRIPT,
+    measureOut.htmlPath,
+    '--measure',
+    String(measureOut.captureWidth),
+    String(measureOut.captureHeight),
+    String(DPR),
+  ], { encoding: 'utf-8' });
 
-function isArticleDiagramSalvageable(error) {
-  const codes = issueCodes(error);
-  return codes.has('article_diagram_label_collision')
-    || codes.has('article_diagram_caption_layout')
-    || codes.has('article_diagram_band_header_overlap')
-    || /boundary-model bands:|cannot fit node/i.test(error?.message || '');
-}
-
-function cloneArticleDiagramInput(baseInput, options = {}) {
-  const { aspect, salvage = {} } = options;
-  const clone = JSON.parse(JSON.stringify(baseInput));
-  if (aspect) clone.aspect = aspect;
-  if (Object.keys(salvage).length > 0) clone.__articleDiagramSalvage = salvage;
-  return clone;
-}
-
-function articleDiagramFallbackPlan(baseInput) {
-  const family = baseInput.family;
-  const hasTallAspect = baseInput.aspect === 'body-4-3';
-  const attempts = [{ label: 'base', input: cloneArticleDiagramInput(baseInput) }];
-
-  if (family === 'concept-map') {
-    attempts.push(
-      { label: 'concept-one-label', input: cloneArticleDiagramInput(baseInput, { salvage: { linkLabelLimit: 1 } }) },
-      { label: 'concept-no-labels', input: cloneArticleDiagramInput(baseInput, { salvage: { hideLinkLabels: true } }) },
-    );
-    if (!hasTallAspect) {
-      attempts.push(
-        { label: 'concept-tall-one-label', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { linkLabelLimit: 1 } }) },
-        { label: 'concept-tall-no-labels', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { hideLinkLabels: true } }) },
-      );
-    }
-  } else if (family === 'boundary-model') {
-    attempts.push(
-      { label: 'boundary-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { boundaryCompactLevel: 1 } }) },
-      { label: 'boundary-more-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { boundaryCompactLevel: 2 } }) },
-    );
-    if (!hasTallAspect) {
-      attempts.push(
-        { label: 'boundary-tall-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 1 } }) },
-        { label: 'boundary-tall-more-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { boundaryCompactLevel: 2 } }) },
-      );
-    }
-  } else if (family === 'process-flow') {
-    attempts.push({ label: 'process-caption-compact', input: cloneArticleDiagramInput(baseInput, { salvage: { captionCompact: true } }) });
-    if (!hasTallAspect) {
-      attempts.push({ label: 'process-tall-caption-compact', input: cloneArticleDiagramInput(baseInput, { aspect: 'body-4-3', salvage: { captionCompact: true } }) });
-    }
+  if (measureResult.status !== 0) {
+    throw new Error(`Measure pass failed: ${measureResult.stderr || measureResult.stdout}`);
   }
 
-  const seen = new Set();
-  return attempts.filter((attempt) => {
-    const key = JSON.stringify({
-      aspect: attempt.input.aspect || '',
-      salvage: attempt.input.__articleDiagramSalvage || {},
-    });
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function renderSingleOutput(cardInput, htmlPath, measureHtmlPath) {
-  if (cardInput.mode === 'article-diagram'
-      && typeof renderer.renderMeasure === 'function') {
-    const measureOut = renderer.renderMeasure(cardInput, measureHtmlPath);
-    if (measureOut) {
-      const measureResult = spawnSync(process.execPath, [
-        CAPTURE_SCRIPT,
-        measureOut.htmlPath,
-        '--measure',
-        String(measureOut.captureWidth),
-        String(measureOut.captureHeight),
-        String(DPR),
-      ], { encoding: 'utf-8' });
-
-      if (measureResult.status !== 0) {
-        throw new Error(`Measure pass failed: ${measureResult.stderr || measureResult.stdout}`);
-      }
-
-      let bboxes;
-      try {
-        bboxes = JSON.parse(measureResult.stdout);
-      } catch (e) {
-        throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
-      }
-
-      let positions;
-      if (!cardInput.family && typeof renderer.layoutFormulaCard === 'function') {
-        positions = renderer.layoutFormulaCard(cardInput, bboxes);
-      } else {
-        const aspectKey = renderer.defaultAspect(cardInput);
-        const aspect = renderer.ASPECTS[aspectKey];
-        if (cardInput.family === 'concept-map') {
-          positions = renderer.layoutConceptMap(cardInput, bboxes, aspect);
-        } else if (cardInput.family === 'boundary-model') {
-          positions = renderer.layoutBoundaryModel(cardInput, bboxes, aspect);
-        }
-      }
-
-      return renderer.render(cardInput, htmlPath, positions);
-    }
+  try {
+    return JSON.parse(measureResult.stdout);
+  } catch (e) {
+    throw new Error(`Measure pass returned invalid JSON: ${e.message}`);
   }
-
-  return renderer.render(cardInput, htmlPath);
 }
 
-function renderArticleDiagramEntries(baseInput, tmpDir) {
+// Generic attempt loop. Renderers may expose renderAttempts(input) — an
+// ordered salvage ladder — and isSalvageableError(error). card.js owns only
+// the render → check → capture choreography and the retry decision; the
+// ladder and the salvageable classification are renderer implementation.
+function renderEntries(input, tmpDir) {
   let lastError = null;
-  const attempts = articleDiagramFallbackPlan(baseInput);
+  const plannedAttempts = typeof renderer.renderAttempts === 'function'
+    ? renderer.renderAttempts(input)
+    : null;
+  // Empty or missing ladders fall back to a single base attempt, so a
+  // renderer can never leave the loop with nothing to run.
+  const attempts = plannedAttempts?.length ? plannedAttempts : [{ label: 'base', input }];
 
   for (const [index, attempt] of attempts.entries()) {
     const suffix = index === 0 ? '' : `_${index}`;
-    const htmlPath = path.join(tmpDir, `card_${baseInput.mode}${suffix}.html`);
-    const measureHtmlPath = path.join(tmpDir, `card_${baseInput.mode}_measure${suffix}.html`);
+    const htmlPath = path.join(tmpDir, `card_${input.mode}${suffix}.html`);
 
     try {
-      const rendered = renderSingleOutput(attempt.input, htmlPath, measureHtmlPath);
+      const rendered = renderer.render(attempt.input, htmlPath, { measure: measurePass });
       const outputs = Array.isArray(rendered) ? rendered : [rendered];
       const entries = outputs.map((out, outputIndex) => {
         const stagedName = outputs.length === 1
@@ -483,7 +404,7 @@ function renderArticleDiagramEntries(baseInput, tmpDir) {
       return entries;
     } catch (error) {
       lastError = error;
-      if (!isArticleDiagramSalvageable(error)) throw error;
+      if (typeof renderer.isSalvageableError !== 'function' || !renderer.isSalvageableError(error)) throw error;
     }
   }
 
@@ -592,40 +513,24 @@ try {
     pngPaths.forEach((pngPath, i) => console.error(`  Card ${i + 1}/${pngPaths.length}: ${pngPath}`));
     console.log(pngPaths.join('\n'));
   } else {
-    const htmlFileName = `card_${input.mode}.html`;
-    const htmlPath = path.join(runTmpDir, htmlFileName);
-    const stagedPath = path.join(runTmpDir, 'card.png');
+    const entries = renderEntries(input, runTmpDir);
+    const pngPaths = entries.map((entry, i) => {
+      if (entries.length === 1) return outputPath;
+      const pngName = path.basename(outputPath, '.png') + `_${i + 1}.png`;
+      return path.join(path.dirname(outputPath), pngName);
+    });
 
-    if (input.mode === 'article-diagram') {
-      const entries = renderArticleDiagramEntries(input, runTmpDir);
-      const pngPaths = entries.map((entry, i) => {
-        if (entries.length === 1) return outputPath;
-        const pngName = path.basename(outputPath, '.png') + `_${i + 1}.png`;
-        return path.join(path.dirname(outputPath), pngName);
-      });
-
-      const artifactReports = entries.map((entry, i) =>
-        artifactReport(entry.out, entry.stagedPath, pngPaths[i], entry.checker, i + 1, entry.effectiveContract));
-      publishCardArtifacts(
-        entries.map((entry, i) => ({ stagedPath: entry.stagedPath, finalPath: pngPaths[i] })),
-        artifactReports,
-        runTmpDir,
-      );
-      if (entries.length > 1) {
-        pngPaths.forEach((pngPath, i) => console.error(`  Diagram ${i + 1}/${pngPaths.length}: ${pngPath}`));
-      }
-      console.log(pngPaths.join('\n'));
-    } else {
-      const measureHtmlPath = path.join(runTmpDir, `card_${input.mode}_measure.html`);
-      const out = renderSingleOutput(input, htmlPath, measureHtmlPath);
-      const checker = captureWithOutputCheck(out, stagedPath);
-      publishCardArtifacts(
-        [{ stagedPath, finalPath: outputPath }],
-        [artifactReport(out, stagedPath, outputPath, checker, 1, input)],
-        runTmpDir,
-      );
-      console.log(outputPath);
+    const artifactReports = entries.map((entry, i) =>
+      artifactReport(entry.out, entry.stagedPath, pngPaths[i], entry.checker, i + 1, entry.effectiveContract));
+    publishCardArtifacts(
+      entries.map((entry, i) => ({ stagedPath: entry.stagedPath, finalPath: pngPaths[i] })),
+      artifactReports,
+      runTmpDir,
+    );
+    if (entries.length > 1) {
+      pngPaths.forEach((pngPath, i) => console.error(`  Card ${i + 1}/${pngPaths.length}: ${pngPath}`));
     }
+    console.log(pngPaths.join('\n'));
   }
   renderSucceeded = true;
 } catch (e) {

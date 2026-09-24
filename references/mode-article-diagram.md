@@ -263,7 +263,7 @@ Compression formula cards use a real-font measure pass before final rendering. T
 - let the planner use `body-3-2` when three formula rows or a two-line annotation need the taller ratio
 - do not lower formula terms below the approved small scale or annotations below 27px
 
-Legacy family inputs still use the existing bounded rescue retries for label collisions, tight boundary bands, and narrow process captions.
+Legacy family inputs still use the existing bounded salvage retries for label collisions, tight boundary bands, and narrow process captions.
 
 ## Known Limitations
 

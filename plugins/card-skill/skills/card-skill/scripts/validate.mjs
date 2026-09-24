@@ -1876,11 +1876,11 @@ try {
     sentence: '结构视图不应被未展示的公式布局阻断。',
     render_plan: 'structure',
   };
-  assert.equal(
-    renderers['article-diagram'].renderMeasure(structureOnlyFixture, path.join(tmpDir, 'unused-structure-measure.html')),
-    null,
-    'structure-only compression output should skip formula measurement',
-  );
+  let structureMeasureCalls = 0;
+  renderers['article-diagram'].render(structureOnlyFixture, path.join(tmpDir, 'structure-only-skip-measure.html'), {
+    measure: () => { structureMeasureCalls += 1; return {}; },
+  });
+  assert.equal(structureMeasureCalls, 0, 'structure-only compression output should skip formula measurement');
   const structureOnlyPath = path.join(tmpDir, 'article-diagram-compression-pack-structure-only.html');
   const structureOnlyOutput = renderers['article-diagram'].render(structureOnlyFixture, structureOnlyPath);
   assert.match(fs.readFileSync(structureOnlyOutput.htmlPath, 'utf8'), /data-compression-view="structure"/, 'structure-only compression output did not render its requested view');

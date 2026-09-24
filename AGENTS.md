@@ -19,7 +19,7 @@
 - Codex inline preview is a decision surface. It may select a render contract, but it must not bypass the normal schema, renderer, screenshot, `check-output`, and PNG inspection chain.
 - `editorial-image.composition_required: true` means the selected direction cannot be delivered by the default scaffold. Before rendering, provide both `content_html` and `custom_css`; validation and the renderer must reject an incomplete contract.
 - `scripts/lib/schema.js` owns runtime input validation. Files in `schemas/` document the public structured contract and must stay aligned with runtime validation.
-- Renderers own deterministic HTML generation. `scripts/check-output.mjs` owns machine-checkable output defects; subjective composition quality remains a visual inspection responsibility.
+- Renderers own deterministic HTML generation. Renderer orchestration stays behind the renderer interface: `scripts/card.js` calls `render(input, htmlPath, ctx)` with an injected `ctx.measure` browser adapter and, when a renderer provides them, iterates `renderAttempts(input)` and consults `isSalvageableError(error)`. Family dispatch, salvage ladders, and measure-to-layout choreography live inside the renderer; error-message matching across the renderer seam is a regression. `scripts/check-output.mjs` owns machine-checkable output defects; subjective composition quality remains a visual inspection responsibility.
 - Keep provider authentication and upstream semantics out of card renderers. Source adapters normalize external content before it reaches a render contract.
 
 ## Hotspots
