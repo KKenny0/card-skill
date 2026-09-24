@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.10.2",
+  "card_skill_version": "0.10.3",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",

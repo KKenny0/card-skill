@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.10.2"
+version: "0.10.3"
 ---
 
 # card-skill
