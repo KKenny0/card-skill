@@ -25,7 +25,7 @@
 ## Hotspots
 
 - `scripts/renderers/article-diagram.js` owns article-diagram layout and should be changed together with its fixtures in `scripts/validate.mjs`.
-- `scripts/check-output.mjs` is a shared output gate. Changes require its self-tests plus the full suite.
+- `scripts/check-output.mjs` is a shared output gate; its page-evidence decision checks live in `scripts/lib/output-checks.js` as a named registry (order = emission order). Changes require the registry self-tests plus the full suite.
 - Root and packaged copies of these files must remain byte-identical after packaging.
 
 ## Verification

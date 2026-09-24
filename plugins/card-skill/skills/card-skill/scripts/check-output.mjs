@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import fileAccess from './lib/file-access.js';
+import { issue, runPageDecisionChecks, selfTestPageDecisionChecks } from './lib/output-checks.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -112,18 +113,6 @@ Options:
 `);
 }
 
-function issue(severity, code, message, details = {}) {
-  return { severity, code, message, details };
-}
-
-const EDITORIAL_ALLOWED_PRIMARY_FONTS = new Set([
-  'dm sans',
-  'dm serif display',
-  'jetbrains mono',
-  'xiangcuidengcusong',
-  'xiangcuidazijiti',
-]);
-
 function stripHtmlComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '');
 }
@@ -180,7 +169,8 @@ function runSelfTest() {
     if (/assets\/(?:avatar|logo)\.png/.test(html)) throw new Error('Bundled branding was injected by default');
     if (!html.includes('/assets/fonts')) throw new Error('Font placeholder was not resolved');
 
-    console.log('Output-check self-test passed: branding placeholders default to empty and the font path placeholder is resolved.');
+    const pageCheckResults = selfTestPageDecisionChecks();
+    console.log(`Output-check self-test passed: branding placeholders default to empty and the font path placeholder is resolved; ${pageCheckResults.checks} page decision checks covered by ${pageCheckResults.cases} synthetic evidence cases.`);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -370,7 +360,7 @@ async function inspectPage(opts, html, issues) {
       validateCaptureSpec({ width: opts.width, height: opts.height, dpr: opts.dpr, fullpage: true, fullpageHeight: bodyHeight });
     }
 
-    const report = await page.evaluate(async ({ width, height, fullpage, sealedImages }) => {
+    const collectPageEvidence = () => page.evaluate(async ({ width, height, fullpage, sealedImages }) => {
       const viewportWidth = width;
       const viewportHeight = fullpage ? document.documentElement.scrollHeight : height;
       const doc = document.documentElement;
@@ -1243,289 +1233,9 @@ async function inspectPage(opts, html, issues) {
         imageResourceUrls: [...imageResourceUrls],
       };
     }, { width: opts.width, height: opts.height, fullpage: opts.fullpage, sealedImages: opts.sealedImages });
+    const report = await collectPageEvidence();
 
-    if (report.scrollWidth > opts.width + 2) {
-      issues.push(issue('error', 'horizontal_overflow', 'Page is wider than the capture viewport.', {
-        scrollWidth: report.scrollWidth,
-        viewportWidth: opts.width,
-      }));
-    }
-
-    if (!opts.fullpage && report.scrollHeight > opts.height + 2) {
-      issues.push(issue('error', 'vertical_crop_risk', 'Fixed-canvas output is taller than the capture viewport.', {
-        scrollHeight: report.scrollHeight,
-        viewportHeight: opts.height,
-      }));
-    }
-
-    if (report.badImages.length > 0) {
-      issues.push(issue('error', 'image_load_failed', 'One or more images failed to load.', {
-        images: report.badImages.slice(0, 10),
-      }));
-    }
-
-    if (report.bounds.length > 0) {
-      issues.push(issue('error', 'element_out_of_bounds', 'Visible elements extend outside the captured area.', {
-        elements: report.bounds,
-      }));
-    }
-
-    if (report.svgTextOverflows.length > 0) {
-      issues.push(issue('error', 'svg_text_overflow',
-        'SVG text extends past its container shape (rect/circle/ellipse). Widen the shape, shorten the text, or reduce font-size.',
-        { elements: report.svgTextOverflows }));
-    }
-
-    if (report.htmlTextBoxOverflows.length > 0) {
-      issues.push(issue('error', 'html_text_box_overflow',
-        'HTML text extends past its framed container. Widen the frame, shorten the label, or reduce the font-size.',
-        { elements: report.htmlTextBoxOverflows }));
-    }
-
-    if (report.editorialVisualSystemErrors.length > 0) {
-      issues.push(issue('error', 'editorial_visual_system_violation',
-        'Editorial-image visual styling drifted outside the Quiet Paper system. Use token-derived surfaces, hairline borders, low-saturation accents, and restrained contrast.',
-        { elements: report.editorialVisualSystemErrors }));
-    }
-
-    if (report.editorialVisualSystemWarnings.length > 0) {
-      issues.push(issue('warning', 'editorial_visual_system_warning',
-        'Editorial-image styling is visually heavy for Quiet Paper. Prefer layering, whitespace, and hairline structure over heavy shadow.',
-        { elements: report.editorialVisualSystemWarnings }));
-    }
-
-    if (report.fontLoadFailures.length > 0) {
-      issues.push(issue('error', 'font_load_failed',
-        '@font-face declared but the font did not actually load. Browser fell back silently. Check the @font-face src URL, the .gitignore (fonts must be tracked), and the font-family spelling.',
-        { elements: report.fontLoadFailures }));
-    }
-
-    if (report.editorialFontViolations.length > 0) {
-      issues.push(issue('error', 'editorial_font_primary_not_allowed',
-        `Editorial-image text must use a controlled primary font. Use one of: ${[...EDITORIAL_ALLOWED_PRIMARY_FONTS].join(', ')}. Fallback fonts are allowed after the primary font.`,
-        { elements: report.editorialFontViolations }));
-    }
-
-    if (report.svgTextOutsideViewbox.length > 0) {
-      issues.push(issue('error', 'svg_text_outside_viewbox',
-        'SVG text bounding box exceeds the viewBox rectangle. Every <text> must render fully inside its SVG viewBox. Fix by widening the viewBox, moving the text inward, or shortening the string.',
-        { elements: report.svgTextOutsideViewbox }));
-    }
-
-    if (report.articleDiagramLabelCollisions.length > 0) {
-      issues.push(issue('error', 'article_diagram_label_collision',
-        'Article-diagram relationship labels overlap nodes, other labels, or the stage boundary. Hide repeated labels, move the label, or simplify the links.',
-        { elements: report.articleDiagramLabelCollisions }));
-    }
-
-    if (report.articleDiagramCaptionIssues.length > 0) {
-      issues.push(issue('error', 'article_diagram_caption_layout',
-        'Article-diagram captions must read as a compact explanation strip, not a narrow paragraph. Keep captions to one or two balanced lines across the diagram width.',
-        { elements: report.articleDiagramCaptionIssues }));
-    }
-
-    if (report.articleDiagramBandHeaderOverlaps.length > 0) {
-      issues.push(issue('error', 'article_diagram_band_header_overlap',
-        'Article-diagram boundary band labels and descriptions must not overlap node cards. Move nodes below the band header or reduce density.',
-        { elements: report.articleDiagramBandHeaderOverlaps }));
-    }
-
-    const invalidPosterMedia = report.posterMediaMetrics.filter(item => (
-      item.widthRatio < 0.78
-      || item.imageHeightRatio < 0.25
-      || item.imageHeightRatio > (item.mediaOnly ? 0.84 : 0.76)
-      || item.paintedWidthRatio < 0.5
-      || item.paintedHeightRatio < 0.16
-      || item.paintedAreaRatio < 0.1
-      || item.naturalWidth < 320
-      || item.naturalHeight < 180
-      || item.bodyFillRatio < (item.hasAdjacentCopy ? 0.68 : 0.72)
-      || (!item.hasAdjacentCopy && item.bottomGapRatio > 0.16)
-      || (item.hasAdjacentCopy && item.adjacentCopyGapRatio > 0.1)
-    ));
-    if (invalidPosterMedia.length > 0) {
-      issues.push(issue('error', 'poster_evidence_media_density',
-        'Poster evidence media must be a legible primary field, not a small asset floating inside a large container.',
-        { elements: invalidPosterMedia }));
-    }
-
-    const invalidPosterProcess = report.posterProcessMetrics.filter(item => (
-      item.widthRatio < 0.78
-      || item.heightRatio < 0.38
-      || item.heightRatio > (item.processOnly ? 0.84 : 0.65)
-      || item.steps < 2
-      || item.steps > 5
-      || item.bodyFillRatio < 0.72
-      || item.bottomGapRatio > 0.16
-    ));
-    if (invalidPosterProcess.length > 0) {
-      issues.push(issue('error', 'poster_process_density',
-        'Poster-native process evidence must fill the reading field with two to five legible steps.',
-        { elements: invalidPosterProcess }));
-    }
-
-    if (report.expectsFormulaCard && report.formulaCardMetrics.length !== 1) {
-      issues.push(issue('error', 'article_diagram_formula_metrics_missing',
-        'Compression summary output is missing the semantic formula-card measurement markers.',
-        { count: report.formulaCardMetrics.length }));
-    }
-
-    const invalidFormulaCards = report.formulaCardMetrics.filter(item => (
-      item.horizontalFill < 0.66
-      || item.horizontalFill > 0.9
-      || item.verticalFill < 0.4
-      || item.verticalFill > 0.72
-      || Math.abs(item.leftWhitespace - item.rightWhitespace) > 48
-      || Math.abs(item.topWhitespace - item.bottomWhitespace) > 36
-      || item.noteLines < 1
-      || item.noteLines > 2
-      || item.formulaRows > 3
-    ));
-    if (invalidFormulaCards.length > 0) {
-      issues.push(issue('error', 'article_diagram_formula_density',
-        'Editorial Equation content density or whitespace balance is outside the approved visual range.',
-        { elements: invalidFormulaCards }));
-    }
-
-    if (report.bigPhraseMetrics.length === 0) {
-      const hasBigMarker = fs.readFileSync(opts.html, 'utf-8').includes('data-card-mode="big"');
-      if (hasBigMarker) {
-        issues.push(issue('error', 'big_phrase_missing',
-          'Big mode output must include a visible .phrase element.',
-          {}));
-      }
-    }
-
-    const undersizedBigPhrases = report.bigPhraseMetrics.filter(item => (
-      item.fontSize < 96
-      || item.areaRatio < 0.025
-      || item.heightRatio < 0.08
-    ));
-    if (undersizedBigPhrases.length > 0) {
-      issues.push(issue('error', 'big_phrase_too_small',
-        'Big mode main phrase is too small for a large-text poster. Increase font size or use a denser composition.',
-        { elements: undersizedBigPhrases }));
-    }
-
-    const labelPattern = /badge|label|tag|meta|source|num|kicker|eyebrow|ref|attr|byline|colophon|page-indicator|running-title|header|subtitle|caption|brand|footer/i;
-    const formulaAnnotationPattern = /formula-card-deck/i;
-    const bodyText = report.textSizes.filter(item => {
-      if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(item.tag)) return false;
-      if (labelPattern.test(item.className)) return false;
-      if (formulaAnnotationPattern.test(item.className)) return false;
-      return item.text.length >= 12 && item.fontSize >= 16;
-    });
-    const smallBodyText = bodyText.filter(item => item.fontSize < 36);
-    if (smallBodyText.length > 0) {
-      issues.push(issue('error', 'body_text_too_small', 'Body text is below the 36px readability floor.', {
-        elements: smallBodyText.slice(0, 10),
-      }));
-    }
-
-    const annotationText = report.textSizes.filter(item => {
-      if (!labelPattern.test(item.className) && !formulaAnnotationPattern.test(item.className)) return false;
-      if (/colophon|brand|footer|page-indicator/i.test(item.className)) return false;
-      return item.text.length >= 4 && item.fontSize > 0 && item.fontSize < 24;
-    });
-    if (annotationText.length > 0) {
-      issues.push(issue('warning', 'annotation_text_small', 'Some annotation text is below the 24px guideline.', {
-        elements: annotationText.slice(0, 10),
-      }));
-    }
-
-    const bannedModeLabels = new Set([
-      'IN-ARTICLE IMAGE',
-      'IN ARTICLE IMAGE',
-      'EDITORIAL IMAGE',
-      'BLOG HERO',
-      'BLOG COVER',
-      'WECHAT COVER',
-      'ARTICLE COVER',
-      'COVER IMAGE',
-      'ARTICLE DIAGRAM',
-      'CONCEPT MAP',
-      'PROCESS FLOW',
-      'BOUNDARY MODEL',
-      // Chinese equivalents — same brief-leak class, just localized
-      '公众号头图',
-      '公众号封面',
-      '博客封面',
-      '博客头图',
-      '正文配图',
-      '正文解释图',
-      '段落配图',
-      '文章封面',
-      '封面图',
-    ]);
-    const visibleModeLabels = report.textSizes.filter(item => {
-      const normalized = item.text.toUpperCase().replace(/\s+/g, ' ').trim();
-      return bannedModeLabels.has(normalized);
-    });
-    if (visibleModeLabels.length > 0) {
-      issues.push(issue('error', 'mode_label_visible', 'Output mode labels should not appear in the artwork.', {
-        elements: visibleModeLabels.slice(0, 10),
-      }));
-    }
-
-    const briefLeakPatterns = [
-      /给\s*[^，。；:：]{1,48}(这一节|这节|本节|段落|章节)?\s*使用/,
-      /(用作|作为)\s*(正文|文章|章节|段落|小节)?\s*配图/,
-      /(这张图|该图|此图)\s*(用于|用来|适合|作为)/,
-      /(安静|低干扰).{0,16}(停顿|视觉换气|正文|配图)/,
-      /像文章中间的?一次停顿/,
-      /\b(visual pause|in-article illustration|section illustration)\b/i,
-    ];
-    const visibleBriefLeaks = report.textSizes.filter(item => {
-      const normalized = item.text.replace(/\s+/g, ' ').trim();
-      return briefLeakPatterns.some(pattern => pattern.test(normalized));
-    });
-    if (visibleBriefLeaks.length > 0) {
-      issues.push(issue('error', 'editorial_brief_visible', 'Editorial-image brief or usage notes should not appear in the artwork.', {
-        elements: visibleBriefLeaks.slice(0, 10),
-      }));
-    }
-
-    const gluedTermPatterns = [
-      /\bAIAgent\b/i,
-      /\bHermesAgent\b/i,
-      /\bContextCompression\b/i,
-    ];
-    const visibleGluedTerms = report.textSizes.filter(item => {
-      const normalized = item.text.replace(/\s+/g, ' ').trim();
-      return gluedTermPatterns.some(pattern => pattern.test(normalized));
-    });
-    if (visibleGluedTerms.length > 0) {
-      issues.push(issue('error', 'technical_term_spacing_bad', 'Technical or product terms should preserve real word spacing.', {
-        elements: visibleGluedTerms.slice(0, 10),
-      }));
-    }
-
-    const badHeadlineBreaks = report.headlineLines.filter(item => {
-      const last = item.lines[item.lines.length - 1];
-      const lastText = last?.text || '';
-      const cjkOnly = lastText.replace(/[^\u3400-\u9fff]/g, '');
-      const hasShortCjkLine = item.lines.some(line => {
-        const lineText = line.text || '';
-        const lineCjk = lineText.replace(/[^\u3400-\u9fff]/g, '');
-        return lineCjk.length > 0 && lineText.length <= 2 && line.width < 180;
-      });
-      const isShortLastLine = item.lineCount >= 2 && item.lastLineRatio < 0.24 && last.width < 180;
-      const isCjkOrphan = item.lineCount >= 2 && cjkOnly.length > 0 && lastText.length <= 2;
-      const isTooManyLines = item.lineCount > 3 && item.fontSize >= 48;
-      return hasShortCjkLine || isShortLastLine || isCjkOrphan || isTooManyLines;
-    });
-    if (badHeadlineBreaks.length > 0) {
-      issues.push(issue('error', 'text_line_break_bad', 'Headline or short-text line breaks do not meet the visual standard.', {
-        elements: badHeadlineBreaks.map(item => ({
-          tag: item.tag,
-          className: item.className,
-          text: item.text,
-          lineCount: item.lineCount,
-          lastLineRatio: Number(item.lastLineRatio.toFixed(2)),
-          lines: item.lines,
-        })).slice(0, 10),
-      }));
-    }
+    runPageDecisionChecks(report, opts, html, issue, issues);
     await inspectBitmap(opts, html, issues, context);
     if (blocked.length) {
       issues.push(issue('error', 'safety.asset_blocked', 'Capture permits only approved local files and data: resources.', { resources: blocked.slice(0, 10) }));
