@@ -410,31 +410,10 @@ function assertCardBenchDelegationContract() {
   assert.match(protocol, /`--list-cases` is a local read-only operation/, 'listing cases must not require a model worker');
 }
 
+const { cardCli } = require('./lib/test-kit');
+
 function runCardCli(input, outputName, expectedCount = 1) {
-  const inputPath = path.join(tmpDir, `${outputName}.json`);
-  const outputPath = path.join(tmpDir, `${outputName}.png`);
-  fs.writeFileSync(inputPath, JSON.stringify(input, null, 2), 'utf8');
-  const result = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'card.js'),
-    '--input', inputPath,
-    '--output', outputPath,
-  ], { encoding: 'utf8' });
-
-  assert.equal(result.status, 0, `${outputName} CLI render failed:\n${result.stdout}\n${result.stderr}`);
-  if (expectedCount === 1) {
-    assert.ok(fs.existsSync(outputPath), `${outputName} CLI render did not create a PNG`);
-    assert.ok(fs.statSync(outputPath).size > 1000, `${outputName} CLI render created an empty-looking PNG`);
-    return outputPath;
-  }
-
-  const outputPaths = Array.from({ length: expectedCount }, (_, i) =>
-    path.join(tmpDir, `${outputName}_${i + 1}.png`));
-  outputPaths.forEach((pngPath, i) => {
-    assert.ok(fs.existsSync(pngPath), `${outputName} CLI render did not create PNG ${i + 1}/${expectedCount}`);
-    assert.ok(fs.statSync(pngPath).size > 1000, `${outputName} CLI render created an empty-looking PNG ${i + 1}/${expectedCount}`);
-  });
-  assert.equal(result.stdout.trim().split(/\r?\n/).length, expectedCount, `${outputName} stdout did not list ${expectedCount} output paths`);
-  return outputPaths;
+  return cardCli({ tmpDir, name: outputName, input, expectedCount });
 }
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-validate-'));
@@ -770,13 +749,13 @@ try {
   const aggregateMediaRender = spawnSync(process.execPath, [
     path.join(ROOT, 'scripts', 'card.js'), '--input', aggregateMediaInputPath,
     '--output', path.join(tmpDir, 'aggregate-media.png'),
-  ], { encoding: 'utf8' });
+  ], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
   assert.equal(aggregateMediaRender.status, 0, aggregateMediaRender.stderr || 'poster renderer charged identical media bytes more than once');
   fs.appendFileSync(aggregateMediaPaths[1], Buffer.from([1]));
   const distinctAggregateMediaRender = spawnSync(process.execPath, [
     path.join(ROOT, 'scripts', 'card.js'), '--input', aggregateMediaInputPath,
     '--output', path.join(tmpDir, 'distinct-aggregate-media.png'),
-  ], { encoding: 'utf8' });
+  ], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
   assert.notEqual(distinctAggregateMediaRender.status, 0, 'poster renderer accepted distinct media beyond the aggregate byte budget');
   assert.match(distinctAggregateMediaRender.stderr, /aggregate budget/);
   const evidencePosterFixture = {

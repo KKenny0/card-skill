@@ -582,4 +582,5 @@ module.exports = {
   sha256Json,
   materializeRenderContract,
   validateVisualJob,
+  visibleHtmlText,
 };

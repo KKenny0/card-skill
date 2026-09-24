@@ -33,6 +33,7 @@ function runCard(input, output) {
     cwd: ROOT,
     input: JSON.stringify(input),
     encoding: 'utf8',
+    env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' },
   });
 }
 

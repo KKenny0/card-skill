@@ -6,31 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
-const { validateVisualJob } = require('../scripts/lib/visual-job');
+const { validateVisualJob, visibleHtmlText } = require('../scripts/lib/visual-job');
 const cases = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals', 'agent-cases.json'), 'utf8'));
-
-function visibleHtmlText(value) {
-  let html = String(value || '').replace(/<!--[\s\S]*?-->/g, ' ');
-  const nonVisibleBlocks = [
-    /<(style|script|template|noscript|head)\b[^>]*>[\s\S]*?<\/\1>/gi,
-    /<([a-z][\w:-]*)\b(?=[^>]*(?:\shidden(?:\s|=|>)|aria-hidden\s*=\s*["']?true|style\s*=\s*(?:["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden)[^"']*["']|[^\s>]*(?:display\s*:\s*none|visibility\s*:\s*hidden)[^\s>]*)))[^>]*>[\s\S]*?<\/\1>/gi,
-  ];
-  for (const pattern of nonVisibleBlocks) {
-    let previous;
-    do {
-      previous = html;
-      html = html.replace(pattern, ' ');
-    } while (html !== previous);
-  }
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;|&#160;/gi, ' ')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'");
-}
 
 function bodyText(body) {
   return (body || []).flatMap(element => {

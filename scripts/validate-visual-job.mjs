@@ -21,6 +21,7 @@ const {
 } = require('./lib/visual-job');
 const { modeTier, selectMode } = require('./lib/mode-selector');
 const { computedOverall, validateVisualReview } = require('./lib/visual-review');
+const { renderJob } = require('./lib/test-kit');
 const { publishArtifacts } = require('./lib/publish-artifacts');
 const {
   MAX_POSTER_MEDIA_TOTAL_BYTES,
@@ -726,10 +727,7 @@ try {
   const reviewedJob = v2Job({ job_id: 'reviewed-job', outputs: [{ ...v2Job().outputs[0], id: 'reviewed-output', basename: 'reviewed.png' }] });
   const reviewedJobPath = path.join(reviewedTemp, 'job.json');
   fs.writeFileSync(reviewedJobPath, JSON.stringify(reviewedJob));
-  const rendered = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', reviewedJobPath,
-    '--output-dir', candidateDir, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const rendered = renderJob({ inputPath: reviewedJobPath, outputDir: candidateDir });
   assert.equal(rendered.status, 0, rendered.stderr || rendered.stdout);
   const receipt = JSON.parse(fs.readFileSync(path.join(candidateDir, 'reviewed.receipt.json'), 'utf8'));
   fs.writeFileSync(path.join(candidateDir, 'reviewed.review.json'), JSON.stringify(validReview({
@@ -801,7 +799,7 @@ try {
   fs.writeFileSync(alternateInputPath, JSON.stringify({ mode: 'big', phrase: 'Different but valid' }));
   const alternateRender = spawnSync(process.execPath, [
     path.join(ROOT, 'scripts', 'card.js'), '--input', alternateInputPath, '--output', alternatePngPath,
-  ], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
+  ], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
   assert.equal(alternateRender.status, 0, alternateRender.stderr || alternateRender.stdout);
   fs.copyFileSync(alternatePngPath, path.join(detachedPngCandidate, 'reviewed.png'));
   const detachedHash = sha256Bytes(fs.readFileSync(path.join(detachedPngCandidate, 'reviewed.png')));
@@ -826,10 +824,7 @@ try {
   const reviewedV3Job = v3Job({ job_id: 'reviewed-v3-job' });
   const reviewedV3Path = path.join(reviewedTemp, 'v3-job.json');
   fs.writeFileSync(reviewedV3Path, JSON.stringify(reviewedV3Job));
-  const renderedV3 = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', reviewedV3Path,
-    '--output-dir', v3CandidateDir, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const renderedV3 = renderJob({ inputPath: reviewedV3Path, outputDir: v3CandidateDir });
   assert.equal(renderedV3.status, 0, renderedV3.stderr || renderedV3.stdout);
   for (const artifact of reviewedV3Job.outputs[0].artifacts) {
     const stem = path.basename(artifact.basename, '.png');
@@ -927,10 +922,7 @@ try {
   });
   const mediaJobPath = path.join(reviewedTemp, 'media-job.json');
   fs.writeFileSync(mediaJobPath, JSON.stringify(mediaJob));
-  const renderedMedia = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', mediaJobPath,
-    '--output-dir', mediaCandidateDir, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const renderedMedia = renderJob({ inputPath: mediaJobPath, outputDir: mediaCandidateDir });
   assert.equal(renderedMedia.status, 0, renderedMedia.stderr || renderedMedia.stdout);
   const supportingMediaJob = clone(mediaJob);
   supportingMediaJob.source_units[0].evidence.strength = 'supporting';
@@ -973,7 +965,7 @@ try {
     content_html: `<main>${Array.from({ length: 400 }, () => `<img src="${pathToFileURL(reusedLogoPath).href}" alt="Repeated approved logo">`).join('')}</main>`,
     custom_css: 'main{display:grid;grid-template-columns:repeat(20,1fr)}img{width:100%}',
   }));
-  const repeatedLogoRender = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'card.js'), '--input', repeatedLogoInputPath, '--output', path.join(reviewedTemp, 'repeated-logo.png')], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
+  const repeatedLogoRender = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'card.js'), '--input', repeatedLogoInputPath, '--output', path.join(reviewedTemp, 'repeated-logo.png')], { encoding: 'utf8', env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' } });
   assert.notEqual(repeatedLogoRender.status, 0, 'renderer expanded repeated logo references beyond the checked-HTML budget');
   assert.match(repeatedLogoRender.stderr, /48 MiB checked-HTML budget/);
   const jobWideMediaPaths = [1, 2].map((index) => {
@@ -1022,10 +1014,7 @@ try {
   });
   const reusedLogoJobPath = path.join(reviewedTemp, 'reused-logo-job.json');
   fs.writeFileSync(reusedLogoJobPath, JSON.stringify(reusedLogoJob));
-  const renderedReusedLogo = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', reusedLogoJobPath,
-    '--output-dir', reusedLogoCandidate, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const renderedReusedLogo = renderJob({ inputPath: reusedLogoJobPath, outputDir: reusedLogoCandidate });
   assert.equal(renderedReusedLogo.status, 0, renderedReusedLogo.stderr || renderedReusedLogo.stdout);
   const reusedLogoReceipt = JSON.parse(fs.readFileSync(path.join(reusedLogoCandidate, 'reused-logo-card.receipt.json'), 'utf8'));
   const reusedLogoHtml = fs.readFileSync(path.join(reusedLogoCandidate, 'reused-logo-card.checked.html'), 'utf8');
@@ -1069,7 +1058,7 @@ try {
   });
   const posterLogoJobPath = path.join(reviewedTemp, 'poster-logo-job.json');
   fs.writeFileSync(posterLogoJobPath, JSON.stringify(posterLogoJob));
-  const renderedPosterLogo = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', posterLogoJobPath, '--output-dir', posterLogoCandidate, '--candidate', '--json'], { encoding: 'utf8' });
+  const renderedPosterLogo = renderJob({ inputPath: posterLogoJobPath, outputDir: posterLogoCandidate });
   assert.equal(renderedPosterLogo.status, 0, renderedPosterLogo.stderr || renderedPosterLogo.stdout);
   for (const [index, stem] of ['poster-logo-1', 'poster-logo-2'].entries()) {
     const receiptPath = path.join(posterLogoCandidate, `${stem}.receipt.json`);
@@ -1101,10 +1090,7 @@ try {
   assert.match(validateVisualJob(unboundMediaJob).errors.join('\n'), /media digest must match a referenced current primary source unit/, 'Visual Job accepted poster media whose bytes did not match current primary evidence');
   const unboundMediaJobPath = path.join(reviewedTemp, 'unbound-media-job.json');
   fs.writeFileSync(unboundMediaJobPath, JSON.stringify(unboundMediaJob));
-  const unboundMediaRender = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', unboundMediaJobPath,
-    '--output-dir', path.join(reviewedTemp, 'unbound-media-candidate'), '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const unboundMediaRender = renderJob({ inputPath: unboundMediaJobPath, outputDir: path.join(reviewedTemp, 'unbound-media-candidate') });
   assert.notEqual(unboundMediaRender.status, 0, 'renderer accepted poster media whose snapshot digest was not sealed as evidence');
   assert.match(unboundMediaRender.stderr, /media digest must match|media snapshot does not match/);
 
@@ -1213,10 +1199,7 @@ try {
   });
   const reviewedV1Path = path.join(reviewedTemp, 'v1-job.json');
   fs.writeFileSync(reviewedV1Path, JSON.stringify(reviewedV1Job));
-  const renderedV1 = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', reviewedV1Path,
-    '--output-dir', v1CandidateDir, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const renderedV1 = renderJob({ inputPath: reviewedV1Path, outputDir: v1CandidateDir });
   assert.equal(renderedV1.status, 0, renderedV1.stderr || renderedV1.stdout);
   const v1Receipt = JSON.parse(fs.readFileSync(path.join(v1CandidateDir, 'legacy.receipt.json'), 'utf8'));
   fs.writeFileSync(path.join(v1CandidateDir, 'legacy.review.json'), JSON.stringify(validReview({
@@ -1273,10 +1256,7 @@ try {
   });
   const legacySeriesPath = path.join(reviewedTemp, 'legacy-series-job.json');
   fs.writeFileSync(legacySeriesPath, JSON.stringify(legacySeriesJob));
-  const renderedLegacySeries = spawnSync(process.execPath, [
-    path.join(ROOT, 'scripts', 'render-job.mjs'), '--input', legacySeriesPath,
-    '--output-dir', legacySeriesDir, '--candidate', '--json',
-  ], { encoding: 'utf8' });
+  const renderedLegacySeries = renderJob({ inputPath: legacySeriesPath, outputDir: legacySeriesDir });
   assert.equal(renderedLegacySeries.status, 0, renderedLegacySeries.stderr || renderedLegacySeries.stdout);
   assert.deepEqual(
     fs.readdirSync(legacySeriesDir).filter(name => name.endsWith('.png')).sort(),
