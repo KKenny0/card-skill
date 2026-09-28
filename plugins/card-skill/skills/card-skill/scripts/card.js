@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync, spawn, spawnSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const ROOT_PATH = path.resolve(__dirname, '..');
 const ROOT = (() => {
@@ -31,6 +31,7 @@ const CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-output.mjs');
 const SETUP_SCRIPT = path.join(ROOT, 'scripts', 'setup-runtime.mjs');
 const UPDATE_CHECK_SCRIPT = path.join(ROOT, 'scripts', 'check-update.mjs');
 const { beginRender } = require('./lib/update-state');
+const { launchAutoUpdate } = require('./lib/update-launcher');
 const { publishArtifacts } = require('./lib/publish-artifacts');
 const { resolveDesignNameForInput } = require('./lib/designs');
 const {
@@ -548,26 +549,9 @@ try {
 
 if (renderSucceeded) {
   if (process.env.CARD_SKILL_AUTO_UPDATE_FOREGROUND === '1') {
-    const autoUpdate = spawnSync(process.execPath, [UPDATE_CHECK_SCRIPT, '--auto-update'], {
-      encoding: 'utf-8',
-      timeout: 15 * 60 * 1000,
-    });
-    const autoUpdateOutput = [autoUpdate.stdout, autoUpdate.stderr]
-      .filter(value => value?.trim())
-      .join('\n')
-      .trim();
+    const autoUpdateOutput = launchAutoUpdate({ foreground: true });
     if (autoUpdateOutput) console.error(autoUpdateOutput);
   } else {
-    try {
-      const autoUpdate = spawn(process.execPath, [UPDATE_CHECK_SCRIPT, '--auto-update'], {
-        cwd: os.homedir(),
-        detached: true,
-        env: { ...process.env, CARD_SKILL_CALLER_CWD: process.cwd() },
-        stdio: 'ignore',
-      });
-      autoUpdate.unref();
-    } catch {
-      // Rendering is already complete; a later request can retry the update.
-    }
+    launchAutoUpdate();
   }
 }

@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +18,7 @@ const {
   validateVisualJob,
 } = require('./lib/visual-job');
 const { pathEntryExists, publishArtifacts } = require('./lib/publish-artifacts');
+const { launchAutoUpdate } = require('./lib/update-launcher');
 const { MAX_POSTER_MEDIA_TOTAL_BYTES, isWithin, pathKey, realpathExisting } = require('./lib/file-access');
 const MAX_CANDIDATE_BYTES = 256 * 1024 * 1024;
 
@@ -90,21 +91,6 @@ function existingCaseFoldedNames(outputDir) {
   return new Set(fs.readdirSync(outputDir).map(name => name.toLocaleLowerCase('en-US')));
 }
 
-function launchPostJobUpdate() {
-  if (process.env.CARD_SKILL_DISABLE_AUTO_UPDATE === '1') return;
-  try {
-    const child = spawn(process.execPath, [path.join(ROOT, 'scripts', 'check-update.mjs'), '--auto-update'], {
-      cwd: os.homedir(),
-      detached: true,
-      env: { ...process.env, CARD_SKILL_CALLER_CWD: process.cwd() },
-      stdio: 'ignore',
-    });
-    child.unref();
-  } catch {
-    // Rendering and publication are already complete; a later request can retry.
-  }
-}
-
 const inputPath = arg('--input');
 const outputDirArg = arg('--output-dir');
 const json = process.argv.includes('--json');
@@ -164,7 +150,7 @@ try {
     const run = spawnSync(process.execPath, cardArgs, {
       cwd: ROOT,
       encoding: 'utf8',
-      env: { ...process.env, CARD_SKILL_DISABLE_AUTO_UPDATE: '1' },
+      env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1', CARD_SKILL_DISABLE_AUTO_UPDATE: '1' },
     });
     if (run.status !== 0) {
       throw new Error(`${stableError(run.stderr || run.stdout)}: ${run.stderr || run.stdout || 'renderer failed'}`);
@@ -306,7 +292,7 @@ try {
     if (candidateBytes > MAX_CANDIDATE_BYTES) throw new Error('safety: rendered candidate exceeds the 256 MiB closed-set budget');
   }
   publishArtifacts(publicationEntries, { allowOverwrite: false });
-  if (!candidate) launchPostJobUpdate();
+  if (!candidate) launchAutoUpdate();
   const result = {
     pass: true,
     candidate,

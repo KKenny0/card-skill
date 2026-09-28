@@ -72,6 +72,10 @@ Poster evidence media remains offline and bounded. Its structured contract names
 
 Renderers never fetch repository pages or provider content. Source adapters normalize upstream material before the Visual Job, and unclear rights or freshness keep media out of public outputs.
 
+## Update wiring
+
+Direct renders and job renders intentionally keep different update wirings. `card.js` is the skill entry: it holds a render lease, nudges the update check on every run so direct CLI use stays covered even when the calling agent skips the skill preflight, verifies the runtime, and launches one auto-update after a successful render. `render-job.mjs` is the orchestrator: its child renders run with both update checks disabled (no per-child nudge or self-update), and the job launches a single post-job update. Both share `scripts/lib/update-launcher.js` — one spawn shape, one gate on `CARD_SKILL_DISABLE_AUTO_UPDATE` applied before spawning. A shared render-prelude module has been considered and rejected: the entry and orchestrator need different subsets by design, so a prelude interface would not absorb the difference.
+
 ## Evaluation
 
 `npm test` runs deterministic L0 contract and regression checks without a model. `npm run eval:fresh` evaluates fresh planning cases, including evidence-first open-source routing. `npm run eval:cardbench` adds forced-revision cases, real PNG Critic calls, one-revision enforcement, and Content/Visual/Agent scores. Reports keep unmeasured levels as `null`; Agent critique is not presented as maintainer or real-user evidence.
