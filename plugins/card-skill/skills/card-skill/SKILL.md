@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.10.4"
+version: "0.11.0"
 ---
 
 # card-skill
@@ -56,7 +56,11 @@ version: "0.10.4"
 
 Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 及需要完整构图的 `editorial-image`）由 Agent 提供非空 `content_html` + `custom_css`，写入现有 `render_contract`，再进入同一候选生产链。按 taste 核对初稿与修订稿的元素均在父布局容器及画布内，不用负定位悬挂文字。不要另写 HTML 后手工截图交付。
 
-`editorial-image` 的 `use` 表示编辑用途，`aspect` 表示比例。文章封面选择能表达张力的 `cover_motif`；超出受控 motif 的方向以及 `in-article` / `metaphor` 必须设置 `composition_required: true` 并提供 `content_html` 与 `custom_css`。不能删除该字段来退回通用 scaffold。
+`editorial-image` 的 `use` 表示编辑用途，`aspect` 表示比例。封面需要概念插画时，先检查当前 Agent 实际可调用的生图能力：有能力就由 Agent 生成单独插画，查看结果并取得宿主允许的本地 PNG/JPEG/WebP，通过 `cover_art: { path, alt }` 交给 renderer；标题、副标题、Kicker 和署名仍由 renderer 排版。已有用户指定素材时直接使用，不重复生图。
+
+无生图能力时沿用现有 editorial-image 流程：`cover_motif` 能表达隐喻就使用 Stable；否则采用完整 `content_html` + `custom_css` 的 Studio 构图。不要求用户安装生图工具或配置密钥，不根据 Agent 名称猜能力。工具失败或未产出可用本地文件时说明结果，在候选渲染前回到现有流程；用户明确要求必须生图时报告限制，不擅自替换。不能用此分流绕过 renderer 的 safety / quality_gate 失败。
+
+`cover_art` 仅用于 `use=cover`（可省略）和 `blog-hero` / `wechat-cover` / `cinematic`，与 `cover_motif`、`content_html`、`composition_required:true` 互斥。完整构图以及 `in-article` / `metaphor` 仍须设置 `composition_required: true` 并提供非空 `content_html` 与 `custom_css`。两条路径都走同一 Visual Job v3 审核发布链；详细资源和系列规范见模式文档。
 
 `article-diagram` 先判断原文是否有适合公式表达的关系，再生成 `formula` / `sentence` / `structure`。默认只显示公式与解释句；必要条件必须在这两个可见字段中。整篇文章按适合的章节出图，跳过无结构关系的部分；不强造公式，不默认切到实验性 structure/split。
 

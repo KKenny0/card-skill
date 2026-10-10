@@ -21,6 +21,7 @@
 - `scripts/lib/schema.js` owns runtime input validation. Files in `schemas/` document the public structured contract and must stay aligned with runtime validation.
 - Renderers own deterministic HTML generation. Renderer orchestration stays behind the renderer interface: `scripts/card.js` calls `render(input, htmlPath, ctx)` with an injected `ctx.measure` browser adapter and, when a renderer provides them, iterates `renderAttempts(input)` and consults `isSalvageableError(error)`. Family dispatch, salvage ladders, and measure-to-layout choreography live inside the renderer; error-message matching across the renderer seam is a regression. `scripts/check-output.mjs` owns machine-checkable output defects; subjective composition quality remains a visual inspection responsibility.
 - Keep provider authentication and upstream semantics out of card renderers. Source adapters normalize external content before it reaches a render contract.
+- Editorial `cover_art` is conceptual artwork, not source evidence. Keep its receipt snapshot separate from poster `media_snapshots`; CLI, candidate rendering, and reviewed publication must preserve the same bounded embedded-resource identity. Generation capability selection belongs to the calling Agent, never the renderer.
 
 ## Hotspots
 

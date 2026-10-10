@@ -22,6 +22,8 @@
 
 它不是网站生成器、UI 组件库、Logo/VI 系统、图表库或修图工具。
 
+封面需要概念插画时，支持生图的 Agent 生成插画，再通过 `cover_art: { path, alt }` 交给 `editorial-image`；标题和字体排版仍由 renderer 完成。不支持生图的 Agent 沿用现有 motif 或 HTML/CSS 构图，card-skill 不要求配置生图供应商。用户指定的素材优先使用。两条路径共享渲染、检查、看图审核和本地发布流程。详见[编辑插画规范](references/mode-editorial-image.md#agent-generated-cover-art)。
+
 ## 适合什么，不适合什么
 
 | 适合 | 不适合 |

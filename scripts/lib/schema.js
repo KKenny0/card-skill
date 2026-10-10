@@ -97,6 +97,7 @@ const SCHEMAS = {
       'subtitle',
       'visual_metaphor',
       'cover_motif',
+      'cover_art',
       'art_direction',
       'text_plan',
       'composition_required',
@@ -117,6 +118,7 @@ const SCHEMAS = {
       subtitle: 'string',
       visual_metaphor: 'string',
       cover_motif: 'string',
+      cover_art: 'object',
       art_direction: 'string',
       text_plan: 'string',
       composition_required: 'boolean',
@@ -566,6 +568,27 @@ function validate(input, { checkLocalFiles = true } = {}) {
   }
 
   if (mode === 'editorial-image') {
+    if (Object.hasOwn(input, 'cover_art')) {
+      const art = input.cover_art;
+      if (!art || typeof art !== 'object' || Array.isArray(art)) {
+        errors.push('cover_art must be an object with path and alt');
+      } else {
+        for (const key of Object.keys(art)) {
+          if (!['path', 'alt'].includes(key)) errors.push(`Unknown cover_art field: ${key}`);
+        }
+        if (typeof art.path !== 'string' || art.path.length > 1024 || !isSafeAbsoluteLocalPath(art.path)) {
+          errors.push('cover_art.path must be a safe absolute local path of at most 1024 characters');
+        } else if (checkLocalFiles) {
+          try { inspectLocalImage(art.path, { label: 'Cover art' }); }
+          catch (error) { errors.push(`cover_art must point to a bounded static PNG, JPEG, or WebP: ${error.message}`); }
+        }
+        if (typeof art.alt !== 'string' || !art.alt.trim() || art.alt.length > 500) errors.push('cover_art.alt must be non-empty text of at most 500 characters');
+      }
+      if (input.use !== undefined && input.use !== 'cover') errors.push('cover_art requires use=cover or omitted use');
+      if (input.aspect !== undefined && !['blog-hero', 'wechat-cover', 'cinematic'].includes(input.aspect)) errors.push('cover_art requires blog-hero, wechat-cover, or cinematic aspect');
+      if (Object.hasOwn(input, 'cover_motif') || Object.hasOwn(input, 'content_html') || input.composition_required === true) errors.push('cover_art cannot be combined with cover_motif, content_html, or composition_required=true');
+      validateCompositionSafety('editorial-image', input, errors);
+    }
     if (input.editorial_tone && !EDITORIAL_TONES.has(input.editorial_tone)) {
       errors.push(`editorial_tone must be one of: ${[...EDITORIAL_TONES].join(', ')}`);
     }

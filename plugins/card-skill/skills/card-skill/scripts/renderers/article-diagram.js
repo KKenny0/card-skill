@@ -882,7 +882,7 @@ function renderSingleHtml(input, outputHtmlPath, positions, compressionView = nu
     template = template.replace(/\s*<div class="who">[\s\S]*?<\/div>/, '');
   } else {
     if (!logoUrl) template = template.replace(/\s*<img src="" alt="">/, '');
-    if (!brandName) template = template.replace(/\s*<span><\/span>/, '');
+    if (!brandName) template = template.replace(/\s*<span class="brand-name"><\/span>/, '');
   }
   if (!logoUrl && !brandName && !sourceLine) {
     template = template.replace(/\s*<div class="colophon">\s*<\/div>/, '');

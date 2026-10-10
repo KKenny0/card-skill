@@ -22,6 +22,8 @@ Its three flagship jobs are evidence-led source series, argument explanation, an
 
 It is not a website builder, UI kit, logo system, chart library, or photo editor.
 
+For conceptual cover art, an agent with an available image-generation tool creates the illustration and passes it to `editorial-image` through `cover_art: { path, alt }`. Titles and typography remain renderer-owned. Agents without image generation keep using the existing motifs or custom HTML/CSS compositions; no image-provider setup is required by card-skill. User-supplied art takes precedence. Both paths share the same render, check, visual review, and local publication pipeline. See [editorial images](references/mode-editorial-image.md#agent-generated-cover-art).
+
 ## Good fit / poor fit
 
 | Good fit | Poor fit |

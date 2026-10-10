@@ -8,6 +8,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const { escapeHtml, escapePhrase } = require('../lib/escape');
 const { getDesign, resolveEditorialDesignName } = require('../lib/designs');
+const { validate } = require('../lib/schema');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/infograph_template.html');
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
@@ -113,17 +114,17 @@ function renderDefaultContent(input, aspect) {
   const title = escapePhrase(input.title);
   const subtitle = input.subtitle ? `<p class="editorial-subtitle">${escapeHtml(input.subtitle)}</p>` : '';
   const metaphor = escapeHtml(input.visual_metaphor || input.art_direction || '');
-  const coverMotif = resolveCoverMotif(input);
+  const coverMotif = input.cover_art ? null : resolveCoverMotif(input);
 
   return `
-    <section class="editorial-frame editorial-${aspect.key}" data-metaphor="${metaphor}" data-cover-motif="${coverMotif}">
+    <section class="editorial-frame editorial-${aspect.key}" data-metaphor="${metaphor}" ${input.cover_art ? 'data-cover-art="true"' : `data-cover-motif="${coverMotif}"`}>
       <div class="editorial-copy">
         ${kicker}
         <h1>${title}</h1>
         ${subtitle}
       </div>
-      <div class="editorial-visual" aria-hidden="true">
-        ${renderCoverMotif(coverMotif)}
+      <div class="editorial-visual"${input.cover_art ? '' : ' aria-hidden="true"'}>
+        ${input.cover_art ? `<img class="editorial-cover-art" src="${escapeHtml(pathToFileURL(input.cover_art.path).href)}" alt="${escapeHtml(input.cover_art.alt)}">` : renderCoverMotif(coverMotif)}
       </div>
     </section>
   `;
@@ -438,6 +439,10 @@ function baseCss(input, design, aspect) {
 }
 
 function render(input, outputHtmlPath) {
+  if (Object.hasOwn(input, 'cover_art')) {
+    const result = validate(input);
+    if (!result.valid) throw new Error(result.errors.join('; '));
+  }
   const creativeUse = input.use === 'in-article' || input.use === 'metaphor';
   if (creativeUse && input.composition_required !== true) {
     throw new Error(`editorial-image use=${input.use} requires composition_required=true with non-empty "content_html" and "custom_css"`);
@@ -468,7 +473,8 @@ function render(input, outputHtmlPath) {
   const brandName = input.brand_name ? escapeHtml(input.brand_name) : '';
   const sourceLine = input.source ? `<span class="info-source">${escapeHtml(input.source)}</span>` : '';
   const contentHtml = input.content_html || renderDefaultContent(input, aspect);
-  const customCss = `${baseCss(input, design, aspect)}\n${input.custom_css || ''}`;
+  const artCss = input.cover_art ? '[data-cover-art] .editorial-visual { filter: none; } .editorial-cover-art { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }' : '';
+  const customCss = `${baseCss(input, design, aspect)}\n${artCss}\n${input.custom_css || ''}`;
 
   template = template.replaceAll('{{CUSTOM_CSS}}', customCss);
   template = template.replaceAll('{{CONTENT_HTML}}', contentHtml);
@@ -487,7 +493,7 @@ function render(input, outputHtmlPath) {
     template = template.replace(/\s*<div class="who">[\s\S]*?<\/div>/, '');
   } else {
     if (!logoUrl) template = template.replace(/\s*<img src="" alt="">/, '');
-    if (!brandName) template = template.replace(/\s*<span><\/span>/, '');
+    if (!brandName) template = template.replace(/\s*<span class="brand-name"><\/span>/, '');
   }
   if (!logoUrl && !brandName && !sourceLine) {
     template = template.replace(/\s*<div class="colophon">\s*<\/div>/, '');

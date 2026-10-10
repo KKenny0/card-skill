@@ -31,11 +31,27 @@ editorial-image 不是单一稳定性承诺。它的 3 个子场景按不同 tie
 
 | Sub-scenario | `use` | Tier | Renderer path |
 |--------------|-------|------|---------------|
-| 公众号封面 / 博客 hero | `cover` | Stable，完整构图时 Studio | CLI scaffold（kicker + title + subtitle + 确定性 `cover_motif`）；超出受控 motif 时使用完整构图 |
+| 公众号封面 / 博客 hero | `cover` | Stable，完整构图时 Studio | CLI scaffold（kicker + title + subtitle + `cover_art` 或确定性 `cover_motif`）；需要自由构图时使用完整构图 |
 | 正文氛围插图 | `in-article` | Studio | 必须由 AI 写 `content_html` + `custom_css`；缺失时拒绝渲染 |
 | 概念隐喻图 | `metaphor` | Studio | 必须由 AI 写 `content_html` + `custom_css`；scaffold 不应作为最终产出 |
 
-判断规则：受控 motif 能兑现的 `use=cover` 使用 Stable；需要完整构图时设置 `composition_required: true`，并提供非空 `content_html` 与 `custom_css`，包括超出 motif 能力的封面。`use=in-article` / `metaphor` 必须使用该完整契约。所有子场景均通过 Visual Job v3 渲染、审核和本地发布。
+判断规则：受控 motif 或下述单图片插槽能兑现的 `use=cover` 使用 Stable；需要完整构图时设置 `composition_required: true`，并提供非空 `content_html` 与 `custom_css`。`use=in-article` / `metaphor` 必须使用该完整契约。所有子场景均通过 Visual Job v3 渲染、审核和本地发布。
+
+## Agent-generated cover art
+
+For a conceptual cover illustration, use the calling agent's actual image-generation tool when available. Generate the illustration only, inspect it, and obtain a local static image through the host's supported file delivery. Keep the headline, subtitle, kicker, and byline in the renderer. Existing user-selected artwork takes precedence over generating new art. Capability is established by callable tools, not model names or installed skill names.
+
+Without image generation, keep the existing editorial-image workflow: choose an article-specific `cover_motif` when it expresses the idea, otherwise author a complete Studio composition. No provider installation, credentials, runtime provider detection, or generation API belongs in card-skill. If generation fails or cannot supply a usable local file, explain the result and choose the existing path before candidate rendering; do not silently substitute when the user explicitly requires generated art. Never use this path to bypass a failed safety or quality gate. Host file-access restrictions still apply.
+
+The Stable image slot is `cover_art`, an object with exactly two required fields: `path` (safe absolute local path, at most 1024 characters) and `alt` (non-empty description, at most 500 characters). It accepts static PNG/JPEG/WebP, at most 32 MiB, 8192px per side, and 40 million decoded pixels. It centers the entire image with `object-fit: contain`; it does not stretch, crop, recolor, or add a shadow.
+
+Use it only for `use=cover` or omitted use, with `aspect=blog-hero`, `wechat-cover`, or `cinematic`; omitted aspect remains `blog-hero`. Do not combine it with `cover_motif`, `content_html`, or `composition_required:true`. `custom_css` can adjust the scaffold but must pass composition safety validation. Other ratios and complex compositions retain their existing contracts.
+
+Agent-generated art and provided art use the same local snapshot path. Conceptual art is not primary source evidence: do not fabricate an evidence digest to authorize it. The article still supplies the current primary evidence in Visual Job v3. `cover_art_snapshot` binds the illustration to the receipt and checked HTML. A job allows up to 32 MiB / 40 million pixels of distinct cover art, deduplicated by digest. Checked HTML remains bounded to 48 MiB including embedded resources. Missing or invalid images fail explicitly, without a motif fallback.
+
+Generate one concrete subject or relationship, use restrained accents and a background compatible with the paper, and prefer transparency when the host tool supports it. Inspect the actual subject size at the destination, not only the file dimensions. Remove meaningless transparent or near-white outer margins before rendering, while preserving thin strokes, shadows, and purposeful space. Do not blindly crop to every non-transparent pixel or assume a pale subject is background.
+
+For a series, keep the same canvas, margins, font hierarchy and footer rules, plus consistent illustration perspective, line density, and accent strength. `series-cover` names a design pattern, not a new mode. Do not force equal headline line counts at the expense of readable text. Branding is opt-in. Palette changes do not recolor raster art automatically. A split horizontal cover is not guaranteed to survive a centered square crop; compose a separate square version when needed.
 
 ## Supported Outputs
 
@@ -53,7 +69,7 @@ Default shape: horizontal cover, low text, generous crop-safe margin.
 
 Goal: the image can sit above the article and survive sharing previews.
 
-For article-specific covers, choose one concrete `cover_motif` for the right-side visual: `drawer`, `window`, `lens`, `path`, `archive`, or `layers`. The renderer keeps this finite vocabulary deterministic so a cover remains reliable while its visible object follows the article tension. `paper-stack` is only the deliberately generic fallback for legacy or title-only covers.
+For article-specific covers without `cover_art`, choose one concrete `cover_motif` for the right-side visual: `drawer`, `window`, `lens`, `path`, `archive`, or `layers`. The renderer keeps this finite vocabulary deterministic so a cover remains reliable while its visible object follows the article tension. `paper-stack` is only the deliberately generic fallback for legacy or title-only covers.
 
 ### 2. In-Article Mood Illustration
 
@@ -219,7 +235,7 @@ The structured fields are guardrails, not the final visual language.
 
 Use fields like `use`, `aspect`, `title`, `visual_metaphor`, `cover_motif`, and `art_direction` to preserve intent, ratio, crop context, and safety constraints. Do not force every editorial image into the default renderer's visible layout.
 
-When a selected direction depends on a concrete object, action, scene, spatial relationship, or concept metaphor that the default scaffold cannot show, set `composition_required: true`. This makes executability part of the render contract: schema validation and the renderer require both non-empty `content_html` and `custom_css`. Keep the flag in the final CLI input. Omit it or set it to `false` only when the default scaffold is deliberately the final composition; `use=cover` alone is not sufficient evidence.
+When a selected direction depends on a concrete object, action, scene, spatial relationship, or concept metaphor that neither a bounded `cover_art` image nor a motif scaffold can show, set `composition_required: true`. This makes executability part of the render contract: schema validation and the renderer require both non-empty `content_html` and `custom_css`. Keep the flag in the final CLI input. Omit it or set it to `false` only when the default scaffold is deliberately the final composition; `use=cover` alone is not sufficient evidence.
 
 For final rendering, use a custom composition when the brief has a real article tension that cannot be carried by a cover motif, or when it is a concept metaphor or in-article mood illustration job:
 
@@ -227,7 +243,7 @@ For final rendering, use a custom composition when the brief has a real article 
 - `custom_css` for the actual composition, spacing, symbolic objects, and atmosphere
 - `visual_metaphor` and `art_direction` as hidden guidance, not necessarily visible text
 
-The default CLI renderer is an aspect-safe Kenny Style scaffold with a Quiet Paper material base, not a separate cover-template universe. Its Stable cover path pairs the title with one deterministic `cover_motif`; it is useful for simple covers and must retain the house typography, fixed small-radius geometry, low-saturation ink, hairline surfaces, subtle grain, and almost no shadow. High-quality editorial images should use a custom composition when the selected direction exceeds that bounded vocabulary.
+The default CLI renderer is an aspect-safe Kenny Style scaffold with a Quiet Paper material base, not a separate cover-template universe. Its Stable cover path pairs the title with one bounded `cover_art` image or deterministic `cover_motif`; it is useful for simple covers and must retain the house typography, fixed small-radius geometry, low-saturation ink, hairline surfaces, subtle grain, and almost no shadow. High-quality editorial images should use a custom composition when the selected direction exceeds that bounded vocabulary.
 
 The composition needs one dominant visible subject: an object, scene, gesture, spatial relationship, or concrete diagram metaphor. A stack of paper rectangles, loose lines, decorative frames, or empty negative space is not enough unless it has been transformed into a specific metaphor tied to the article. If hiding the title makes the image feel generic, rebuild the custom composition before capture.
 
@@ -276,7 +292,7 @@ Every visible custom-composition element must keep its own bounding box inside b
 
 - Text should usually take less than 20% of the image.
 - Visible text must belong to the artwork. It may be the article title, a section title, a real term, a short excerpt, a byline, or a label attached to a visual object.
-- For `use=in-article` and `metaphor` sub-scenarios (Studio), the final image must set `composition_required: true` and have one concrete dominant subject; the renderer rejects a scaffold fallback. For `use=cover` (Stable), the CLI scaffold pairs kicker, title, subtitle, and an article-specific `cover_motif`; use a custom composition only when that bounded object vocabulary cannot carry the selected direction.
+- For `use=in-article` and `metaphor` sub-scenarios (Studio), the final image must set `composition_required: true` and have one concrete dominant subject; the renderer rejects a scaffold fallback. For `use=cover` (Stable), the CLI scaffold pairs kicker, title, subtitle, and an article-specific `cover_motif` or bounded `cover_art`; use a custom composition only when that bounded object vocabulary cannot carry the selected direction.
 - Do not print generation notes, usage notes, or internal rationale into the artwork. Avoid sentences like `给这一节使用`, `用作正文配图`, `安静、低干扰`, `像文章中间的一次停顿`, or `visual pause`.
 - For in-article mood images, do not let readable text collide with cards, objects, diagrams, or illustration layers. Text-object overlap is a hard failure unless the requested style is explicitly collage/overprint and readability remains clean.
 - Headline line breaks are a hard quality standard, not a cosmetic preference. Fix bad wrapping before delivery.

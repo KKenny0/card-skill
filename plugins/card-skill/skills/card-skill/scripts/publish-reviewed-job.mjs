@@ -11,7 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { artifactContractProjection, artifactPlansForOutput, materializeRenderContract, sha256Bytes, sha256Json, validateVisualJob } = require('./lib/visual-job');
 const { validateVisualReview } = require('./lib/visual-review');
 const { pathEntryExists, publishArtifacts } = require('./lib/publish-artifacts');
-const { allowedLocalFilesForInput, validateCaptureSpec } = require('./lib/file-access');
+const { allowedLocalFilesForInput, validateCaptureSpec, imageMetadata, MAX_LOCAL_IMAGE_BYTES, MAX_LOCAL_IMAGE_DIMENSION, MAX_LOCAL_IMAGE_PIXELS, accountUniqueImageSnapshot } = require('./lib/file-access');
 const { validate } = require('./lib/schema');
 const { snapshotCandidateDirectory } = require('./lib/candidate-snapshot');
 
@@ -55,6 +55,7 @@ function readJson(file) {
 
 function embeddedImageInventory(html) {
   const digests = [];
+  const resources = new Map();
   let invalid = 0;
   const activeMarkup = html
     .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -71,9 +72,11 @@ function embeddedImageInventory(html) {
     if (!match || match[2].length % 4 !== 0) { invalid += 1; continue; }
     const bytes = Buffer.from(match[2], 'base64');
     if (!bytes.length || bytes.toString('base64') !== match[2]) { invalid += 1; continue; }
-    digests.push(sha256Bytes(bytes));
+    const digest = sha256Bytes(bytes);
+    digests.push(digest);
+    resources.set(digest, { bytes, mime_type: `image/${match[1].toLowerCase()}` });
   }
-  return { digests, invalid, total: candidates.length };
+  return { digests, resources, invalid, total: candidates.length };
 }
 
 function validateEffectiveContract(plannedContract, effectiveContract) {
@@ -239,10 +242,13 @@ try {
   if (actualFiles.length !== expectedFiles.size || actualFiles.some(name => !expectedFiles.has(name))) throw new Error('candidate file set does not match its manifest');
   const entries = [];
   const published = [];
+  const coverArtDigests = new Set();
+  const coverArtBudget = { bytes: 0, pixels: 0 };
 
   for (const artifact of manifest.artifacts) {
     let plannedMediaCount = 0;
     let plannedLogoCount = 0;
+    let plannedCoverArtCount = 0;
     const receiptName = artifact.receipt;
     const receiptPath = path.join(candidateDir, receiptName);
     const receipt = readJson(receiptPath);
@@ -271,6 +277,7 @@ try {
       const plan = plannedArtifacts.get(`${artifact.output_id}:${artifact.artifact_index}`);
       const plannedOutput = visualJob.outputs.find(output => output.id === artifact.output_id);
       const plannedContract = materializeRenderContract(visualJob, plannedOutput);
+      plannedCoverArtCount = plannedContract.mode === 'editorial-image' && plannedContract.cover_art ? 1 : 0;
       const effectiveContract = receipt.effective_render_contract || plannedContract;
       plannedMediaCount = artifactContractProjection(plannedContract, artifact.artifact_index).card?.body?.filter(element => element?.type === 'media').length || 0;
       // Poster branding is a last-card colophon; earlier artifacts in the
@@ -297,6 +304,7 @@ try {
       if (plannedLogoCount === 0 && logoSnapshot) throw new Error(`${receiptName}: receipt contains an unplanned logo snapshot`);
     }
     if (!receipt.job_success || receipt.checker?.pass !== true) throw new Error(`${receiptName}: renderer receipt did not pass`);
+    if (plannedCoverArtCount !== (receipt.cover_art_snapshot ? 1 : 0)) throw new Error(`${receiptName}: cover art snapshot does not match the sealed contract`);
     if (review.verdict !== 'pass') throw new Error(`${reviewName}: review did not pass`);
     if (review.job_id !== receipt.job_id || review.output_id !== receipt.output_id || review.artifact_index !== receipt.artifact_index) throw new Error(`${reviewName}: review identity does not match receipt`);
     if (manifest.schema_version === 2 && (review.visual_job_sha256 !== receipt.visual_job_sha256 || review.artifact_plan_sha256 !== receipt.artifact_plan_sha256 || review.artifact_contract_sha256 !== receipt.artifact_contract_sha256)) throw new Error(`${reviewName}: Visual Job, artifact plan, or artifact contract hash does not match receipt`);
@@ -309,9 +317,22 @@ try {
     const embedded = embeddedImageInventory(checkedHtml);
     if (embedded.invalid > 0) throw new Error(`${receiptName}: checked HTML contains an unsupported embedded image resource`);
     const embeddedDigests = embedded.digests;
+    if (receipt.cover_art_snapshot) {
+      const art = receipt.cover_art_snapshot;
+      const resource = embedded.resources.get(art.sha256);
+      if (!resource) throw new Error(`${receiptName}: cover art snapshot does not match an embedded image`);
+      const metadata = imageMetadata(resource.bytes);
+      if (art.bytes !== resource.bytes.length || art.width !== metadata.width || art.height !== metadata.height || art.mime_type !== metadata.mimeType || art.mime_type !== resource.mime_type
+          || art.bytes > MAX_LOCAL_IMAGE_BYTES || art.width < 1 || art.height < 1 || art.width > MAX_LOCAL_IMAGE_DIMENSION || art.height > MAX_LOCAL_IMAGE_DIMENSION || art.width * art.height > MAX_LOCAL_IMAGE_PIXELS) {
+        throw new Error(`${receiptName}: cover art snapshot metadata is invalid or exceeds its budget`);
+      }
+      accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, art);
+      if (coverArtBudget.bytes > MAX_LOCAL_IMAGE_BYTES || coverArtBudget.pixels > MAX_LOCAL_IMAGE_PIXELS) throw new Error('cover art exceeds the 32 MiB or 40 million pixel aggregate budget');
+    }
     const snapshotDigests = [
       ...(receipt.media_snapshots || []).map(snapshot => snapshot.sha256),
       ...(receipt.logo_snapshot ? [receipt.logo_snapshot.sha256] : []),
+      ...(receipt.cover_art_snapshot ? [receipt.cover_art_snapshot.sha256] : []),
     ];
     // Snapshot slots are validated against the sealed contract above. At this
     // boundary we compare resource identities: one approved image may appear

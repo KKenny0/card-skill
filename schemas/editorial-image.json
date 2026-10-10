@@ -48,6 +48,16 @@
       "enum": ["paper-stack", "drawer", "window", "lens", "path", "archive", "layers"],
       "description": "Deterministic right-side visual for use=cover. Choose the concrete article object: drawer for durable write-back, window for reportable access, lens for interpretation, path for a handoff or workflow, archive for retrieval, and layers for stacked system views. Omit only for the deliberately generic legacy paper-stack cover."
     },
+    "cover_art": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "alt"],
+      "description": "Agent-generated or user-provided conceptual illustration, not factual source evidence. Static PNG/JPEG/WebP, <=32 MiB, <=8192px per side, <=40 million pixels. Centered with contain; no automatic crop. Candidate jobs require Visual Job v3.",
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))" },
+        "alt": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S" }
+      }
+    },
     "art_direction": {
       "type": "string",
       "description": "Freeform art direction. Used as guidance and fallback visual caption."
@@ -58,7 +68,7 @@
     },
     "composition_required": {
       "type": "boolean",
-      "description": "Required and true for use=in-article and use=metaphor. Set true for any cover direction that cannot be delivered by the title plus cover_motif scaffold. Final render input must then include both content_html and custom_css."
+      "description": "Required and true for use=in-article and use=metaphor. Set true for any cover direction that cannot be delivered by the title plus cover_motif or single cover_art scaffold. Final render input must then include both content_html and custom_css."
     },
     "content_html": {
       "type": "string",
@@ -86,6 +96,17 @@
     }
   },
   "allOf": [
+    {
+      "if": { "required": ["cover_art"] },
+      "then": {
+        "properties": {
+          "use": { "const": "cover" },
+          "aspect": { "enum": ["blog-hero", "wechat-cover", "cinematic"] },
+          "composition_required": { "const": false }
+        },
+        "not": { "anyOf": [{ "required": ["cover_motif"] }, { "required": ["content_html"] }] }
+      }
+    },
     {
       "if": {
         "properties": { "composition_required": { "const": true } },

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "description": "Host tool-action evaluations, separate from JSON-only planning cases. Use an isolated Agent with the listed tool inventory. Record actual generation calls, returned file, selected contract, and forbidden side effects. Do not treat prompt keywords as behavioral evidence.",
+  "cases": [
+    {
+      "id": "available",
+      "tool_state": "generate_image returns a valid local static PNG",
+      "request": "Create a conceptual blog cover about independent systems communicating through a shared protocol.",
+      "expected": "Call generation once for illustration only, inspect the returned image, select cover_art with that file; keep title in the render contract."
+    },
+    {
+      "id": "unavailable",
+      "tool_state": "no image-generation tool",
+      "request": "Create a conceptual blog cover about durable memory as a drawer with a retrievable handle.",
+      "expected": "No generation call, install, or credentials request; select the existing drawer motif. A complex metaphor beyond motifs must instead retain composition_required and full HTML/CSS."
+    },
+    {
+      "id": "failed",
+      "tool_state": "generate_image returns an error and no local file",
+      "request": "Create a conceptual blog cover about durable memory as a drawer with a retrievable handle.",
+      "expected": "Explain the failed generation, use the existing motif/Studio workflow before rendering, do not fabricate a path or retry indefinitely."
+    },
+    {
+      "id": "provided",
+      "tool_state": "generate_image is available; the user supplies a valid local PNG",
+      "request": "Use the supplied illustration for a blog cover about independent systems communicating. Do not replace the illustration.",
+      "expected": "No generation call; inspect and use the supplied image through cover_art."
+    }
+  ],
+  "common_acceptance": [
+    "Validate the resulting contract and render through Visual Job v3.",
+    "Do not classify conceptual art as primary factual evidence.",
+    "Do not alter renderer/provider configuration or install dependencies during the task.",
+    "A generation fallback never bypasses a renderer safety/quality failure."
+  ]
+}

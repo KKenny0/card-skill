@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const { validate } = require('./schema');
 const { EDITORIAL_TONES } = require('./designs');
-const { MAX_CARD_INPUT_JSON_BYTES, MAX_POSTER_MEDIA_TOTAL_BYTES, inspectLocalImage, isSafeAbsoluteLocalPath, pathKey, realpathExisting } = require('./file-access');
+const { MAX_CARD_INPUT_JSON_BYTES, MAX_POSTER_MEDIA_TOTAL_BYTES, MAX_LOCAL_IMAGE_BYTES, MAX_LOCAL_IMAGE_PIXELS, accountUniqueImageSnapshot, inspectLocalImage, isSafeAbsoluteLocalPath, pathKey, realpathExisting } = require('./file-access');
 const { ARGUMENT_STRUCTURES, CONTENT_TYPES, modeTier, selectMode } = require('./mode-selector');
 
 const PUBLISH_TARGETS = new Set(['wechat-cover', 'blog-hero', 'article-body', 'social-single', 'social-series', 'reading-notes', 'long-read', 'whiteboard']);
@@ -365,6 +365,18 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
 
   if (!Array.isArray(job.outputs) || job.outputs.length < 1 || job.outputs.length > 20) errors.push('outputs must contain 1 to 20 entries');
   if (Array.isArray(job.outputs)) {
+    const coverArtDigests = new Set();
+    const coverArtBudget = { bytes: 0, pixels: 0 };
+    for (const output of job.outputs) {
+      const contract = output?.render_contract;
+      if (contract?.mode !== 'editorial-image' || !Object.hasOwn(contract, 'cover_art')) continue;
+      if (job.schema_version !== 3) errors.push('cover_art requires Visual Job v3');
+      if (checkLocalFiles && isSafeAbsoluteLocalPath(contract.cover_art?.path)) {
+        try { accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, inspectLocalImage(contract.cover_art.path, { label: 'Cover art' })); }
+        catch (error) { errors.push(`cover_art: ${error.message}`); }
+      }
+    }
+    if (coverArtBudget.bytes > MAX_LOCAL_IMAGE_BYTES || coverArtBudget.pixels > MAX_LOCAL_IMAGE_PIXELS) errors.push('Visual Job cover art exceeds the 32 MiB or 40 million pixel aggregate budget');
     const aggregateArtifacts = job.outputs.reduce((sum, output) => sum + expectedArtifactCount(output?.render_contract), 0);
     if (aggregateArtifacts > 20) errors.push('Visual Job supports at most 20 rendered artifacts across all outputs');
     if (checkLocalFiles) {

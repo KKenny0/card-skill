@@ -1,5 +1,7 @@
 # Visual Job v1/v2/v3
 
+Conceptual cover illustrations use `editorial-image.cover_art` in v3 only. The calling Agent generates art when its host provides image generation, otherwise uses the existing motif / Studio workflow; user-selected artwork takes precedence. The resulting local image is a renderer resource, not factual evidence. Keep article evidence in `source_units`; do not label generated art as current primary evidence. Receipts carry a separate `cover_art_snapshot` (SHA-256, bytes, dimensions, MIME type), while `media_snapshots` retains its poster evidence meaning. Checked HTML embeds the private snapshot, and reviewed publication verifies it without reopening the original path. Distinct cover art is bounded per job to 32 MiB / 40 million pixels.
+
 Visual Job is card-skill's audit contract between source understanding and rendering. It wraps existing mode render contracts; it does not replace them or alter direct `scripts/card.js --input/--stdin` use.
 
 Versions 1 and 2 remain accepted for compatibility. New natural-language tasks use version 3. V3 separates a renderer invocation (`outputs[]`) from every PNG it produces (`outputs[].artifacts[]`). This matters for poster series and split diagrams: evidence, transformation, Visual Plan, filename, and editorial role now belong to the individual artifact instead of being ambiguously attached to the whole renderer call.

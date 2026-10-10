@@ -250,8 +250,22 @@ let renderInput = input;
 let localAssetFiles = [];
 let posterMediaSnapshots = [];
 let logoSnapshot = null;
+let coverArtSnapshot = null;
+const embeddedCoverArtHtml = new Set();
 const embeddedLogoHtml = new Set();
 const MAX_CHECKED_HTML_BYTES = 48 * 1024 * 1024;
+
+function embedStagedCoverArt(out) {
+  if (!coverArtSnapshot || embeddedCoverArtHtml.has(out.htmlPath)) return;
+  const html = fs.readFileSync(out.htmlPath, 'utf8');
+  const url = require('url').pathToFileURL(coverArtSnapshot.path).href.replaceAll('&', '&amp;');
+  const reference = `src="${url}"`;
+  if (html.split(reference).length !== 2) throw new Error('Cover art must have exactly one renderer-owned image slot');
+  const embedded = html.replace(reference, `src="data:${coverArtSnapshot.mime_type};base64,${fs.readFileSync(coverArtSnapshot.path).toString('base64')}"`);
+  if (Buffer.byteLength(embedded, 'utf8') > MAX_CHECKED_HTML_BYTES) throw new Error('Rendered HTML exceeds the 48 MiB checked-HTML budget after cover art sealing');
+  fs.writeFileSync(out.htmlPath, embedded, 'utf8');
+  embeddedCoverArtHtml.add(out.htmlPath);
+}
 
 function embedStagedLogo(out) {
   if (!logoSnapshot || embeddedLogoHtml.has(out.htmlPath)) return false;
@@ -333,6 +347,7 @@ function runOutputCheck(out, pngPath, options = {}) {
 }
 
 function captureWithOutputCheck(out, pngPath) {
+  embedStagedCoverArt(out);
   embedStagedLogo(out);
   runOutputCheck(out, pngPath, { fix: true, skipPng: true });
   runCapture(out, pngPath);
@@ -387,7 +402,10 @@ function renderEntries(input, tmpDir) {
     const htmlPath = path.join(tmpDir, `card_${input.mode}${suffix}.html`);
 
     try {
-      const rendered = renderer.render(attempt.input, htmlPath, { measure: measurePass });
+      const rendererInput = coverArtSnapshot
+        ? { ...attempt.input, cover_art: { ...attempt.input.cover_art, path: coverArtSnapshot.path } }
+        : attempt.input;
+      const rendered = renderer.render(rendererInput, htmlPath, { measure: measurePass });
       const outputs = Array.isArray(rendered) ? rendered : [rendered];
       const entries = outputs.map((out, outputIndex) => {
         const stagedName = outputs.length === 1
@@ -445,6 +463,13 @@ function artifactReport(out, stagedPath, finalPath, checker, index, effectiveCon
       issues: checker.issues,
     },
     effective_contract: effectiveContract,
+    cover_art_snapshot: embeddedCoverArtHtml.has(out.htmlPath) ? {
+      sha256: coverArtSnapshot.sha256,
+      bytes: coverArtSnapshot.bytes,
+      width: coverArtSnapshot.width,
+      height: coverArtSnapshot.height,
+      mime_type: coverArtSnapshot.mime_type,
+    } : null,
     logo_snapshot: embeddedLogoHtml.has(out.htmlPath) ? {
       sha256: logoSnapshot.sha256,
       bytes: logoSnapshot.bytes,
@@ -477,6 +502,9 @@ let renderSucceeded = false;
 
 try {
   runTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-'));
+  if (input.mode === 'editorial-image' && input.cover_art) {
+    coverArtSnapshot = snapshotLocalImage(input.cover_art.path, path.join(runTmpDir, 'cover-art.image'), { label: 'Cover art' });
+  }
   if (input.mode === 'poster') {
     const stagedMedia = stagePosterMedia(input, runTmpDir);
     renderInput = stagedMedia.input;
