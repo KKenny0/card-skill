@@ -125,6 +125,13 @@ Turn the article below into a WeChat cover image. Do not restate it as a summary
 [paste article or URL]
 ```
 
+**WeChat cover pair (explicit request)**
+```text
+Create a wide WeChat cover and a square share image from this article. Keep the same short headline, qualifications, and palette, but compose each canvas independently. Inspect both PNGs before delivery.
+```
+
+The pair uses existing `wechat-cover` and `square` aspects, with separate outputs linked by `cover_adaptation_of` in Visual Job v3. This bounded exception reuses evidence only within a cover pair; ordinary content cards still require independent evidence. Custom square layouts use the existing Studio contract, not `cover_art`. A request for one cover still produces one cover. [Workflow and example](references/visual-job.md#wechat-cover-pair).
+
 **In-article diagram / formula card**
 ```text
 Turn the compressible sections of this article into in-article explanation diagrams. Keep only the core relational formula and one judgment per card. Skip pure setup and mood sections.

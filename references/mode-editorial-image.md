@@ -145,6 +145,28 @@ Composition rules:
 - For `body-3-2` and `body-4-3`, avoid cover-like left/right split layouts unless the middle space carries a clear relationship.
 - If a concept needs vertical hierarchy, do not force it into `wechat-cover`; use `body-4-3` or `blog-hero`.
 
+## Requested WeChat cover pairs
+
+Create a pair only when the user explicitly requests both a wide cover and a square share image. Use two outputs in one Visual Job v3, each with one artifact at index 1 and role `cover`. The second output sets `cover_adaptation_of` to the first output ID. Follow the complete example and evidence constraints in [visual-job](visual-job.md#wechat-cover-pair).
+
+Use `wechat-cover` (1080×460 CSS pixels, approximately 2.35:1) and `square` (1080×1080). Default DPR 2 yields 2160×920 and 2160×2160 PNGs. 2100×900 is 21:9, not 2.35:1; do not relabel it or change the current canvas defaults to imitate another workflow.
+
+Keep source evidence, core message, title, subtitle, kicker, attribution, and palette identical. Compose each canvas independently: a horizontal split can become a vertical stack in the square. Do not crop the wide PNG into the square. Keep both outputs in the same tier. For custom layouts, provide `composition_required: true` plus non-empty `content_html` and `custom_css` for both. The square aspect does not accept `cover_art`; this feature does not expand the image-resource contract or permit unsealed images in Studio HTML.
+
+For a vertically stacked square cover, give the text and the visible metaphor a deliberate shared alignment axis. Short copy can be centered above a centered subject; longer prose may need a consistently left-aligned composition. Keep rows sized to their content and put spare space around the whole group rather than between unrelated alignment zones. Inspect the visible text-to-subject gap, including internal artwork offsets: a CSS gap alone does not describe the perceived distance. The example uses centered text up to 720px wide, a 440px drawer, and about 70px from the subtitle line box to the visible artwork; these are example values, not global size requirements.
+
+### Edit the headline before composing
+
+1. Identify the central action, object, and reader promise from the source.
+2. Shorten only when the requested editing intent permits it. Preserve names, units, percentages, negation, uncertainty, and conditions that change the claim. Do not turn a conditional result into an unconditional headline.
+3. Put necessary context in a concise visible subtitle; retain the original title in source metadata when useful. A long original title need not become the whole subtitle. Use the same title and subtitle on both versions.
+4. Judge actual mixed Chinese/Latin line widths. Aim for a short readable phrase, not a mandatory 4–10 Chinese-character count. Avoid isolated final characters and forced justification that creates unnatural spacing.
+5. Inspect both PNGs at full size and a small sharing-preview size. Check title recognition, visible qualifications, and attribution, not just whether all text fits.
+
+Choose weight using the bundled font's real appearance. Large text is not automatically light, and small text is not automatically bold. Preserve Kenny Style rather than applying a global weight inversion.
+
+Choose quiet zones relative to each canvas and the actual subject. Keep text away from faces, important objects, and known overlay regions. Use a local, palette-derived tint only when it improves contrast; do not apply a full-frame black gradient by default. No universal 90px inset or fixed opacity is required. A local preview checks composition, not the platform's live cropping behavior.
+
 ## In-Article Density
 
 In-article illustrations should be quiet, but they should not look unfinished.

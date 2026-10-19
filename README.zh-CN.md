@@ -125,6 +125,13 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 [粘贴文章正文或 URL]
 ```
 
+**微信公众号封面对（明确请求）**
+```text
+把这篇文章做成公众号横版头图和方形分享图。保持短标题、适用条件和配色一致，但分别构图。交付前检查两张真实 PNG。
+```
+
+使用现有 `wechat-cover` 和 `square` 比例，在 Visual Job v3 中用 `cover_adaptation_of` 关联两个独立 output。这项受约束的例外仅允许封面对复用证据；普通内容卡仍需独立证据。方版自由构图使用现有 Studio 契约，不使用 `cover_art`。只要求一张封面时仍只生成一张。[工作流与示例](references/visual-job.md#wechat-cover-pair)。
+
 **正文解释图 / 公式卡**
 ```text
 把这篇文章里值得压缩的章节做成正文解释图。每张只保留核心关系公式和一句判断，跳过纯铺垫和情绪段落。

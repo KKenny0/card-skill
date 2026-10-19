@@ -185,6 +185,68 @@ wrongTaxonomy.decision.selection_source = 'user-override';
 assert.equal(validateVisualJob(wrongTaxonomy).valid, true, validateVisualJob(wrongTaxonomy).errors.join('\n'));
 
 assert.equal(validateVisualJob(v3Job()).valid, true, validateVisualJob(v3Job()).errors.join('\n'));
+
+// Execute the published example so documentation cannot promise an invalid pair.
+const pairSection = fs.readFileSync(path.join(ROOT, 'references/visual-job.md'), 'utf8').split('## WeChat cover pair')[1];
+const coverPair = JSON.parse(pairSection.match(/```json\s*([\s\S]*?)```/)[1]);
+assert.equal(validateVisualJob(coverPair).valid, true, validateVisualJob(coverPair).errors.join('\n'));
+const jobSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas/visual-job.json'), 'utf8'));
+assert.equal(jobSchema.properties.outputs.items.properties.cover_adaptation_of.type, 'string');
+assert.equal(jobSchema.properties.source_units.items.properties.cover_adaptation_of, undefined);
+const reversedPair = clone(coverPair);
+reversedPair.outputs[0].render_contract.aspect = 'square';
+reversedPair.outputs[1].render_contract.aspect = 'wechat-cover';
+assert.equal(validateVisualJob(reversedPair).valid, true);
+const stablePair = clone(coverPair);
+stablePair.decision.tier = 'stable';
+for (const output of stablePair.outputs) {
+  delete output.render_contract.composition_required;
+  delete output.render_contract.content_html;
+  delete output.render_contract.custom_css;
+  output.render_contract.cover_motif = 'drawer';
+}
+assert.equal(validateVisualJob(stablePair).valid, true);
+for (const [name, mutate, expected] of [
+  ['undeclared reuse', job => { delete job.outputs[1].cover_adaptation_of; }, /not used by another artifact/],
+  ['unknown original', job => { job.outputs[1].cover_adaptation_of = 'missing'; }, /earlier output/],
+  ['self reference', job => { job.outputs[1].cover_adaptation_of = 'square'; }, /earlier output/],
+  ['forward reference', job => { job.outputs[0].cover_adaptation_of = 'square'; }, /earlier output/],
+  ['invalid reference', job => { job.outputs[1].cover_adaptation_of = {}; }, /earlier output/],
+  ['wrong target', job => { job.publish_target = 'social-series'; }, /publish_target=wechat-cover/],
+  ['same aspect', job => { job.outputs[1].render_contract.aspect = 'wechat-cover'; }, /complementary/],
+  ['other aspect', job => { job.outputs[1].render_contract.aspect = 'cinematic'; }, /complementary/],
+  ['body image', job => { job.outputs[1].render_contract.use = 'in-article'; }, /editorial-image covers/],
+  ['content card', job => { job.outputs[1].render_contract = { mode: 'big', phrase: 'Repeated claim' }; }, /editorial-image covers/],
+  ['missing artifact', job => { job.outputs[1].artifacts = []; }, /exactly one artifact/],
+  ['multiple artifacts', job => { job.outputs[1].artifacts.push(clone(job.outputs[1].artifacts[0])); }, /exactly one artifact/],
+  ['null artifact', job => { job.outputs[1].artifacts[0] = null; }, /role=cover/],
+  ['wrong role', job => { job.outputs[1].artifacts[0].role = 'summary'; }, /role=cover/],
+  ['different evidence', job => { job.outputs[1].artifacts[0].source_unit_ids = []; }, /identical source_unit_ids/],
+  ['different transformation', job => { job.outputs[1].artifacts[0].transformation = 'rewrite'; }, /identical transformation/],
+  ['different core', job => { job.outputs[1].artifacts[0].visual_plan.core_message = 'Unrelated'; }, /identical visual_plan.core_message/],
+  ['different title', job => { job.outputs[1].render_contract.title = 'Unrelated'; }, /identical render_contract.title/],
+  ['dropped condition', job => { delete job.outputs[1].render_contract.subtitle; }, /identical render_contract.subtitle/],
+  ['changed palette', job => { job.outputs[1].render_contract.editorial_tone = 'warm'; }, /identical render_contract.editorial_tone/],
+  ['stale evidence', job => { job.source_units[0].evidence = {kind:'claim', strength:'primary', freshness:'stale', reason:'Historical'}; }, /current primary/],
+  ['missing composition', job => { delete job.outputs[1].render_contract.content_html; }, /content_html/],
+  ['missing CSS', job => { delete job.outputs[1].render_contract.custom_css; }, /custom_css/],
+  ['second adaptation', job => { const extra = clone(job.outputs[1]); extra.id = 'extra'; extra.artifacts[0].basename = 'extra.png'; job.outputs.push(extra); }, /only one adaptation/],
+  ['chained adaptation', job => { const extra = clone(job.outputs[0]); extra.id = 'extra'; extra.cover_adaptation_of = 'square'; extra.artifacts[0].basename = 'extra.png'; job.outputs.push(extra); }, /without chains/],
+  ['third undeclared copy', job => { const extra = clone(job.outputs[0]); extra.id = 'extra'; extra.artifacts[0].basename = 'extra.png'; job.outputs.push(extra); }, /not used by another artifact/],
+]) {
+  const job = clone(coverPair);
+  mutate(job);
+  const result = validateVisualJob(job);
+  assert.equal(result.valid, false, name);
+  assert.match(result.errors.join('\n'), expected, name);
+}
+for (const job of [baseJob(), v2Job()]) {
+  job.outputs[0].cover_adaptation_of = 'original';
+  assert.match(validateVisualJob(job).errors.join('\n'), /Unknown outputs\[0\] field: cover_adaptation_of/);
+}
+const modifiedPair = clone(coverPair);
+delete modifiedPair.outputs[1].cover_adaptation_of;
+assert.notEqual(sha256Json(modifiedPair), sha256Json(coverPair), 'pair intent must be part of sealed job identity');
 const missingEvidence = v3Job();
 delete missingEvidence.source_units[0].evidence;
 assert.match(validateVisualJob(missingEvidence).errors.join('\n'), /evidence/);
@@ -717,7 +779,8 @@ try {
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
-assert.ok(visualJobSchema.allOf[0].else, 'public Visual Job schema must prohibit v2-only fields in v1');
+assert.ok(visualJobSchema.allOf.find(rule => rule.if?.properties?.schema_version?.const === 3)?.else,
+  'public Visual Job schema must retain the legacy-version field exclusions');
 
 const reviewedTemp = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-reviewed-publish-self-test-'));
 try {

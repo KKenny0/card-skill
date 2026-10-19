@@ -156,12 +156,43 @@
           "section": { "type": "string", "maxLength": 160 },
           "visual_plan": { "$ref": "#/$defs/visual_plan" },
           "artifacts": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/artifact_plan" } },
+          "cover_adaptation_of": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$", "description": "V3 wechat-cover only. References an earlier original output, with at most one adaptation and no chains. Both outputs must have one role=cover artifact and editorial-image use=cover (or omitted), one explicit wechat-cover aspect and one square. Source unit ID sets, transformation, visual plan core_message/content_type/argument_structure/visual_metaphor, and contract title/subtitle/kicker/source/brand_name/logo/design/editorial_tone must match. Only this validated pair may reuse primary evidence; layout and composition may differ. Cross-output constraints are enforced at runtime." },
           "render_contract": { "type": "object" }
         }
       }
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": { "outputs": { "contains": { "required": ["cover_adaptation_of"] } } },
+        "required": ["outputs"]
+      },
+      "then": {
+        "properties": {
+          "schema_version": { "const": 3 },
+          "publish_target": { "const": "wechat-cover" },
+          "outputs": {
+            "items": {
+              "if": { "required": ["cover_adaptation_of"] },
+              "then": {
+                "properties": {
+                  "artifacts": { "minItems": 1, "maxItems": 1, "items": { "properties": { "role": { "const": "cover" } } } },
+                  "render_contract": {
+                    "required": ["mode", "aspect"],
+                    "properties": {
+                      "mode": { "const": "editorial-image" },
+                      "use": { "const": "cover" },
+                      "aspect": { "enum": ["wechat-cover", "square"] }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": { "properties": { "schema_version": { "const": 3 } }, "required": ["schema_version"] },
       "then": {
@@ -190,7 +221,7 @@
           "outputs": {
             "items": {
               "required": ["id", "basename", "source_unit_ids", "transformation", "render_contract"],
-              "not": { "required": ["artifacts"] }
+              "not": { "anyOf": [{ "required": ["artifacts"] }, { "required": ["cover_adaptation_of"] }] }
             }
           }
         }

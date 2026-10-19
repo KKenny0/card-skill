@@ -25,7 +25,7 @@ const EVIDENCE_STRENGTHS = new Set(['primary', 'supporting', 'unusable']);
 const EVIDENCE_FRESHNESS = new Set(['current', 'stale', 'unknown']);
 const DECISION_FIELDS = new Set(['mode', 'tier', 'reason', 'tone', 'selection_source', 'selection_summary', 'visual_risks']);
 const OUTPUT_V12_FIELDS = new Set(['id', 'basename', 'source_unit_ids', 'transformation', 'section', 'visual_plan', 'render_contract']);
-const OUTPUT_V3_FIELDS = new Set(['id', 'artifacts', 'render_contract']);
+const OUTPUT_V3_FIELDS = new Set(['id', 'artifacts', 'render_contract', 'cover_adaptation_of']);
 const ARTIFACT_FIELDS = new Set(['artifact_index', 'id', 'basename', 'role', 'source_unit_ids', 'transformation', 'visual_plan']);
 const VISUAL_PLAN_FIELDS = new Set(['core_message', 'content_type', 'argument_structure', 'visual_metaphor', 'layout_strategy', 'visual_hierarchy', 'avoid_patterns']);
 const UNSAFE_EVIDENCE_TEXT = /[\p{Cc}\p{Cs}\p{Default_Ignorable_Code_Point}]/u;
@@ -59,6 +59,46 @@ function rejectUnknownFields(value, allowed, path, errors) {
 function studioContract(contract) {
   return STUDIO_MODES.has(contract?.mode)
     || (contract?.mode === 'editorial-image' && contract?.composition_required === true);
+}
+
+// A cover pair is one editorial claim composed for two destinations, not two
+// independent content cards. Keep this exception bounded to one wide/square pair.
+function validateCoverAdaptation(job, output, index, adaptedOutputs, errors) {
+  if (!Object.hasOwn(output, 'cover_adaptation_of')) return false;
+  const prefix = `outputs[${index}].cover_adaptation_of`;
+  const before = errors.length;
+  const target = output.cover_adaptation_of;
+  const original = job.outputs.slice(0, index).find(item => item?.id === target);
+  if (job.schema_version !== 3 || job.publish_target !== 'wechat-cover') errors.push(`${prefix} requires Visual Job v3 with publish_target=wechat-cover`);
+  if (typeof target !== 'string' || !SAFE_ID.test(target) || !original) {
+    errors.push(`${prefix} must reference an earlier output ID`);
+    return false;
+  }
+  if (Object.hasOwn(original, 'cover_adaptation_of') || adaptedOutputs.has(target)) errors.push(`${prefix} permits only one adaptation of an original output, without chains`);
+  adaptedOutputs.add(target);
+  const a = original.render_contract || {};
+  const b = output.render_contract || {};
+  if ([a, b].some(contract => contract.mode !== 'editorial-image' || (contract.use ?? 'cover') !== 'cover')
+      || ![a.aspect, b.aspect].includes('wechat-cover') || ![a.aspect, b.aspect].includes('square')) {
+    errors.push(`${prefix} requires editorial-image covers with complementary wechat-cover and square aspects`);
+  }
+  if (original.artifacts?.length !== 1 || output.artifacts?.length !== 1) {
+    errors.push(`${prefix} requires exactly one artifact in each output`);
+    return false;
+  }
+  const first = original.artifacts[0];
+  const second = output.artifacts[0];
+  if (!first || !second || first.role !== 'cover' || second.role !== 'cover') errors.push(`${prefix} requires role=cover on both artifacts`);
+  if (!Array.isArray(first?.source_unit_ids) || !Array.isArray(second?.source_unit_ids)
+      || canonicalJson([...first.source_unit_ids].sort()) !== canonicalJson([...second.source_unit_ids].sort())) errors.push(`${prefix} requires identical source_unit_ids`);
+  if (first?.transformation !== second?.transformation) errors.push(`${prefix} requires identical transformation`);
+  for (const key of ['core_message', 'content_type', 'argument_structure', 'visual_metaphor']) {
+    if (first?.visual_plan?.[key] !== second?.visual_plan?.[key]) errors.push(`${prefix} requires identical visual_plan.${key}`);
+  }
+  for (const key of ['title', 'subtitle', 'kicker', 'source', 'brand_name', 'logo', 'design', 'editorial_tone']) {
+    if (a[key] !== b[key]) errors.push(`${prefix} requires identical render_contract.${key}`);
+  }
+  return errors.length === before;
 }
 
 function materializeRenderContract(job, output) {
@@ -407,6 +447,7 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
   const claimedPrimaryIds = new Set();
   const claimedPrimaryDigests = new Set();
   const claimedPrimaryEvidence = new Set();
+  const adaptedOutputs = new Set();
   const actualModes = new Set(); const actualTiers = new Set();
   for (const [index, output] of (Array.isArray(job.outputs) ? job.outputs : []).entries()) {
     if (!output || typeof output !== 'object' || Array.isArray(output)) { errors.push(`outputs[${index}] must be an object`); continue; }
@@ -414,6 +455,7 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
     if (typeof output.id !== 'string' || !SAFE_ID.test(output.id)) errors.push(`outputs[${index}].id must be a safe lowercase slug`);
     if (outputIds.has(output.id)) errors.push(`outputs[${index}].id duplicates "${output.id}"`);
     outputIds.add(output.id);
+    const isCoverAdaptation = validateCoverAdaptation(job, output, index, adaptedOutputs, errors);
 
     if (job.schema_version === 3) {
       if (!Array.isArray(output.artifacts) || output.artifacts.length < 1 || output.artifacts.length > 20) {
@@ -454,7 +496,7 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
             && !(unit?.digest && claimedPrimaryDigests.has(unit.digest))
             && !(identity && claimedPrimaryEvidence.has(identity));
         });
-        if (hasCurrentPrimary && !newPrimaryIds.length) errors.push(`${artifactPath} must claim at least one current primary evidence source unit not used by another artifact`);
+        if (hasCurrentPrimary && !newPrimaryIds.length && !isCoverAdaptation) errors.push(`${artifactPath} must claim at least one current primary evidence source unit not used by another artifact`);
         for (const id of referenced) {
           const evidence = unitsById.get(id)?.evidence;
           if (evidence?.strength === 'primary' && evidence?.freshness === 'current') claimedPrimaryIds.add(id);
