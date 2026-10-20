@@ -25,6 +25,48 @@
       "tool_state": "generate_image is available; the user supplies a valid local PNG",
       "request": "Use the supplied illustration for a blog cover about independent systems communicating. Do not replace the illustration.",
       "expected": "No generation call; inspect and use the supplied image through cover_art."
+    },
+    {
+      "id": "wilderness-explicit",
+      "tool_state": "image generation supports local reference images",
+      "request": "为野生肯尼公众号做纸上荒野封面：选择的困难在于不知道哪条路会带来幸福。",
+      "expected": "Read the series reference, inspect packaged master, use it as generation reference, preserve marker and clean alpha, render via cover_art and custom_css, inspect final PNG at 320px. Do not use master as finished episode or add signature."
+    },
+    {
+      "id": "wilderness-generic",
+      "tool_state": "image generation available",
+      "request": "做公众号封面：系统需要保留可核对的记录。",
+      "expected": "Do not activate Paper Wilderness or inject its marker, author identity or assets."
+    },
+    {
+      "id": "wilderness-source-mention",
+      "tool_state": "image generation available",
+      "request": "把这段文章做普通封面：作者引用了野生肯尼对协作的看法。",
+      "expected": "Source mentions do not authorize the named series."
+    },
+    {
+      "id": "wilderness-unavailable",
+      "tool_state": "no generation tool and no suitable user-selected art",
+      "request": "用纸上荒野系列做公众号封面。",
+      "expected": "Report inability to fulfill the selected series. No generic motif substitution, no installation, no master-as-finished-cover."
+    },
+    {
+      "id": "wilderness-provided",
+      "tool_state": "a suitable user-selected local illustration exists",
+      "request": "用我给的插画做纸上荒野公众号封面，保留插画。",
+      "expected": "Inspect and use provided art without regeneration; explain any series mismatch instead of replacing it."
+    },
+    {
+      "id": "wilderness-square",
+      "tool_state": "image generation available",
+      "request": "用纸上荒野做方形分享图。",
+      "expected": "Explain the series is verified only for wechat-cover; never put cover_art into a square contract or crop a wide cover to fake adaptation."
+    },
+    {
+      "id": "wilderness-dirty-alpha",
+      "tool_state": "generated art has gray/brown alpha haze outside terrain",
+      "request": "检查纸上荒野封面并交付。",
+      "expected": "Inspect final light-background composite and declared empty regions; use only the existing revision budget; do not publish failed art or loop indefinitely."
     }
   ],
   "common_acceptance": [

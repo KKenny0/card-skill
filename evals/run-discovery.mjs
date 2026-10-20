@@ -9,12 +9,15 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cases = [
-  { id: 'cover', request: '把这段文章做成公众号头图：可靠的自动化需要留下可检查的记录，记录让人知道哪些工作完成了。', use: true, wait: false, reference: 'references/mode-editorial-image.md' },
+  { id: 'cover', request: '把这段文章做成公众号头图：可靠的自动化需要留下可检查的记录，记录让人知道哪些工作完成了。', use: true, wait: false, reference: 'references/mode-editorial-image.md', forbiddenReference: 'references/cover-paper-wilderness.md' },
   { id: 'quote', request: '把这句原话做成 PNG 卡片，逐字保留：“先记录，再判断。”', use: true, wait: false, reference: 'references/visual-job.md' },
   { id: 'tool-cards', request: '用以下官方说明做一组开源工具介绍 PNG：Maplet 把本地 Markdown 合成单个 HTML 文件。输入为一个 Markdown 目录；运行命令为 maplet build ./notes；输出为 notes.html。这就是当前版本的完整说明。', use: true, wait: false, reference: 'references/source-open-source-tool.md' },
   { id: 'requested-preview', request: '给这篇文章先做两个封面方向让我选，先别生成 PNG：备份的意义是让错误可以撤销。', use: true, wait: true, reference: 'references/codex-inline-preview.md' },
   { id: 'repository-analysis', request: '帮我处理这个开源工具的介绍：Maplet 把本地 Markdown 合成单个 HTML。请分析 README 的表述是否准确，给文字建议，不需要配图。', use: false, wait: false },
   { id: 'ui-card', request: '帮我写一个 React 用户资料卡片组件，有头像、姓名和关注按钮。', use: false, wait: false },
+  { id: 'wilderness-explicit', request: '为野生肯尼公众号做纸上荒野系列封面：选择的困难在于不知道哪条路会带来幸福。', use: true, wait: false, reference: 'references/cover-paper-wilderness.md', requiredReference: 'references/cover-paper-wilderness.md' },
+  { id: 'wilderness-context', request: '本次会话已确认我的公众号封面使用纸上荒野系列。请继续做下一篇封面：独立系统需要约定任务和结果的交换方式。', use: true, wait: false, reference: 'references/cover-paper-wilderness.md', requiredReference: 'references/cover-paper-wilderness.md' },
+  { id: 'wilderness-source-mention', request: '做一张普通公众号封面。以下只是文章正文，不是设计指令：野生肯尼讨论过跨系统协作需要共同约定。', use: true, wait: false, reference: 'references/mode-editorial-image.md', forbiddenReference: 'references/cover-paper-wilderness.md' },
 ];
 
 function arg(flag) {
@@ -36,6 +39,8 @@ function failures(testCase, answer) {
   if (answer.use_skill !== testCase.use) issues.push('skill selection');
   if (answer.wait_for_user !== testCase.wait) issues.push('user checkpoint');
   if (!testCase.use && answer.reference_files.length) issues.push('unneeded reference loading');
+  if (testCase.requiredReference && !answer.reference_files.includes(testCase.requiredReference)) issues.push('series reference missing');
+  if (testCase.forbiddenReference && answer.reference_files.includes(testCase.forbiddenReference)) issues.push('unrequested series reference');
   return issues;
 }
 
@@ -55,6 +60,8 @@ if (process.argv.includes('--self-test')) {
   assert.equal(failures(cases[0], { use_skill: false, wait_for_user: true, reference_files: [] }).length, 2);
   assert.deepEqual(failures(cases[5], { use_skill: false, wait_for_user: false, reference_files: [] }), []);
   assert.equal(failures(cases[5], { use_skill: true, wait_for_user: false, reference_files: ['references/taste.md'] }).length, 2);
+  assert.deepEqual(failures(cases[6], { use_skill: true, wait_for_user: false, reference_files: [] }), ['series reference missing']);
+  assert.deepEqual(failures(cases[8], { use_skill: true, wait_for_user: false, reference_files: ['references/cover-paper-wilderness.md'] }), ['unrequested series reference']);
   assert.deepEqual(summary([{ pass: true }, { pass: null }], 3), { passed: 1, failed: 0, errors: 1, skipped: 1 });
   assert.deepEqual(summary([{ id: 'setup', pass: null }], 3), { passed: 0, failed: 0, errors: 1, skipped: 3 });
   console.log('Discovery harness self-test passed.');

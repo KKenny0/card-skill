@@ -157,6 +157,49 @@ try {
   fs.writeFileSync(assets.png, 'source changed after snapshot');
   const published = publish(candidate, 'published');
   assert.equal(published.status, 0, published.stderr || published.stdout);
+
+  // Real packaged series artwork, not generated synthetic shapes. The declared
+  // empty regions catch the alpha-haze regression; they do not judge the scene.
+  const seriesDir = path.join(ROOT, 'assets/cover-series/paper-wilderness');
+  const seriesCss = fs.readFileSync(path.join(seriesDir, 'layout.css'), 'utf8');
+  const seriesBrowser = await chromium.launch({ headless: true });
+  try {
+    const page = await seriesBrowser.newPage();
+    const inspectAlpha = async (filename, contaminate = false) => page.evaluate(async ({ url, contaminate }) => {
+      const img = new Image(); img.src = url; await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+      if (contaminate) { ctx.fillStyle = 'rgba(100,80,60,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height * 0.08); }
+      const regions = [[0, 0, 1, 0.08], [0, 0, 0.02, 0.02], [0.98, 0, 0.02, 0.02],
+        [0, 0.98, 0.02, 0.02], [0.98, 0.98, 0.02, 0.02]];
+      return regions.map(([x, y, w, h]) => {
+        const pixels = ctx.getImageData(Math.floor(x * img.width), Math.floor(y * img.height),
+          Math.floor(w * img.width), Math.floor(h * img.height)).data;
+        let max = 0;
+        for (let i = 3; i < pixels.length; i += 4) max = Math.max(max, pixels[i]);
+        return max;
+      });
+    }, { url: `data:image/png;base64,${fs.readFileSync(path.join(seriesDir, filename)).toString('base64')}`, contaminate });
+    for (const filename of ['master.png', 'uncertainty.png', 'cooperation.png', 'rest.png']) {
+      assert.ok((await inspectAlpha(filename)).every(alpha => alpha <= 2), `${filename}: contaminated empty region`);
+    }
+    assert.ok((await inspectAlpha('master.png', true)).some(alpha => alpha > 2), 'alpha probe must detect brown haze');
+  } finally { await seriesBrowser.close(); }
+
+  for (const [name, title, subtitle] of [
+    ['uncertainty', '20多岁，<br>如何与巨大的<br>不确定性共处？', ''],
+    ['cooperation', 'A2A 到底<br>解决什么问题？', '从 Agent 协作到架构选型（上篇）'],
+    ['rest', '晚年卢梭的<br>心灵避难所', '从世界之敌到自足如神'],
+  ]) {
+    const reportPath = path.join(tmpDir, `series-${name}.report.json`);
+    cardCli({ tmpDir, name: `series-${name}`, input: {
+      mode: 'editorial-image', use: 'cover', aspect: 'wechat-cover', editorial_tone: 'reflective',
+      title, subtitle, custom_css: seriesCss,
+      cover_art: { path: path.join(seriesDir, `${name}.png`), alt: `Series regression scene: ${name}` },
+    }, extraArgs: ['--report', reportPath] });
+    assert.ok(fs.existsSync(reportPath), `${name}: output checker report missing`);
+  }
   console.log(`Editorial cover checks passed (${((performance.now() - started) / 1000).toFixed(1)}s)`);
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });

@@ -36,3 +36,7 @@ render-job --candidate -> inspect PNG -> review
   revise -> edit only visual_plan + render_contract -> rerender/review once
   fail   -> do not publish a success artifact
 ```
+
+## Explicit cover series
+
+For an explicitly selected series, compare the PNG with its reference carrier as well as the source. Paper Wilderness uses [its own checklist](cover-paper-wilderness.md#交付前检查): consistent perspective, paper edge and red marker; article-specific relationships; restrained texture; and readable large titles. Inspect the art composited on the final light background and at 320px cover width. Transparent tool previews can conceal gray/brown alpha haze. The top/corner pixel checks cover only declared empty regions, not the entire silhouette. Never infer reader recognition from visual scores. Series failure uses the existing one-revision budget and hash-bound review workflow, not an additional cleanup loop.

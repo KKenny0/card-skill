@@ -125,6 +125,10 @@ Turn the article below into a WeChat cover image. Do not restate it as a summary
 [paste article or URL]
 ```
 
+**Paper Wilderness — an opt-in cover series**
+
+Ask for “纸上荒野系列” or “野生肯尼公众号封面” to retain large headlines, a paper terrain carrier and a red trail marker while changing the scene to match the article. An already selected series persists in the current conversation; generic covers do not activate it. Includes a neutral reference master, three examples and wide-cover layout. Uses the host’s image-generation capability or suitable user-selected art, with no new keys or setup. If neither is available, the agent reports the limitation instead of substituting a generic motif. First version supports `wechat-cover` only; no automatic square crop or default signature. [Series workflow](references/cover-paper-wilderness.md).
+
 **WeChat cover pair (explicit request)**
 ```text
 Create a wide WeChat cover and a square share image from this article. Keep the same short headline, qualifications, and palette, but compose each canvas independently. Inspect both PNGs before delivery.

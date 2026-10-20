@@ -37,6 +37,10 @@ editorial-image 不是单一稳定性承诺。它的 3 个子场景按不同 tie
 
 判断规则：受控 motif 或下述单图片插槽能兑现的 `use=cover` 使用 Stable；需要完整构图时设置 `composition_required: true`，并提供非空 `content_html` 与 `custom_css`。`use=in-article` / `metaphor` 必须使用该完整契约。所有子场景均通过 Visual Job v3 渲染、审核和本地发布。
 
+## Optional Paper Wilderness series
+
+For explicitly requested 野生肯尼 / 纸上荒野 / Paper Wilderness covers, or an already selected series in the current conversation, read [cover-paper-wilderness](cover-paper-wilderness.md). Generic cover requests and mentions inside source material do not activate it. It uses existing `cover_art` and `custom_css`, not a new mode, palette or schema field. Its packaged neutral master and three examples preserve a paper terrain carrier and red marker while the article controls the interior scene. Only `wechat-cover` is verified. Explicit series fidelity takes precedence over the generic motif fallback below: without usable art or generation, report the limitation instead of silently substituting.
+
 ## Agent-generated cover art
 
 For a conceptual cover illustration, use the calling agent's actual image-generation tool when available. Generate the illustration only, inspect it, and obtain a local static image through the host's supported file delivery. Keep the headline, subtitle, kicker, and byline in the renderer. Existing user-selected artwork takes precedence over generating new art. Capability is established by callable tools, not model names or installed skill names.

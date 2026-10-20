@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.12.0"
+version: "0.13.0"
 ---
 
 # card-skill
@@ -40,6 +40,7 @@ version: "0.12.0"
 | 规划自然语言出图 | [visual-job](references/visual-job.md)、[visual-taxonomy](references/visual-taxonomy.md)、`schemas/visual-job.json` |
 | 来源是开源工具/仓库，且任务要求出图 | [source-open-source-tool](references/source-open-source-tool.md) |
 | 明确请求微信读书个人划线、想法或统计出图 | [source-weread](references/source-weread.md)；认证与读取由官方 Tencent/WeChatReading Skill 负责 |
+| 明确要求野生肯尼公众号封面、纸上荒野系列，或会话已选择该系列 | [cover-paper-wilderness](references/cover-paper-wilderness.md) |
 | 已选模式的内容和字段 | `references/mode-{mode}.md` 与 `schemas/{mode}.json` |
 | 写完整 HTML/CSS 构图或处理视觉质量问题 | [taste](references/taste.md) 与对应 `assets/{mode}_template.html`；editorial-image 使用其模式文档 |
 | 需要颜色 token 或用户指定 design | [design-index](references/design-index.md) |
@@ -55,6 +56,8 @@ version: "0.12.0"
 常见入口：公众号/博客封面 → `editorial-image`；保留段落的长文 → `long`；社媒系列、读书笔记 → `poster`；单一观点 → `big`；推理白板 → `whiteboard`；正文关系压缩 → `article-diagram`；比较/数据 → `infograph`；冲突叙事 → `comic`；反思弧线 → `sketchnote`。最终选择仍须符合发布目标与 taxonomy。
 
 Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 及需要完整构图的 `editorial-image`）由 Agent 提供非空 `content_html` + `custom_css`，写入现有 `render_contract`，再进入同一候选生产链。按 taste 核对初稿与修订稿的元素均在父布局容器及画布内，不用负定位悬挂文字。不要另写 HTML 后手工截图交付。
+
+明确请求「野生肯尼公众号封面」「纸上荒野系列」或 `Paper Wilderness`，以及当前会话已选择该公众号系列时，先读取 [cover-paper-wilderness](references/cover-paper-wilderness.md)。它使用固定纸质地形与红色路标、保留大标题；不是 mode、tone 或 design。普通封面请求或来源正文中的名字不触发，不自动加署名。首版仅验证 `wechat-cover`。缺少合适素材及可用生图能力时须说明无法兑现本系列，不能以通用 motif 冒充。
 
 `editorial-image` 的 `use` 表示编辑用途，`aspect` 表示比例。封面需要概念插画时，先检查当前 Agent 实际可调用的生图能力：有能力就由 Agent 生成单独插画，查看结果并取得宿主允许的本地 PNG/JPEG/WebP，通过 `cover_art: { path, alt }` 交给 renderer；标题、副标题、Kicker 和署名仍由 renderer 排版。已有用户指定素材时直接使用，不重复生图。
 

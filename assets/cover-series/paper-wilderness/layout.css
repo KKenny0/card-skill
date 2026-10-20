@@ -1,0 +1,8 @@
+.editorial-frame {
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  gap: 28px;
+  padding: 38px 44px 30px;
+}
+.editorial-copy h1 { font-size: 56px; line-height: 1.15; }
+.editorial-subtitle { font-size: 23px; line-height: 1.5; margin-top: 20px; }
+.editorial-visual { height: 330px; min-width: 0; }
