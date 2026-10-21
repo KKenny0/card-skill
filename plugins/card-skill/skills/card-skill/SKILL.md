@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.13.0"
+version: "0.14.0"
 ---
 
 # card-skill
@@ -41,6 +41,7 @@ version: "0.13.0"
 | 来源是开源工具/仓库，且任务要求出图 | [source-open-source-tool](references/source-open-source-tool.md) |
 | 明确请求微信读书个人划线、想法或统计出图 | [source-weread](references/source-weread.md)；认证与读取由官方 Tencent/WeChatReading Skill 负责 |
 | 明确要求野生肯尼公众号封面、纸上荒野系列，或会话已选择该系列 | [cover-paper-wilderness](references/cover-paper-wilderness.md) |
+| 制作文字型 Poster（默认个人札记），或明确选择 field-notes | [poster-field-notes](references/poster-field-notes.md) |
 | 已选模式的内容和字段 | `references/mode-{mode}.md` 与 `schemas/{mode}.json` |
 | 写完整 HTML/CSS 构图或处理视觉质量问题 | [taste](references/taste.md) 与对应 `assets/{mode}_template.html`；editorial-image 使用其模式文档 |
 | 需要颜色 token 或用户指定 design | [design-index](references/design-index.md) |
@@ -66,6 +67,8 @@ Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 
 `cover_art` 仅用于 `use=cover`（可省略）和 `blog-hero` / `wechat-cover` / `cinematic`，与 `cover_motif`、`content_html`、`composition_required:true` 互斥。完整构图以及 `in-article` / `metaphor` 仍须设置 `composition_required: true` 并提供非空 `content_html` 与 `custom_css`。两条路径都走同一 Visual Job v3 审核发布链；详细资源和系列规范见模式文档。
 
 `article-diagram` 先判断原文是否有适合公式表达的关系，再生成 `formula` / `sentence` / `structure`。默认只显示公式与解释句；必要条件必须在这两个可见字段中。整篇文章按适合的章节出图，跳过无结构关系的部分；不强造公式，不默认切到实验性 structure/split。
+
+文字型 Poster 默认使用个人札记 `variant: "field-notes"`，按 [poster-field-notes](references/poster-field-notes.md) 组织内容：连续解释用段落、并列信息用边栏，相关短节允许合页，先确定阅读职责再确定张数。固定 3:4，不缩字填页；不是 tone，也不覆盖逐字划线的 `reading-notes` 规则。普通文字型 Poster 请求无需额外指定风格。明确选择其他变体、逐字划线配对、媒体/流程/数据任务保留各自合同；已有省略 variant 的结构化合同保持兼容，不自动补署名。
 
 ## 执行与交付
 

@@ -9,8 +9,8 @@
     "mode": { "type": "string", "const": "poster" },
     "variant": {
       "type": "string",
-      "enum": ["reading-notes"],
-      "description": "Optional composition variant. reading-notes preserves highlight-to-thought pairs and enables reading_unit body elements."
+      "enum": ["reading-notes", "field-notes"],
+      "description": "Optional composition variant. reading-notes preserves highlight-to-thought pairs. field-notes provides personal text notes with sidebar labels and fixed 3:4 pages."
     },
     "design": {
       "type": "string",
@@ -182,6 +182,10 @@
                 }
               },
               "allOf": [
+    {
+      "if": { "required": ["variant"], "properties": { "variant": { "const": "field-notes" } } },
+      "then": { "properties": { "cards": { "items": { "properties": { "body": { "items": { "properties": { "type": { "enum": ["paragraph", "heading", "highlight", "items"] } } } } } } } } }
+    },
                 {
                   "if": { "properties": { "type": { "const": "paragraph" } } },
                   "then": { "required": ["text"], "properties": { "text": { "maxLength": 1200, "pattern": "\\S" } } }

@@ -127,8 +127,12 @@ function isDenseMediaCopyCard(card) {
  * @returns {Array<object>} - Array of { htmlPath, captureWidth, captureHeight, fullpage }
  */
 function render(input, outputDir) {
-  const design = getDesign(resolveDesignNameForInput(input, 'stripe'));
+  let design = getDesign(resolveDesignNameForInput(input, 'stripe'));
   if (!design) throw new Error(`Design not found: ${input.design}`);
+  const isFieldNotes = input.variant === 'field-notes';
+  if (isFieldNotes && !input.design && (!input.tone || input.tone === 'reflective')) {
+    design = { ...design, canvas: '#f7f4ec', accent: '#b53d2c', ink: '#292923', inkMuted: '#625e52', hairline: '#d3ccbd' };
+  }
 
   // Poster template has no dark theme — reject dark-surface designs
   if (design.surface === 'dark') {
@@ -192,7 +196,7 @@ function render(input, outputDir) {
       ? `<h2 class="reading-card-title">${escapeHtml(card.title)}</h2>`
       : '';
     const bodyHtml = Array.isArray(card.body) ? renderCardBody(card.body) : '';
-    const sparseClass = !isReadingNotes && isSparsePosterCard(card) ? ' sparse-poster' : '';
+    const sparseClass = !isReadingNotes && !isFieldNotes && isSparsePosterCard(card) ? ' sparse-poster' : '';
     const evidenceClass = !isReadingNotes && card.body?.some(element => element?.type === 'media') ? ' evidence-poster' : '';
     const processClass = !isReadingNotes && card.body?.some(element => element?.type === 'process') ? ' process-poster' : '';
     const hasMediaCaption = !isReadingNotes && card.body?.some(element => element?.type === 'media' && typeof element.caption === 'string' && element.caption.trim());
@@ -205,7 +209,7 @@ function render(input, outputDir) {
     const denseMediaCopyClass = mediaWithCopyClass && isDenseMediaCopyCard(card) ? ' media-copy-dense' : '';
     const processOnlyClass = !isReadingNotes && card.body?.length === 1 && card.body[0]?.type === 'process' ? ' process-only-poster' : '';
     const singleClass = totalCards === 1 ? ' single-poster' : '';
-    html = html.replaceAll('{{CARD_CLASS}}', `${isReadingNotes ? ' reading-notes' : ''}${singleClass}${sparseClass}${evidenceClass}${processClass}${mediaOnlyClass}${mediaWithCopyClass}${denseMediaCopyClass}${processOnlyClass}`);
+    html = html.replaceAll('{{CARD_CLASS}}', `${isReadingNotes ? ' reading-notes' : ''}${isFieldNotes ? ' field-notes' : ''}${singleClass}${sparseClass}${evidenceClass}${processClass}${mediaOnlyClass}${mediaWithCopyClass}${denseMediaCopyClass}${processOnlyClass}`);
     html = html.replaceAll('{{BODY_HTML}}', `${cardTitle}${bodyHtml}`);
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophonBlock);
     html = html.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');

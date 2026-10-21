@@ -226,7 +226,7 @@ const SCHEMAS = {
 const LONG_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'blockquote', 'layer_card', 'section_break']);
 const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight']);
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider', 'reading_unit', 'media', 'process']);
-const POSTER_VARIANTS = new Set(['reading-notes']);
+const POSTER_VARIANTS = new Set(['reading-notes', 'field-notes']);
 const POSTER_MAX_CARDS = 20;
 const POSTER_MAX_BODY_ELEMENTS = 24;
 const POSTER_MAX_TOTAL_TEXT = 40_000;
@@ -458,7 +458,7 @@ function validate(input, { checkLocalFiles = true } = {}) {
     for (const [field, maximum] of [['title', 240], ['kicker', 160], ['subtitle', 500], ['source', 500], ['brand_name', 160]]) {
       if (input[field] !== undefined && (typeof input[field] !== 'string' || input[field].length > maximum)) errors.push(`${field} must be a string of at most ${maximum} characters`);
     }
-    if (input.variant && !POSTER_VARIANTS.has(input.variant)) {
+    if (input.variant !== undefined && !POSTER_VARIANTS.has(input.variant)) {
       errors.push(`variant must be one of: ${[...POSTER_VARIANTS].join(', ')}`);
     }
     if (input.cards.length === 0) errors.push('cards[] must have at least 1 card');
@@ -548,6 +548,9 @@ function validate(input, { checkLocalFiles = true } = {}) {
           }
           if (input.variant === 'reading-notes' && ['media', 'process'].includes(el.type)) {
             errors.push(`cards[${i}].body[${j}]: ${el.type} is not supported by poster variant "reading-notes"`);
+          }
+          if (input.variant === 'field-notes' && !['paragraph', 'heading', 'highlight', 'items'].includes(el.type)) {
+            errors.push(`cards[${i}].body[${j}]: ${el.type} is not supported by poster variant "field-notes"`);
           }
           if (el.type === 'reading_unit') {
             if (input.variant !== 'reading-notes') {

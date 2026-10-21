@@ -597,6 +597,26 @@
     color: var(--ink-muted);
     letter-spacing: 0.1em;
   }
+  /* Personal field notes: semantic grouping is planned before rendering. */
+  html:has(.field-notes), body:has(.field-notes) { background: var(--bg); }
+  .card.field-notes { padding:76px 76px 76px 90px; }
+  .field-notes::before { content:''; position:absolute; left:42px; top:80px; width:10px; height:28px; background:var(--accent); clip-path:polygon(0 0,100% 15%,100% 100%,0 85%); }
+  .field-notes .header { padding-bottom:22px; margin-bottom:40px; }
+  .field-notes .page-indicator { color:var(--accent); }
+  .field-notes .title-area { flex:0; padding:18px 0 34px; }
+  .field-notes .title-area h1 { line-height:1.22; }
+  .field-notes .title-area .subtitle { font-size:28px; }
+  .field-notes .body-content { flex:0 0 auto; display:flex; flex-direction:column; }
+  .field-notes .body-content h2 { font-size:44px; line-height:1.35; margin-bottom:32px; text-wrap:initial; }
+  .field-notes .body-content > h2:not(:first-child) { margin-top:24px; }
+  .field-notes .body-content > p { font-size:38px; line-height:1.65; margin:0 0 28px; }
+  .field-notes .item { flex:0 0 auto; display:grid; grid-template-columns:156px minmax(0,1fr); gap:20px; align-items:start; padding:34px 0; margin:0; border:0; }
+  .field-notes .item .label { font-family:var(--zh-serif); font-size:36px; line-height:1.55; color:var(--ink-muted); letter-spacing:0; padding:0; text-transform:none; }
+  .field-notes .item p:last-child { font-size:38px; line-height:1.55; margin:0; padding-left:24px; border-left:1px solid var(--hairline); white-space:pre-line; }
+  .field-notes .highlight { background:transparent; border-left:3px solid var(--accent); padding:14px 0 14px 26px; margin:30px 0 0; }
+  .field-notes .highlight p { font-size:38px; line-height:1.55; margin:0; }
+  .field-notes .body-content:has(.highlight) .item { padding:28px 0; }
+  .field-notes:not(:has(.title-area)) .body-content:has(.highlight) .item { padding:32px 0; }
 </style>
 </head>
 <body>

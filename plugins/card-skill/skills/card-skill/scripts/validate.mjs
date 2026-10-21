@@ -977,6 +977,28 @@ try {
   assert.notEqual(panoramaCheck.result.status, 0, 'poster checker accepted an extreme panorama that paints only a thin strip');
   assert.ok(panoramaCheck.report?.issues?.some(issue => issue.code === 'poster_evidence_media_density'), 'extreme panorama did not report poster evidence-media density');
 
+  const fieldNotesFixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals/fixtures/poster-field-notes.json'), 'utf8'));
+  assert.equal(validate(fieldNotesFixture).valid, true);
+  for (const type of ['divider', 'data_row', 'media', 'process', 'reading_unit']) {
+    assert.equal(validate({ ...fieldNotesFixture, cards: [{ body: [{ type, text: 'x' }] }] }).valid, false);
+  }
+  const fieldDir = path.join(tmpDir, 'field-notes');
+  fs.mkdirSync(fieldDir, { recursive: true });
+  const fieldPages = renderers.poster.render(fieldNotesFixture, fieldDir);
+  assert.equal(fieldPages.length, 2);
+  for (const page of fieldPages) {
+    assert.equal(page.captureWidth, 1080); assert.equal(page.captureHeight, 1440);
+    const html = fs.readFileSync(page.htmlPath, 'utf8');
+    assert.match(html, /class="card field-notes"/);
+    const checked = runOutputCheck(page.htmlPath, page);
+    assert.equal(checked.result.status, 0, checked.result.stdout + checked.result.stderr);
+  }
+  const sparseFieldDir = path.join(tmpDir, 'field-notes-sparse');
+  fs.mkdirSync(sparseFieldDir, { recursive: true });
+  const sparseField = renderers.poster.render({ ...fieldNotesFixture, cards: [{ body: [{ type: 'paragraph', text: '短页也不放大字号或拉伸。' }] }] }, sparseFieldDir);
+  assert.doesNotMatch(fs.readFileSync(sparseField[0].htmlPath, 'utf8'), /class="card[^">]*sparse-poster/);
+  runCardCli(fieldNotesFixture, 'field-notes-poster', 2);
+
   const readingNotesFixture = {
     mode: 'poster',
     variant: 'reading-notes',
@@ -1014,7 +1036,7 @@ try {
   assert.equal(readingNotesValidation.valid, true, `reading-notes fixture failed validation: ${readingNotesValidation.errors.join(', ')}`);
 
   const posterSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas', 'poster.json'), 'utf8'));
-  assert.deepEqual(posterSchema.properties.variant.enum, ['reading-notes'], 'public poster schema does not document the reading-notes variant');
+  assert.deepEqual(posterSchema.properties.variant.enum, ['reading-notes', 'field-notes'], 'public poster schema does not document the reading-notes variant');
   assert.ok(
     posterSchema.properties.cards.items.properties.body.items.properties.type.enum.includes('reading_unit'),
     'public poster schema does not document reading_unit',

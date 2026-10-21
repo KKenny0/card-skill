@@ -1,5 +1,7 @@
 # 模具：多卡（-c）
 
+自然语言文字型 Poster 默认选择 `variant: "field-notes"`，先读取 [个人札记规则](poster-field-notes.md)。媒体、流程、数据行与逐字划线配对使用下述专用合同；显式选择其他样式时遵从用户。旧结构化输入保持兼容。
+
 ## 步骤 1：读取模板
 
 Read `assets/poster_template.html`
@@ -141,6 +143,8 @@ reading-notes 是固定文字布局：首卡书名 → 每卡主题标签 → �
 - Running title（续页头部）：固定 70 权重
 
 ## 步骤 4：语义切分
+
+以下按章节严格拆卡规则适用于通用 Poster。显式选择 `variant: "field-notes"` 时，改用 [个人札记分组与分页规则](poster-field-notes.md)：允许服务于同一阅读职责的相邻短节合页。`reading-notes` 继续遵守其划线/想法配对与批次规则。
 
 ### 核心原则：一卡一题
 

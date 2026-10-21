@@ -318,3 +318,7 @@ card-skill 受到以下项目的启发：
 ## 开源许可
 
 [MIT](LICENSE) © 2026 Kenny Wu
+
+### 个人札记 Poster
+
+自然语言文字型 Poster 默认使用 field-notes 个人札记变体：固定 3:4、边栏标签、连贯段落，先按阅读关系分组再分页。相关短节可以合页，不缩小正文。详见[构图与分页规则](references/poster-field-notes.md)。显式变体、媒体/流程/数据卡、逐字读书笔记和已有结构化合同保留原有行为。

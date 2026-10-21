@@ -318,3 +318,7 @@ card-skill is inspired by:
 ## License
 
 [MIT](LICENSE) © 2026 Kenny Wu
+
+### Personal field-note posters
+
+Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). Explicit variants, media/process/data posters, verbatim reading notes, and existing structured contracts keep their existing behavior.
