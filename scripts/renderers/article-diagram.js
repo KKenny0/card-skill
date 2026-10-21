@@ -994,6 +994,9 @@ function resolvePositions(input, bboxes) {
 }
 
 function render(input, outputHtmlPath, ctx = {}) {
+  if (input.personal_layout !== undefined) {
+    return require('./article-diagram-personal').render(input, outputHtmlPath, ctx);
+  }
   // ctx.measure is the injected browser measure adapter: it receives the
   // measure pass spec {htmlPath, captureWidth, captureHeight} and returns
   // node bounding boxes. Production callers pass capture4k --measure; tests

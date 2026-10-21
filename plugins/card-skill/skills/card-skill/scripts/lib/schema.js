@@ -141,6 +141,7 @@ const SCHEMAS = {
       'sentence',
       'structure',
       'render_plan',
+      'personal_layout',
       'caption',
       'nodes',
       'links',
@@ -161,6 +162,7 @@ const SCHEMAS = {
       sentence: 'string',
       structure: 'object',
       render_plan: 'string',
+      personal_layout: 'string',
       caption: 'string',
       nodes: 'array',
       links: 'array',
@@ -625,7 +627,11 @@ function validate(input, { checkLocalFiles = true } = {}) {
 
   if (mode === 'article-diagram') {
     const usesLegacyFamily = Boolean(input.family);
-    const compressionFields = ['formula', 'sentence', 'structure', 'render_plan']
+    if (input.personal_layout !== undefined) {
+      try { require('./personal-diagram').analyze(input); }
+      catch (error) { errors.push(error.message); }
+    }
+    const compressionFields = ['formula', 'sentence', 'structure', 'render_plan', 'personal_layout']
       .filter(field => Object.prototype.hasOwnProperty.call(input, field));
 
     if (input.family && !ARTICLE_DIAGRAM_FAMILIES.has(input.family)) {

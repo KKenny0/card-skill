@@ -2,6 +2,8 @@
 
 <h1 align="center">card-skill</h1>
 
+New article-diagram requests default to six personal, browser-measured relationship layouts. See [contracts, fit limits and splitting rules](references/article-diagram-personal.md). Explicit formula requests and existing structured contracts remain compatible.
+
 <p align="center"><strong>Turn articles, ideas, and arguments into publish-ready visual cards.</strong></p>
 
 <p align="center">
@@ -136,9 +138,9 @@ Create a wide WeChat cover and a square share image from this article. Keep the 
 
 The pair uses existing `wechat-cover` and `square` aspects, with separate outputs linked by `cover_adaptation_of` in Visual Job v3. This bounded exception reuses evidence only within a cover pair; ordinary content cards still require independent evidence. Custom square layouts use the existing Studio contract, not `cover_art`. A request for one cover still produces one cover. [Workflow and example](references/visual-job.md#wechat-cover-pair).
 
-**In-article diagram / formula card**
+**In-article diagram / personal relation layouts**
 ```text
-Turn the compressible sections of this article into in-article explanation diagrams. Keep only the core relational formula and one judgment per card. Skip pure setup and mood sections.
+Turn the useful relationships in this article into in-article explanation diagrams. Express one core relationship per image and keep necessary conditions visible. Skip pure setup and mood sections.
 ```
 
 **Social card series**
@@ -322,3 +324,5 @@ card-skill is inspired by:
 ### Personal field-note posters
 
 Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). Explicit variants, media/process/data posters, verbatim reading notes, and existing structured contracts keep their existing behavior.
+
+<p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>

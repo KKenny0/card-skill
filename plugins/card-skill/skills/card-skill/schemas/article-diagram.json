@@ -22,12 +22,26 @@
           { "required": ["formula"] },
           { "required": ["sentence"] },
           { "required": ["structure"] },
-          { "required": ["render_plan"] }
+          { "required": ["render_plan"] },
+          { "required": ["personal_layout"] }
         ]
       }
     }
   ],
+  "allOf": [{
+    "if": { "required": ["personal_layout"] },
+    "then": {
+      "required": ["render_plan", "structure", "formula", "sentence"],
+      "properties": { "render_plan": { "const": "structure" }, "aspect": { "const": "body-3-2" } },
+      "not": { "required": ["family"] }
+    }
+  }],
   "properties": {
+    "personal_layout": {
+      "type": "string",
+      "enum": ["exchange", "convergence", "tension", "cycle", "timeline", "hierarchy"],
+      "description": "Default planning choice for new natural-language diagrams; explicitly written in the contract. Runtime validates the topology described in references/article-diagram-personal.md; actual text is browser-measured. Requires structure and body-3-2. Omitted fields in existing contracts keep formula compatibility."
+    },
     "mode": { "type": "string", "const": "article-diagram" },
     "family": {
       "type": "string",

@@ -1,6 +1,6 @@
 {
   "name": "card-skill",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Open-source agent skill that turns articles, notes, and arguments into checked publish-ready PNG cards: WeChat/blog covers, social posters, whiteboards, article diagrams, with optional Codex direction preview.",
   "author": {
     "name": "KKenny0",
@@ -44,7 +44,7 @@
       "Turn my WeChat Reading highlights and thoughts into a sourced card set",
       "Make my WeChat Reading statistics into a monthly reading report",
       "Draw this argument as a whiteboard card",
-      "Compress the key sections of this article into formula cards"
+      "Explain the key relationships in this article with personal-style diagrams"
     ],
     "brandColor": "#9B6048"
   }

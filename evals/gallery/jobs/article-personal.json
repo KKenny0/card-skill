@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "job_id": "gallery-article-personal",
+  "publish_target": "article-body",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "Layout validation example"
+  },
+  "source_units": [
+    {
+      "id": "stages",
+      "excerpt": "项目一月确定研究问题，二月完成小规模试验，三月整理结果；只表达阶段先后，不表示耗时相同。"
+    }
+  ],
+  "decision": {
+    "mode": "article-diagram",
+    "tier": "stable",
+    "tone": "reflective",
+    "reason": "按先后关系组织三个阶段，使用默认个人解释图风格。"
+  },
+  "outputs": [
+    {
+      "id": "timeline",
+      "basename": "article-personal.png",
+      "source_unit_ids": [
+        "stages"
+      ],
+      "transformation": "compress",
+      "render_contract": {
+        "mode": "article-diagram",
+        "tone": "reflective",
+        "title": "研究项目的三个阶段",
+        "formula": "研究项目的三个阶段",
+        "sentence": "只表达阶段先后，不表示耗时相同。",
+        "personal_layout": "timeline",
+        "render_plan": "structure",
+        "aspect": "body-3-2",
+        "structure": {
+          "nodes": [
+            {
+              "id": "a",
+              "label": "一月",
+              "note": "确定研究问题"
+            },
+            {
+              "id": "b",
+              "label": "二月",
+              "note": "小规模试验"
+            },
+            {
+              "id": "c",
+              "label": "三月",
+              "note": "整理结果"
+            }
+          ],
+          "relations": [
+            {
+              "from": "a",
+              "to": "b"
+            },
+            {
+              "from": "b",
+              "to": "c"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

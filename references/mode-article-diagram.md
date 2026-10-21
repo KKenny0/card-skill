@@ -1,45 +1,10 @@
 # Mode: article-diagram
 
-This mode creates in-article compression formula cards. Its default job is not to pick a diagram family; its job is to compress one article section into three stable artifacts:
+New natural-language requests default to personal relation diagrams. Read [personal contracts and limits](article-diagram-personal.md), select one source-supported personal_layout, and write render_plan: "structure" plus aspect: "body-3-2". The formula field is the visible relationship heading; sentence carries visible scope and conditions. Nodes, notes and relation labels are visible.
 
-1. `formula` - the core relation, invariant, or transformation.
-2. `sentence` - one human-readable takeaway.
-3. `structure` - the small supporting structure behind the formula, kept as semantic input and future structure-view material.
+Choose exchange, convergence, tension, cycle, timeline or hierarchy from meaning, not graph shape alone. Preserve full labels and split explanations that exceed the measured layout boundaries. Users do not need to request a personal style explicitly.
 
-Use it when the image must help the reader carry away the article's logic after reading a section. It is not an editorial cover, not a mood image, and not a whole-article summary card.
-
-## Eligibility before compression
-
-First ask whether the section contains a useful relation that a formula can express without changing meaning. Explain each arrow, equality, or operator from the source; do not manufacture arithmetic for a slogan. Meaning-changing conditions must appear in formula or sentence, not only the unrendered structure.
-
-Skip ineligible sections. For formatting or full-prose requests, choose an existing reading-card publishing target during planning. If an explicitly requested precise topology exceeds the formula surface, explain that limitation rather than inventing a formula. This does not change taxonomy, auto → summary, the experimental status of structure/split, or post-failure routing restrictions.
-
-## Core Belief
-
-正文解释图的工作不是装饰文章，而是把理解压缩成可带走的结构。
-
-The useful question is no longer "which family fits?" The useful question is:
-
-- Does this section have a source-supported relation worth expressing as a formula?
-- What is the one sentence the reader should remember?
-- What structure makes that sentence true?
-
-If the image only sets mood, use `editorial-image`. If it compresses a whole article into many points, use `poster`, `whiteboard`, or a Studio tier mode instead.
-
-## Default Output
-
-Default `render_plan` is `auto`, which renders one formula card:
-
-| Region | Contains | Purpose |
-|---|---|---|
-| Main field | `formula` | The compressed relation the reader should carry away |
-| Footnote line | `sentence` | The human-readable judgment that explains why the formula matters |
-
-The default card does not render title, page number, template label, top-right summary copy, bottom caption, or the supporting `structure`.
-
-Keep `formula` focused on the complete relation, including the nouns that identify its terms. Put readable conditions and exceptions in `sentence`; do not turn the main formula into a list of caveats. Both visible fields together must express the qualified claim without relying on the hidden title or structure.
-
-Use `render_plan: "summary"` as an explicit alias for the default formula card. Use `render_plan: "structure"` or `render_plan: "split"` only when the user explicitly asks to experiment with a supporting structure view. The structure view is not the default product surface.
+Explicit formula requests and genuine equations can use render_plan: "summary" without personal_layout. Existing structured contracts that omit personal_layout retain auto → summary behavior; explicit legacy families remain compatible. The formula-specific sections below describe that compatibility path.
 
 ## Routing
 
@@ -114,19 +79,19 @@ For every qualifying section:
 
 1. Keep the section boundary intact. Do not mix content from different sections.
 2. Extract the smallest useful structure from that section.
-3. Write the formula first.
-4. Write the one sentence second.
-5. Build the supporting structure with 2-6 nodes and up to 6 relations, but treat it as semantic support unless a structure view is explicitly requested.
+3. Select a supported personal relation from source meaning; use summary only for explicit formula requests or genuine equations.
+4. Write the relationship heading and the visible conditions.
+5. Build the visible structure within the selected layout limits. For personal layouts set personal_layout, render_plan: "structure" and aspect: "body-3-2".
 6. Preserve article order in the output sequence.
 
-If one section contains multiple possible structures, choose the one that best helps the reader understand that section in context. Only create multiple packs for the same section when the user explicitly asks for a fuller set.
+If one section contains multiple possible structures, choose the one that best helps the reader understand that section in context. Split a section into separate evidence-linked artifacts when necessary to preserve its independent relationships at readable size.
 
 ### Step 4: Batch Output Rules
 
 When multiple sections qualify:
 
 - render all qualifying sections, not only the strongest one
-- use filenames that preserve article order and section identity, such as `01-{section-slug}.png`; add `-structure` suffixes only for explicit structure/split output
+- use filenames that preserve article order and section identity, such as `01-{section-slug}.png`
 - keep each formula card readable as a standalone in-article image
 - report how many compression packs were produced and which section each one belongs to
 
@@ -134,7 +99,7 @@ If no section qualifies, do not force a weak diagram. Tell the user the article 
 
 ## Field Contract
 
-Default shape:
+Formula compatibility shape (personal contracts are documented in article-diagram-personal.md):
 
 ```json
 {
@@ -178,7 +143,7 @@ Language contract:
 - Internal ids may be English slugs, but visible labels should not be translated away from the source language.
 - Preserve proper nouns, product names, API names, and technical terms in the language or spelling used by the source.
 
-## Compression Quality
+## Formula Compatibility Quality
 
 ### Formula
 
@@ -236,11 +201,11 @@ The renderer still accepts legacy `family` inputs:
 | `process-flow` | Existing fixtures or explicit user request for process-flow | 6 steps |
 | `boundary-model` | Existing fixtures or explicit user request for boundary-model | 4 zones, 6 nodes |
 
-Do not use these families for new article compression unless the user explicitly asks for that old shape. New article-diagram work should use `formula`, `sentence`, and `structure`.
+Use these families for explicit legacy requests and existing contracts. New natural-language relation diagrams use personal_layout with formula, sentence and structure.
 
 ## Visual Rules
 
-- The renderer uses a formula card by default: `formula` is the main visual field, `sentence` is the quiet explanatory footnote.
+- Structured contracts without personal_layout retain the formula card: `formula` is the main visual field, `sentence` is the quiet explanatory footnote.
 - Do not show page numbers, plate numbers, top-right summary copy, bottom caption strips, or template labels like `formula`, `one sentence`, or `structure` unless the user explicitly asks for a labeled teaching slide.
 - The formula must feel like an article annotation, not a poster headline and not a dashboard tile.
 - The formula card must use the same Quiet Paper grammar: warm paper, restrained ink, hairline borders, low-saturation accent, little shadow.
@@ -267,8 +232,10 @@ Legacy family inputs still use the existing bounded salvage retries for label co
 
 ## Known Limitations
 
+New natural-language diagrams default to `personal_layout`: `exchange`, `convergence`, `tension`, `cycle`, `timeline`, or `hierarchy`. See [contracts and limits](article-diagram-personal.md). This requires `render_plan: "structure"`, uses measured 3:2 layouts, and leaves default summary behavior unchanged when absent.
+
 - Very long formulas can still overpower the card. Rewrite the formula into short terms plus a short result instead of shrinking text.
-- The default renderer intentionally does not solve open-ended structure diagrams. If the user needs a precise topology, use the legacy family path explicitly, a future structure-view design, or a custom Studio tier render.
+- The default renderer intentionally does not solve open-ended structure diagrams. For the six supported personal relations, explicitly select personal_layout. Other topologies still require a supported legacy family or a suitable custom Studio composition.
 
 ## Anti-Patterns
 

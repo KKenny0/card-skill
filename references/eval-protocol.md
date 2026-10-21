@@ -2,7 +2,7 @@
 
 ## Local maintenance
 
-For behavior, schema, renderer, or skill-instruction changes, run `npm run package-skill`, `npm test`, `npm run smoke`, and `git diff --check`. Inspect the generated mirror diff; never edit the mirror independently. The local suite uses disposable fixtures, including real browser captures; run it without a per-command approval round. `npm run check-output` only prints CLI help and is not a test gate.
+For behavior, schema, renderer, or skill-instruction changes, run `npm run package-skill`, `npm test`, `npm run smoke`, and `git diff --check`. Inspect the generated mirror diff; never edit the mirror independently. The local suite uses disposable fixtures, including real browser captures; run it without a per-command approval round. When VERSION changes, rebuild the version-bound gallery with npm run gallery:update, run npm run gallery:check, then package the generated assets. Do not fix version drift by changing only the manifest version. `npm run check-output` only prints CLI help and is not a test gate.
 
 Review representative actual PNGs when changing visual behavior or instructions. Palette changes require reflective/sharp/warm/technical plus one explicit design; article-diagram changes require a formula card and the three legacy families. Use `scripts/gallery-jobs.mjs` for gallery verification; mode-specific regression fixtures remain in `scripts/validate.mjs`.
 
@@ -20,7 +20,7 @@ Discovery stops on a CLI/runtime error and writes completed results plus the err
 
 Before a minor release, run `npm run eval:fresh -- --report evals/fresh-context-results.json`. The runner copies the generated package mirror into a temporary install root, runs `npm ci` there, verifies Playwright resolves inside that isolated root, and prepares the declared runtime. It then starts one ephemeral, read-only Codex process per case from that install, with no prior conversation or user configuration. It validates each produced Visual Job with `evals/check-job-assertions.mjs`, renders it through the installed `scripts/render-job.mjs`, and requires real passing receipts.
 
-`eval:fresh` runs the 25 planning cases at L1 and does not invoke a visual model. Four evidence-first cases cover adaptive CLI, launch, library/API, and stale-evidence routing with Visual Job v3. `npm run eval:cardbench -- --report evals/cardbench-results.json` runs all 29 cases. It attaches actual checked PNGs to independent ephemeral Critic calls, enforces Visual Review hashes and the 8.0 threshold, and exercises four forced-revision cases. A failed first review may revise only the applicable artifact/output `visual_plan` and `render_contract`, then rerender and review once.
+`eval:fresh` runs the 26 planning cases at L1 and does not invoke a visual model. Four evidence-first cases cover adaptive CLI, launch, library/API, and stale-evidence routing with Visual Job v3. `npm run eval:cardbench -- --report evals/cardbench-results.json` runs all 30 cases. It attaches actual checked PNGs to independent ephemeral Critic calls, enforces Visual Review hashes and the 8.0 threshold, and exercises four forced-revision cases. A failed first review may revise only the applicable artifact/output `visual_plan` and `render_contract`, then rerender and review once.
 
 ## Host orchestration
 
@@ -28,7 +28,7 @@ Delegate model-running CardBench invocations to the host's low-cost independent 
 
 `--list-cases` is a local read-only operation: it does not install dependencies, invoke a model, or require delegation/confirmation. Run it directly when selecting evaluation scope.
 
-During development, give the delegated worker one of these commands instead of repeatedly spending the full 29-case gate:
+During development, give the delegated worker one of these commands instead of repeatedly spending the full 30-case gate:
 
 ```powershell
 # Inspect the ordered case set without installing dependencies or calling a model.

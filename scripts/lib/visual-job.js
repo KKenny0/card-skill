@@ -144,6 +144,7 @@ function artifactContractProjection(contract, artifactIndex) {
     };
     return {
       mode: contract.mode, view, structure: contract.structure,
+      ...(contract.personal_layout ? { personal_layout: contract.personal_layout, formula: contract.formula, sentence: contract.sentence } : {}),
     };
   }
   return contract;

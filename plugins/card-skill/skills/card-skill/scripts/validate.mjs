@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { verifyPersonalDiagrams } from './validate-personal-diagram.mjs';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1739,6 +1740,7 @@ try {
     assert.equal(check.report?.pass, true, `${family} article-diagram did not pass`);
   }
 
+  verifyPersonalDiagrams();
   const compressionPackFixture = {
     mode: 'article-diagram',
     title: '多 Agent 的写入边界',

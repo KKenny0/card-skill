@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.10.4",
+  "card_skill_version": "0.15.0",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -66,6 +66,19 @@
       "height": 1080,
       "render_contract_sha256": "3a424ca136a79354dc1f8a1915170af916a6ba6cd2d5f3db8b9eef71668e1147",
       "png_sha256": "c97b8d76c855f2dabc63527e526d7389c7c88559cfadc5cb4946c11fbf50713a"
+    },
+    {
+      "fixture": "evals/gallery/jobs/article-personal.json",
+      "output_basename": "article-personal.png",
+      "mode": "article-diagram",
+      "tier": "stable",
+      "design": "tone_reflective",
+      "tone": "reflective",
+      "dpr": 2,
+      "width": 2160,
+      "height": 1440,
+      "render_contract_sha256": "5e9aa99925d3c197ac482c18b156099e8e94c5e756f4cd35b4e1c13a84267b08",
+      "png_sha256": "19cf7f00b5a884cd6c574f8d066aeb6d9aff6c957a81baba980a3f987550ace6"
     },
     {
       "fixture": "evals/gallery/jobs/big.json",

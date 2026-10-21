@@ -229,8 +229,8 @@ function assertRejectedEvidence(job, expected) {
 }
 
 if (process.argv.includes('--self-test')) {
-  assert.equal(cases.cases.length, 29, 'CardBench must contain exactly twenty-nine cases');
-  assert.equal(cases.cases.filter(item => item.kind !== 'revision').length, 25, 'expected twenty-five planning cases');
+  assert.equal(cases.cases.length, 30, 'CardBench must contain exactly thirty cases');
+  assert.equal(cases.cases.filter(item => item.kind !== 'revision').length, 26, 'expected twenty-six planning cases');
   assert.equal(cases.cases.filter(item => item.kind === 'revision').length, 4, 'expected four revision cases');
   assert.ok(cases.cases.every(item => (
     item.request
@@ -487,7 +487,7 @@ if (process.argv.includes('--self-test')) {
     /does not render source unit|distinct source units/,
     'split outputs must not silently drop a source unit',
   );
-  console.log('Visual Job eval self-test passed: 25 planning cases and 4 revision cases with grounded artifact assertions.');
+  console.log('Visual Job eval self-test passed: 26 planning cases and 4 revision cases with grounded artifact assertions.');
   process.exit(0);
 }
 const input = process.argv[2];

@@ -42,6 +42,33 @@
       "exclusive_source_contract_mappings": true
     },
     {
+      "id": "article-personal-default",
+      "request": "把下面这段内容做成一张正文解释图。只输出 Visual Job JSON。",
+      "source_text": "项目经历三个阶段：一月确定研究问题，二月完成小规模试验，三月整理结果。这是三个阶段的先后顺序，不表示各阶段耗时相同。",
+      "publish_target": "article-body",
+      "tier": "stable",
+      "modes": [
+        "article-diagram"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "personal_layout",
+        "render_plan",
+        "formula",
+        "sentence",
+        "structure"
+      ],
+      "required_terms": [
+        "一月",
+        "二月",
+        "三月",
+        "不"
+      ]
+    },
+    {
       "id": "social-big",
       "request": "把这句话做成一张单图社媒观点卡。只输出 Visual Job JSON。",
       "source_text": "能重建，才算能验证。",

@@ -1378,8 +1378,8 @@ if (officialBefore) assert.deepEqual(fs.readFileSync(officialCardBenchReport), o
 const fullScope = listEvalCases(['--cardbench']);
 assert.equal(fullScope.scope.kind, 'full');
 assert.equal(fullScope.scope.complete, true);
-assert.equal(fullScope.scope.selected, 29);
-assert.equal(fullScope.scope.total, 29);
+assert.equal(fullScope.scope.selected, 30);
+assert.equal(fullScope.scope.total, 30);
 
 const packagedRoot = path.join(ROOT, 'plugins', 'card-skill', 'skills', 'card-skill');
 const rootEvalSource = spawnSync(process.execPath, [

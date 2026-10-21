@@ -2,6 +2,8 @@
 
 <h1 align="center">card-skill</h1>
 
+正文解释图请求默认采用六类个人关系布局，并用浏览器测量文字是否适配。参见[合同、适用边界与拆图规则](references/article-diagram-personal.md)。明确要求公式卡及已有结构化合同保持兼容。
+
 <p align="center"><strong>把文章、观点和技术决策，做成可以直接发布的视觉卡片。</strong></p>
 
 <p align="center">
@@ -136,9 +138,9 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 
 使用现有 `wechat-cover` 和 `square` 比例，在 Visual Job v3 中用 `cover_adaptation_of` 关联两个独立 output。这项受约束的例外仅允许封面对复用证据；普通内容卡仍需独立证据。方版自由构图使用现有 Studio 契约，不使用 `cover_art`。只要求一张封面时仍只生成一张。[工作流与示例](references/visual-job.md#wechat-cover-pair)。
 
-**正文解释图 / 公式卡**
+**正文解释图 / 个人关系布局**
 ```text
-把这篇文章里值得压缩的章节做成正文解释图。每张只保留核心关系公式和一句判断，跳过纯铺垫和情绪段落。
+把这篇文章里值得解释的关系做成正文解释图。每张表达一个核心关系，保留必要条件，跳过纯铺垫和情绪段落。
 ```
 
 **社媒系列卡片（小红书等）**
@@ -322,3 +324,5 @@ card-skill 受到以下项目的启发：
 ### 个人札记 Poster
 
 自然语言文字型 Poster 默认使用 field-notes 个人札记变体：固定 3:4、边栏标签、连贯段落，先按阅读关系分组再分页。相关短节可以合页，不缩小正文。详见[构图与分页规则](references/poster-field-notes.md)。显式变体、媒体/流程/数据卡、逐字读书笔记和已有结构化合同保留原有行为。
+
+<p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>

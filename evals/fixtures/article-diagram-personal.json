@@ -1,0 +1,484 @@
+{
+  "exchange": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "能协作，不必看透对方",
+    "formula": "任务交出去，结果拿回来",
+    "sentence": "采购助手不知道，也无权查看。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "buyer",
+          "label": "采购助手",
+          "note": "根据结果\n给出建议"
+        },
+        {
+          "id": "external",
+          "label": "外部 Agent",
+          "note": "承担外部评估"
+        },
+        {
+          "id": "internal",
+          "label": "外部 Agent 的内部实现",
+          "note": "模型选择 · 任务规划 · 工具调用"
+        }
+      ],
+      "relations": [
+        {
+          "from": "buyer",
+          "to": "external",
+          "label": "委托资质与风险评估"
+        },
+        {
+          "from": "external",
+          "to": "buyer",
+          "label": "返回评估结果"
+        },
+        {
+          "from": "external",
+          "to": "internal",
+          "label": "内部实现"
+        }
+      ]
+    },
+    "personal_layout": "exchange"
+  },
+  "convergence": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "四种处境中的不确定感",
+    "formula": "不确定感，有它的现实处境",
+    "sentence": "文章将四种处境并置理解，不代表四者必然同时出现。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "experience",
+          "label": "经验不足",
+          "note": "面对复杂成人情境，\n仍像初学者"
+        },
+        {
+          "id": "reference",
+          "label": "缺少参照",
+          "note": "缺乏成功逆袭的历史数据"
+        },
+        {
+          "id": "score",
+          "label": "外部评分消失",
+          "note": "失去外在打分体系"
+        },
+        {
+          "id": "choices",
+          "label": "选择过多",
+          "note": "海量可能性带来选择难题"
+        },
+        {
+          "id": "uncertainty",
+          "label": "不确定感",
+          "note": "放回现实处境中理解"
+        }
+      ],
+      "relations": [
+        {
+          "from": "experience",
+          "to": "uncertainty",
+          "label": "构成处境"
+        },
+        {
+          "from": "reference",
+          "to": "uncertainty",
+          "label": "构成处境"
+        },
+        {
+          "from": "score",
+          "to": "uncertainty",
+          "label": "构成处境"
+        },
+        {
+          "from": "choices",
+          "to": "uncertainty",
+          "label": "构成处境"
+        }
+      ]
+    },
+    "personal_layout": "convergence"
+  },
+  "tension": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "期待与现实的张力",
+    "formula": "想要确定，却无法预知",
+    "sentence": "这是文中年轻听众的困境，并非所有犹豫的共同原因。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "wish",
+          "label": "想要的确定",
+          "note": "选之前就知道\n哪条路会幸福"
+        },
+        {
+          "id": "unknown",
+          "label": "面对的未知",
+          "note": "无法预知哪条路\n会让自己幸福"
+        },
+        {
+          "id": "stuck",
+          "label": "难以迈步",
+          "note": "有很多选择，\n却陷入纠结"
+        }
+      ],
+      "relations": [
+        {
+          "from": "wish",
+          "to": "stuck",
+          "label": "希望预知幸福"
+        },
+        {
+          "from": "unknown",
+          "to": "stuck",
+          "label": "结果无法预知"
+        }
+      ]
+    },
+    "personal_layout": "tension"
+  },
+  "cycle": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "PDCA：经验进入下一轮",
+    "formula": "PDCA：经验进入下一轮",
+    "sentence": "依据检查结果调整或推广，再开始下一轮改进。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "plan",
+          "label": "计划",
+          "note": "确定改变方向"
+        },
+        {
+          "id": "do",
+          "label": "试行",
+          "note": "小规模测试"
+        },
+        {
+          "id": "check",
+          "label": "检查",
+          "note": "分析测试结果"
+        },
+        {
+          "id": "act",
+          "label": "行动",
+          "note": "调整或推广"
+        }
+      ],
+      "relations": [
+        {
+          "from": "plan",
+          "to": "do",
+          "label": "下一步"
+        },
+        {
+          "from": "do",
+          "to": "check",
+          "label": "下一步"
+        },
+        {
+          "from": "check",
+          "to": "act",
+          "label": "下一步"
+        },
+        {
+          "from": "act",
+          "to": "plan",
+          "label": "下一步"
+        }
+      ]
+    },
+    "personal_layout": "cycle"
+  },
+  "timeline": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "万维网：从提案到公开软件",
+    "formula": "万维网：从提案到公开软件",
+    "sentence": "早期三个节点；等距排布，不代表等长时间。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "proposal",
+          "label": "1989.03",
+          "note": "提出万维网\n最初提案"
+        },
+        {
+          "id": "working",
+          "label": "1990 年底",
+          "note": "首个浏览器与\n服务器运行"
+        },
+        {
+          "id": "public",
+          "label": "1993.04.30",
+          "note": "软件进入\n公共领域"
+        }
+      ],
+      "relations": [
+        {
+          "from": "proposal",
+          "to": "working",
+          "label": "随后"
+        },
+        {
+          "from": "working",
+          "to": "public",
+          "label": "随后"
+        }
+      ]
+    },
+    "personal_layout": "timeline"
+  },
+  "hierarchy": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "Python：查找异常的继承分支",
+    "formula": "Python：查找异常的继承分支",
+    "sentence": "仅展示一个分支；连线表示继承，不是执行顺序。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "exception",
+          "label": "Exception",
+          "note": "常规异常基类"
+        },
+        {
+          "id": "lookup",
+          "label": "LookupError",
+          "note": "查找错误基类"
+        },
+        {
+          "id": "index",
+          "label": "IndexError",
+          "note": "序列索引越界"
+        },
+        {
+          "id": "key",
+          "label": "KeyError",
+          "note": "映射中找不到键"
+        }
+      ],
+      "relations": [
+        {
+          "from": "exception",
+          "to": "lookup",
+          "label": "子类"
+        },
+        {
+          "from": "lookup",
+          "to": "index",
+          "label": "子类"
+        },
+        {
+          "from": "lookup",
+          "to": "key",
+          "label": "子类"
+        }
+      ]
+    },
+    "personal_layout": "hierarchy"
+  },
+  "timeline-dense": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "万维网：从提案到公开软件",
+    "formula": "万维网：从提案到公开软件",
+    "sentence": "六个早期节点；纵向阅读，间距不表示时长。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "t0",
+          "label": "1989.03",
+          "note": "提出万维网最初提案"
+        },
+        {
+          "id": "t1",
+          "label": "1990.11",
+          "note": "将超文本项目形成正式提案"
+        },
+        {
+          "id": "t2",
+          "label": "1990 年底",
+          "note": "首个浏览器与服务器在 CERN 运行"
+        },
+        {
+          "id": "t3",
+          "label": "1991.03",
+          "note": "软件向使用 CERN 计算机的同事开放"
+        },
+        {
+          "id": "t4",
+          "label": "1991.08",
+          "note": "通过互联网新闻组公布万维网软件"
+        },
+        {
+          "id": "t5",
+          "label": "1993.04.30",
+          "note": "CERN 将万维网软件置于公共领域"
+        }
+      ],
+      "relations": [
+        {
+          "from": "t0",
+          "to": "t1"
+        },
+        {
+          "from": "t1",
+          "to": "t2"
+        },
+        {
+          "from": "t2",
+          "to": "t3"
+        },
+        {
+          "from": "t3",
+          "to": "t4"
+        },
+        {
+          "from": "t4",
+          "to": "t5"
+        }
+      ]
+    },
+    "personal_layout": "timeline"
+  },
+  "cycle-branch": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "PDCA：不同结果，都进入下一轮",
+    "formula": "PDCA：不同结果，都进入下一轮",
+    "sentence": "行动阶段展开为两支；依据本轮经验继续改进。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "plan",
+          "label": "识别机会，\n规划一项改变"
+        },
+        {
+          "id": "do",
+          "label": "在小范围内\n试行计划改变"
+        },
+        {
+          "id": "check",
+          "label": "复盘测试结果，\n识别获得的经验"
+        },
+        {
+          "id": "retry",
+          "label": "未奏效：\n调整原有计划"
+        },
+        {
+          "id": "spread",
+          "label": "已奏效：\n推广有效做法"
+        }
+      ],
+      "relations": [
+        {
+          "from": "plan",
+          "to": "do"
+        },
+        {
+          "from": "do",
+          "to": "check"
+        },
+        {
+          "from": "check",
+          "to": "retry"
+        },
+        {
+          "from": "check",
+          "to": "spread"
+        },
+        {
+          "from": "retry",
+          "to": "plan"
+        },
+        {
+          "from": "spread",
+          "to": "plan"
+        }
+      ]
+    },
+    "personal_layout": "cycle"
+  },
+  "hierarchy-dense": {
+    "mode": "article-diagram",
+    "tone": "reflective",
+    "title": "Python：不均衡的异常分支",
+    "formula": "Python：不均衡的异常分支",
+    "sentence": "仅示部分继承关系；不同分支可以有不同深度。",
+    "render_plan": "structure",
+    "aspect": "body-3-2",
+    "structure": {
+      "nodes": [
+        {
+          "id": "exception",
+          "label": "Exception"
+        },
+        {
+          "id": "os",
+          "label": "OSError"
+        },
+        {
+          "id": "file",
+          "label": "FileNotFoundError"
+        },
+        {
+          "id": "connection",
+          "label": "ConnectionError"
+        },
+        {
+          "id": "aborted",
+          "label": "ConnectionAbortedError"
+        },
+        {
+          "id": "reset",
+          "label": "ConnectionResetError"
+        }
+      ],
+      "relations": [
+        {
+          "from": "exception",
+          "to": "os"
+        },
+        {
+          "from": "os",
+          "to": "file"
+        },
+        {
+          "from": "os",
+          "to": "connection"
+        },
+        {
+          "from": "connection",
+          "to": "aborted"
+        },
+        {
+          "from": "connection",
+          "to": "reset"
+        }
+      ]
+    },
+    "personal_layout": "hierarchy"
+  }
+}
