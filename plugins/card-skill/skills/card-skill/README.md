@@ -64,6 +64,8 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | Narrative & conflict | `comic` | Studio | Step-by-step conflict, turn, or before/after stories | [Docs](references/mode-comic.md) |
 | Personal reflections | `sketchnote` | Studio | Warm, notebook-style visual notes | [Docs](references/mode-sketchnote.md) |
 
+New sketchnote requests default to `variant: "wandering-notes"`: shared typography and spacing with source-driven metaphor changes, reading rhythm, and semantic Chinese line breaks. It remains a Studio composition; existing contracts without a variant stay compatible. [Rules and examples](references/sketchnote-wandering-notes.md).
+
 > **Stable vs. Studio:**
 > - **Stable modes** use deterministic built-in templates—fast, consistent, and ideal for batch generation.
 > - **Studio modes** support bespoke HTML/CSS layouts for complex narratives and custom visual metaphors.

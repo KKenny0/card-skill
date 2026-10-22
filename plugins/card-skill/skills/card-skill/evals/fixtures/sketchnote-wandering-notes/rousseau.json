@@ -1,0 +1,73 @@
+{
+  "schema_version": 3,
+  "job_id": "wandering-rousseau",
+  "publish_target": "social-single",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "据用户提供的卢梭文章片段整理；本次为用户明确要求的同源设计对照"
+  },
+  "source_units": [
+    {
+      "id": "reading",
+      "excerpt": "用户提供文章标题为“从世界之敌到自足如神：晚年卢梭的心灵避难所与存在之感”。正文导言说明卢梭晚年著作遭查禁、旧友反目，处于被外界排斥的境况。本文整理以该文章的存在之感主题为依据，呈现从外界排斥到当下安顿的阅读线索；开放提问属于编辑性阅读问题，并非用户的个人经历或原文结论。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "sketchnote",
+    "tier": "studio",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户明确要求sketchnote现有方案与漫游札记同源对照；不虚构经历或失败"
+  },
+  "outputs": [
+    {
+      "id": "wandering-rousseau",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "wandering-rousseau",
+          "basename": "rousseau.png",
+          "role": "reflection",
+          "source_unit_ids": [
+            "reading"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "片刻的安顿，不等于外界冲突已经消失。",
+            "content_type": "story",
+            "argument_structure": "reflective-arc",
+            "visual_metaphor": "同舟及外界标签不变，压力折线转为当下注意力围合，非史实复原",
+            "layout_strategy": "两条紧凑场景带保留同舟变化，文本连续阅读；取消重复标题与图注，短问句不硬断行",
+            "visual_hierarchy": [
+              "问题标题",
+              "处境与转向",
+              "理解边界与开放问题"
+            ],
+            "avoid_patterns": [
+              "脏背景",
+              "虚构个人经历",
+              "虚构历史尝试",
+              "以图像代替条件"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "sketchnote",
+        "tone": "sharp",
+        "title": "世界喧闹时，在哪里停一会儿？",
+        "composition_required": true,
+        "source": "据用户提供的卢梭文章片段整理",
+        "content_html": "<header class=\"head\"><p class=\"k\">野生肯尼 · 漫游札记 / 卢梭</p><h1>世界喧闹时，<br>在哪里停一会儿？</h1></header><p>书被查禁，旧友反目。文章中的晚年卢梭，处在被外界排斥的境况里。</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 175\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"2.5\" stroke-linecap=\"round\"><text x=\"38\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">书被查禁</text><text x=\"770\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">旧友反目</text><path d=\"M210 65 L270 90 L300 72 L356 98 M750 65 L690 90 L660 72 L604 98\" stroke=\"var(--ink)\"/><path d=\"M391 93 Q480 167 569 93 Z\" stroke=\"var(--ink)\" stroke-width=\"4\"/><circle cx=\"480\" cy=\"75\" r=\"9\" fill=\"var(--accent-1)\" stroke=\"none\"/><path d=\"M435 93 Q480 74 525 93 M310 152 Q395 136 480 152 T650 152\"/></g></svg></figure><aside class=\"pause\"><p>外界不再接纳，<span class=\"whole\">还能在哪里安顿自己？</span></p></aside><section class=\"quiet\"><h2>把注意力收回此刻</h2><p>不追随过去，也不急着跳到未来。材料把目光转向当下的存在。</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 175\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"2.5\" stroke-linecap=\"round\"><text x=\"38\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">书被查禁</text><text x=\"770\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">旧友反目</text><path d=\"M210 75 H320 M640 75 H750\" stroke-dasharray=\"3 9\"/><ellipse cx=\"480\" cy=\"90\" rx=\"134\" ry=\"70\" stroke=\"var(--accent-1)\"/><path d=\"M391 93 Q480 167 569 93 Z\" stroke=\"var(--ink)\" stroke-width=\"4\"/><circle cx=\"480\" cy=\"75\" r=\"9\" fill=\"var(--accent-1)\" stroke=\"none\"/><path d=\"M435 93 Q480 74 525 93 M310 152 Q395 136 480 152 T650 152\"/></g></svg></figure></section><section class=\"ending\"><p>外界的处境还在，注意的中心变了。片刻的安顿，不等于冲突已经消失。</p><p class=\"muted\">小舟是阅读意象，并非史实复原。</p><p class=\"muted open\">留一个问题：独处何时是休息，<span class=\"whole\">何时又成了退避？</span></p></section>",
+        "custom_css": ".scene { margin: 18px 0; }",
+        "variant": "wandering-notes"
+      }
+    }
+  ]
+}

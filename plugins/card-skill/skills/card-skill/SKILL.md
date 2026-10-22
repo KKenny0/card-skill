@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.16.0"
+version: "0.17.0"
 ---
 
 # card-skill
@@ -43,6 +43,7 @@ version: "0.16.0"
 | 明确要求野生肯尼公众号封面、纸上荒野系列，或会话已选择该系列 | [cover-paper-wilderness](references/cover-paper-wilderness.md) |
 | 制作文字型 Poster（默认个人札记），或明确选择 field-notes | [poster-field-notes](references/poster-field-notes.md) |
 | 已选模式的内容和字段 | `references/mode-{mode}.md` 与 `schemas/{mode}.json` |
+| 制作视觉手记（默认漫游札记） | [sketchnote-wandering-notes](references/sketchnote-wandering-notes.md)；按来源安排意象变化、阅读节奏与语义断行 |
 | 制作推理白板（默认推演札记） | [whiteboard-reasoning-notes](references/whiteboard-reasoning-notes.md)；按关系选择布局，先决定单图或总览＋局部 |
 | 制作正文解释图（默认个人关系布局） | [article-diagram-personal](references/article-diagram-personal.md)；按来源选择六类关系，公式卡仅用于明确要求或实际公式 |
 | 写完整 HTML/CSS 构图或处理视觉质量问题 | [taste](references/taste.md) 与对应 `assets/{mode}_template.html`；editorial-image 使用其模式文档 |
@@ -73,6 +74,8 @@ Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 
 `whiteboard` 自然语言请求默认写入 `variant: "reasoning-notes"`，按 [推演与拆图规则](references/whiteboard-reasoning-notes.md) 选择显式块布局。连续阅读优先单图；共享例外、跨层回跳或按问题查阅时评估总览＋局部。拆图使用同一 Visual Job、多 outputs 和可见 `note_page` 导航，保留入口、停止条件、恢复出口和独有证据职责；不按高度机械切页、不缩正文。已有省略 variant 的结构化合同与显式 classic 保持兼容。
 
 文字型 Poster 默认使用个人札记 `variant: "field-notes"`，按 [poster-field-notes](references/poster-field-notes.md) 组织内容：连续解释用段落、并列信息用边栏，相关短节允许合页，先确定阅读职责再确定张数。固定 3:4，不缩字填页；不是 tone，也不覆盖逐字划线的 `reading-notes` 规则。普通文字型 Poster 请求无需额外指定风格。明确选择其他变体、逐字划线配对、媒体/流程/数据任务保留各自合同；已有省略 variant 的结构化合同保持兼容，不自动补署名。
+
+`sketchnote` 自然语言请求默认采用漫游札记，写入 `variant: "wandering-notes"`，读取 [漫游札记规则](references/sketchnote-wandering-notes.md)。共享样式由 renderer 加载，Agent仍提供完整Studio构图。意象随来源支持的认识变化，保留未解决的条件；不套固定站点，不虚构失败。短问句保持完整，长问句按语义断行，检查360px实际PNG。无需用户额外说“漫游札记”。用户明确要求其他构图时尊重其选择；省略variant的既有Studio合同保持兼容。
 
 ## 执行与交付
 

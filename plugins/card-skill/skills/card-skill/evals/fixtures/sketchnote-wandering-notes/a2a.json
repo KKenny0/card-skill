@@ -1,0 +1,73 @@
+{
+  "schema_version": 3,
+  "job_id": "wandering-a2a",
+  "publish_target": "social-single",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "据用户此前提供的A2A正文截图整理，仅使用截图内的采购委托场景与协议作用"
+  },
+  "source_units": [
+    {
+      "id": "reading",
+      "excerpt": "采购助手希望将候选公司的资质和风险交给外部机构评估，再根据结果给出建议。外部机构有自己的Agent，会查资料、调用商业数据库，必要时请人工复核。采购助手不知道，也没有权限查看对方使用什么模型、怎样规划任务、内部工具怎么调用。协作中要知道对方能评估什么、请求收到还是完成、如何追问和查询进度、最终交付什么。A2A为跨系统协作提供共同约定：介绍能力、交换消息、跟踪任务，以及交付结果。门与交接纸张仅为阅读意象；开放问题为编辑提问，不是协议字段或真实事件。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "sketchnote",
+    "tier": "studio",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户要求用新题材验证已选漫游札记；选已有A2A正文片段检验从心理哲学到技术内容的迁移"
+  },
+  "outputs": [
+    {
+      "id": "wandering-a2a",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "wandering-a2a",
+          "basename": "a2a.png",
+          "role": "reflection",
+          "source_unit_ids": [
+            "reading"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "协作所需的是对外共同约定，不以看透对方内部实现为前提。",
+            "content_type": "story",
+            "argument_structure": "reflective-arc",
+            "visual_metaphor": "两扇门始终关闭，第一次彼此分隔，第二次门外出现交接的纸张；任务与结果可交换，内部仍不可见。是阅读隐喻，不是协议实现图。",
+            "layout_strategy": "具体采购委托起笔，紧凑双门速写呈现看不见内部的停顿；把问题从内部实现转向协作约定，第二幅双门速写加入交接，最后命名A2A并留下阅读问题；不套固定四站或心理类内容的内省转折。",
+            "visual_hierarchy": [
+              "问题标题",
+              "处境与转向",
+              "理解边界与开放问题"
+            ],
+            "avoid_patterns": [
+              "脏背景",
+              "虚构个人经历",
+              "虚构历史尝试",
+              "以图像代替条件"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "sketchnote",
+        "tone": "sharp",
+        "title": "看不见门后，还能一起做事吗？",
+        "composition_required": true,
+        "source": "据用户提供的 A2A 正文片段整理",
+        "content_html": "<header class=\"head\"><p class=\"k\">野生肯尼 · 漫游札记 / A2A</p><h1>看不见门后，<br>还能一起做事吗？</h1></header><p>采购助手要把公司的资质与风险，<br>交给外部机构的 Agent 评估。</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 210\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M200 155 V22 H326 V155 M634 155 V22 H760 V155 M184 155 H342 M618 155 H776\"/><path d=\"M212 155 V34 H314 V155 M646 155 V34 H748 V155\"/><circle cx=\"294\" cy=\"100\" r=\"4\"/><circle cx=\"666\" cy=\"100\" r=\"4\"/><path d=\"M241 72 H285 M675 72 H719\" stroke=\"var(--accent-1)\" stroke-width=\"5\"/><path d=\"M364 93 H405 M555 93 H596\" stroke-dasharray=\"4 8\"/><path d=\"M466 70 Q503 56 500 86 Q499 96 481 106 V115 M481 129 V132\" stroke=\"var(--accent-1)\"/><text x=\"263\" y=\"200\" text-anchor=\"middle\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">采购助手</text><text x=\"697\" y=\"200\" text-anchor=\"middle\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">外部机构</text></g></svg></figure><p>对方用什么模型、怎样规划任务？<br>采购助手不知道，也没有权限查看。</p><section class=\"turn\"><h2>先问清，事情怎样交接</h2><p>能评估什么？做到哪一步？<br>最后拿到的是一句答复，还是一份报告？</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 210\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M200 155 V22 H326 V155 M634 155 V22 H760 V155 M184 155 H342 M618 155 H776\"/><path d=\"M212 155 V34 H314 V155 M646 155 V34 H748 V155\"/><circle cx=\"294\" cy=\"100\" r=\"4\"/><circle cx=\"666\" cy=\"100\" r=\"4\"/><path d=\"M241 72 H285 M675 72 H719\" stroke=\"var(--accent-1)\" stroke-width=\"5\"/><path d=\"M326 75 Q374 54 422 75 M538 75 Q585 96 634 75 M326 128 Q374 150 422 128 M538 128 Q584 110 634 128\" stroke-dasharray=\"4 8\"/><path d=\"M434 48 H526 V99 H434 Z M434 48 L480 79 L526 48\" stroke=\"var(--accent-1)\"/><path d=\"M445 112 H515 V156 H445 Z M456 125 H503 M456 139 H491\"/><text x=\"263\" y=\"200\" text-anchor=\"middle\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">采购助手</text><text x=\"697\" y=\"200\" text-anchor=\"middle\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">外部机构</text></g></svg></figure></section><section class=\"ending\"><h2>A2A 的共同约定</h2><p>介绍能力、交换消息、跟踪任务、交付结果。协作有了约定，门后的实现仍不必向对方展开。</p><p class=\"muted\">门与纸张是阅读意象，并非协议实现图。</p><p class=\"muted open\">留一个问题：接入外部协作者之前，<span class=\"whole\">哪些约定必须先说清？</span></p></section>",
+        "custom_css": ".turn{margin-top:32px;padding-top:24px;border-top:1px solid var(--hairline)}.turn h2{color:var(--accent-1);margin-bottom:18px}.ending h2{margin-bottom:14px}",
+        "variant": "wandering-notes"
+      }
+    }
+  ]
+}

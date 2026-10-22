@@ -4,18 +4,64 @@
   "title": "Card Skill Studio Sketchnote Contract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "title", "composition_required", "content_html", "custom_css"],
+  "required": [
+    "mode",
+    "title",
+    "composition_required",
+    "content_html",
+    "custom_css"
+  ],
   "properties": {
-    "mode": { "const": "sketchnote" },
-    "title": { "type": "string", "minLength": 1 },
-    "composition_required": { "const": true },
-    "content_html": { "type": "string", "minLength": 1, "maxLength": 1000000 },
-    "custom_css": { "type": "string", "minLength": 1, "maxLength": 262144 },
-    "design": { "type": "string", "description": "Optional explicit compatibility palette name. Changes colors only." },
-    "tone": { "enum": ["reflective", "sharp", "warm", "technical"], "description": "House color tone. Changes color tokens only." },
-    "subtitle": { "type": "string" },
-    "source": { "type": "string" },
-    "logo": { "type": "string", "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))" },
-    "brand_name": { "type": "string" }
+    "mode": {
+      "const": "sketchnote"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "composition_required": {
+      "const": true
+    },
+    "content_html": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000000
+    },
+    "custom_css": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 262144
+    },
+    "design": {
+      "type": "string",
+      "description": "Optional explicit compatibility palette name. Changes colors only."
+    },
+    "tone": {
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
+      "description": "House color tone. Changes color tokens only."
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "variant": {
+      "const": "wandering-notes",
+      "description": "Opt-in roaming reading notes: shared typography and rhythm primitives, composed in content_html/custom_css. Omit for existing Studio compositions."
+    }
   }
 }

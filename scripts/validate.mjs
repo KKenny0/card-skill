@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { verifySketchnoteNotes } from './validate-sketchnote-notes.mjs';
 import { verifyWhiteboardNotes } from './validate-whiteboard-notes.mjs';
 import { verifyPersonalDiagrams } from './validate-personal-diagram.mjs';
 
@@ -2251,6 +2252,8 @@ try {
 
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
+
+  await verifySketchnoteNotes();
 
   console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image tone selector, article-diagram families, field checks, custom composition, schema, and design registry.`);
 } finally {

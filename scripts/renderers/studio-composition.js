@@ -103,7 +103,11 @@ function render(input, outputHtmlPath) {
     if (!logoUrl && !brandName && !sourceLine) html = html.replace(/\s*<div class="colophon">\s*<\/div>/, '');
   }
 
-  html = html.replaceAll('{{CUSTOM_CSS}}', `${tokenOverrides}\n${input.custom_css}`);
+  const wanderingNotes = input.mode === 'sketchnote' && input.variant === 'wandering-notes';
+  const variantCss = wanderingNotes
+    ? fs.readFileSync(path.join(ASSETS, 'sketchnote-wandering-notes.css'), 'utf8')
+    : '';
+  html = html.replaceAll('{{CUSTOM_CSS}}', `${tokenOverrides}\n${variantCss ? `${variantCss}\n` : ''}${input.custom_css}`);
   html = html.replaceAll('{{LOGO}}', '');
   html = html.replaceAll('{{BRAND_NAME}}', '');
   html = html.replaceAll('{{SOURCE_LINE}}', '');
@@ -112,7 +116,7 @@ function render(input, outputHtmlPath) {
     input.mode === 'comic' ? '<div class="card">' : '<div class="page">',
     input.mode === 'comic'
       ? `<div class="card" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true">`
-      : `<div class="page" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true">`,
+      : `<div class="page" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true"${wanderingNotes ? ' data-card-variant="wandering-notes"' : ''}>`,
   );
 
   fs.writeFileSync(outputHtmlPath, html, 'utf8');

@@ -64,6 +64,8 @@
 | 叙事与冲突转折 | `comic` | Studio | 步骤化叙事、前后转折与故事情境 | [文档](references/mode-comic.md) |
 | 个人随笔与反思 | `sketchnote` | Studio | 温暖亲切的手记风格视觉笔记 | [文档](references/mode-sketchnote.md) |
 
+Sketchnote 自然语言请求默认使用 `variant: "wandering-notes"` 漫游札记：共享字号与间距，按来源组织意象变化、阅读节奏和中文语义断行。仍使用 Studio 完整构图；省略变体的已有合同保持兼容。[规则与样例](references/sketchnote-wandering-notes.md)。
+
 > **Stable 与 Studio 的区别：**
 > - **Stable 模式：** 使用内置确定性模板，渲染快、排版稳定，适合批量生产。
 > - **Studio 模式：** 支持定制 HTML/CSS 构图，适合表达复杂叙事与深度隐喻。

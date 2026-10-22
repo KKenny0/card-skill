@@ -1,0 +1,34 @@
+/* Shared geometry for explicit sketchnote wandering-notes compositions.
+ * Colors are inherited tokens. Content order and metaphors remain source-driven. */
+html,body,.page{background:var(--bg)}
+.grain{display:none}
+.page{padding:48px 56px 36px;font-family:var(--serif)}
+h1,h2,p,figure{margin:0;font-weight:400}
+h1{font-size:76px;line-height:1.22}
+h2{font-size:54px;line-height:1.35}
+p{font-size:44px;line-height:1.6;line-break:strict;word-break:normal;text-wrap:pretty}
+.k{font:36px/1.4 var(--sans);color:var(--ink-muted);margin-bottom:18px}
+.head{border-bottom:2px solid var(--accent-1);padding-bottom:26px;margin-bottom:28px}
+.muted{font-size:36px;line-height:1.5;color:var(--ink-muted)}
+.scene{margin:18px 0}
+svg{display:block;width:100%;height:auto}
+.pause{margin:24px 0;padding:16px 0 16px 28px;border-left:3px solid var(--accent-1)}
+.pause p{font-size:48px;line-height:1.5}
+.quiet{padding-top:22px;border-top:1px solid var(--hairline)}
+.quiet h2{margin-bottom:12px}
+.ending{border-top:2px solid var(--accent-1);padding-top:22px;margin-top:22px}
+.ending p+p{margin-top:18px}
+.open{margin-top:22px;padding-top:18px;border-top:1px dashed var(--hairline)}
+.colophon{padding:20px 0 0;margin-top:22px}
+.colophon .info-source{font:28px/1.4 var(--serif)}
+.whole{white-space:nowrap}
+.demand{margin:28px 0 14px;padding:18px 0 18px 22px;border-left:3px solid var(--accent-1)}
+.demand p{font-size:48px}
+.pivot{margin:40px 0 22px;color:var(--accent-1)}
+.question{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);padding:22px 0}
+.question p{font-size:52px;line-height:1.5}
+.question .muted{font-size:36px;margin-bottom:16px}
+.question .line{display:block}
+.scribble{width:300px;margin:16px 0 12px auto}
+.after{margin-top:26px}
+.footer-note{margin-top:18px}
