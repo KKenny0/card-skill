@@ -1,0 +1,11 @@
+*{box-sizing:border-box}body{margin:0;width:1080px;background:var(--bg);color:var(--ink);font-family:Notes,serif;-webkit-font-smoothing:antialiased}
+.notes{padding:44px 48px 40px}header{border-bottom:1px solid var(--accent);padding-bottom:24px;margin-bottom:26px}h1{font-size:60px;line-height:1.2;font-weight:400;margin:18px 0 0}.kicker{font:28px/1.5 sans-serif;color:var(--muted);margin:0}
+.block{margin:28px 0;font-size:44px;line-height:1.4}.node,p,h2{margin:0;white-space:pre-line;overflow-wrap:anywhere}.chain{display:flex;flex-direction:column;align-items:stretch;gap:12px}.highlight{color:var(--accent);font-size:48px}.muted{color:var(--muted);font-size:42px}
+.opposition{display:grid;grid-template-columns:1fr 64px 1fr;gap:14px}.opposition .node{border-block:1px solid var(--line);padding:18px 12px}.opposition .node:nth-child(2){border:0;padding:18px 0;align-self:center;text-align:center;color:var(--accent)}
+.turn{border-left:3px solid var(--accent);padding-left:24px}.layers{display:grid;grid-template-columns:repeat(var(--columns),minmax(0,1fr));gap:30px}.layer{border-top:1px solid var(--line);padding:18px 0;min-width:0}.layer h2{font-size:42px;font-weight:400;line-height:1.4;color:var(--accent);margin-bottom:12px}
+.boundary{gap:36px}.boundary .layer:first-child{border:1px dashed var(--line);padding:20px}.boundary .layer:last-child{border:0;border-left:3px solid var(--accent);padding:20px}
+.annotation{font-size:42px;line-height:1.4;white-space:pre-line;overflow-wrap:anywhere;border-top:1px solid var(--line);padding:14px 0;color:var(--muted);margin:26px 0}.exception{border:0;border-left:3px solid var(--accent);padding:14px 22px;background:var(--surface);color:var(--ink)}
+.insight{border-top:3px solid var(--accent);padding-top:20px;white-space:pre-line;overflow-wrap:anywhere}.depth-1{margin-left:32px}.depth-2{margin-left:64px}
+.page-id{font-size:42px;color:var(--accent);margin:18px 0}.navigation{border-top:3px solid var(--accent);padding-top:20px;font-size:44px;line-height:1.4}.reference{font-size:42px;color:var(--accent);margin-top:12px}.brand{font-size:36px;line-height:1.4;margin-top:28px;display:flex;gap:16px;align-items:center}.brand img{width:40px;height:40px}
+
+h1 .title-accent{color:var(--accent)}

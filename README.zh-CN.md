@@ -326,3 +326,5 @@ card-skill 受到以下项目的启发：
 自然语言文字型 Poster 默认使用 field-notes 个人札记变体：固定 3:4、边栏标签、连贯段落，先按阅读关系分组再分页。相关短节可以合页，不缩小正文。详见[构图与分页规则](references/poster-field-notes.md)。显式变体、媒体/流程/数据卡、逐字读书笔记和已有结构化合同保留原有行为。
 
 <p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>
+
+自然语言白板默认使用推演札记：显式边界、对置、转向与例外块，正文44px。按阅读任务选择单图或总览＋局部分支；拆图在同一 Visual Job 中校验可见页间导航。详见[构图与拆图规则](references/whiteboard-reasoning-notes.md)。已有结构化白板合同保持经典渲染。

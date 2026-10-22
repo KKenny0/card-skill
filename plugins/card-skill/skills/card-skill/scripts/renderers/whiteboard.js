@@ -91,6 +91,7 @@ function escapeRegex(str) {
  * Render whiteboard mode from structured input.
  */
 function render(input, outputHtmlPath) {
+  if (input.variant === 'reasoning-notes') return require('./whiteboard-notes').render(input, outputHtmlPath);
   const design = getDesign(resolveDesignNameForInput(input, 'stripe'));
   if (!design) throw new Error(`Design not found: ${input.design}`);
 

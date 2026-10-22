@@ -1,17 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill whiteboard mode input",
-  "description": "Structured input for whiteboard mode CLI rendering. Whiteboard mode produces a reasoning chain card (1080px wide, auto height).",
+  "description": "Structured input for whiteboard mode CLI rendering. Whiteboard mode produces a reasoning chain card (1080px wide, auto height). Reasoning-notes uses explicit block layouts. Runtime additionally rejects whitespace-only text, duplicate/self page links, and invalid series graphs across outputs in the same Visual Job.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "title", "steps"],
+  "required": [
+    "mode",
+    "title",
+    "steps"
+  ],
   "properties": {
-    "mode": { "type": "string", "const": "whiteboard" },
+    "mode": {
+      "type": "string",
+      "const": "whiteboard"
+    },
     "design": {
       "type": "string",
       "description": "Optional explicit compatibility palette name. Changes colors only; the default uses the technical house tone."
     },
-    "tone": { "type": "string", "enum": ["reflective", "sharp", "warm", "technical"], "description": "House color tone. Changes color tokens only and is ignored when design is explicit." },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
+      "description": "House color tone. Changes color tokens only and is ignored when design is explicit."
+    },
     "subtitle": {
       "type": "string",
       "description": "Subtitle / kicker line. Example: '推理链：从 API 调用到自主决策'",
@@ -24,8 +40,10 @@
     },
     "accent_words": {
       "type": "array",
-      "items": { "type": "string" },
-      "description": "Words to wrap in <span class=\"keyword\"> in the title."
+      "items": {
+        "type": "string"
+      },
+      "description": "Literal title words to highlight with the accent color."
     },
     "steps": {
       "type": "array",
@@ -34,18 +52,34 @@
         "oneOf": [
           {
             "type": "object",
-            "required": ["type", "nodes"],
+            "required": [
+              "type",
+              "nodes"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "chain" },
+              "type": {
+                "type": "string",
+                "const": "chain"
+              },
               "nodes": {
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["text"],
+                  "required": [
+                    "text"
+                  ],
                   "properties": {
-                    "text": { "type": "string" },
-                    "highlight": { "type": "boolean", "default": false },
-                    "muted": { "type": "boolean", "default": false }
+                    "text": {
+                      "type": "string"
+                    },
+                    "highlight": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "muted": {
+                      "type": "boolean",
+                      "default": false
+                    }
                   }
                 }
               }
@@ -53,25 +87,46 @@
           },
           {
             "type": "object",
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "annotation" },
-              "text": { "type": "string" }
+              "type": {
+                "type": "string",
+                "const": "annotation"
+              },
+              "text": {
+                "type": "string"
+              }
             }
           },
           {
             "type": "object",
-            "required": ["type", "items"],
+            "required": [
+              "type",
+              "items"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "layers" },
+              "type": {
+                "type": "string",
+                "const": "layers"
+              },
               "items": {
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["name", "desc"],
+                  "required": [
+                    "name",
+                    "desc"
+                  ],
                   "properties": {
-                    "name": { "type": "string" },
-                    "desc": { "type": "string" }
+                    "name": {
+                      "type": "string"
+                    },
+                    "desc": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -79,17 +134,369 @@
           },
           {
             "type": "object",
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "insight" },
-              "text": { "type": "string", "description": "HTML allowed: <span class=\"accent-word\">" }
+              "type": {
+                "type": "string",
+                "const": "insight"
+              },
+              "text": {
+                "type": "string",
+                "description": "HTML allowed: <span class=\"accent-word\">"
+              }
             }
           }
         ]
       },
       "minItems": 1
     },
-    "logo": { "type": "string", "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))", "description": "Optional safe absolute path to a brand logo image. Omit for an unbranded output." },
-    "brand_name": { "type": "string", "description": "Optional brand name in the colophon footer. Omit for an unbranded output." }
-  }
+    "logo": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))",
+      "description": "Optional safe absolute path to a brand logo image. Omit for an unbranded output."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
+    },
+    "variant": {
+      "enum": [
+        "classic",
+        "reasoning-notes"
+      ],
+      "description": "Natural-language default: reasoning-notes. Omission in existing structured contracts preserves classic."
+    },
+    "note_page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "series",
+        "id",
+        "role",
+        "entry",
+        "exit",
+        "links"
+      ],
+      "properties": {
+        "series": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+        },
+        "role": {
+          "enum": [
+            "overview",
+            "detail"
+          ]
+        },
+        "entry": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "exit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "target",
+              "label"
+            ],
+            "properties": {
+              "target": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 8
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "note_page"
+        ]
+      },
+      "then": {
+        "required": [
+          "variant"
+        ],
+        "properties": {
+          "variant": {
+            "const": "reasoning-notes"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "variant"
+        ],
+        "properties": {
+          "variant": {
+            "const": "reasoning-notes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "nodes"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "chain"
+                    },
+                    "layout": {
+                      "enum": [
+                        "stack",
+                        "opposition",
+                        "turn"
+                      ]
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 2
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "text"
+                        ],
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "highlight": {
+                            "type": "boolean"
+                          },
+                          "muted": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "minItems": 1,
+                      "maxItems": 6
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "layout"
+                        ],
+                        "properties": {
+                          "layout": {
+                            "const": "opposition"
+                          }
+                        }
+                      },
+                      "then": {
+                        "properties": {
+                          "nodes": {
+                            "minItems": 3,
+                            "maxItems": 3
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "items"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "layers"
+                    },
+                    "layout": {
+                      "enum": [
+                        "columns",
+                        "boundary"
+                      ]
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 2
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "desc"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "desc": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1200
+                          }
+                        }
+                      },
+                      "minItems": 1,
+                      "maxItems": 3
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "layout"
+                        ],
+                        "properties": {
+                          "layout": {
+                            "const": "boundary"
+                          }
+                        }
+                      },
+                      "then": {
+                        "properties": {
+                          "items": {
+                            "minItems": 2,
+                            "maxItems": 2
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "text"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "annotation"
+                    },
+                    "layout": {
+                      "enum": [
+                        "note",
+                        "exception"
+                      ]
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 2
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1200
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "text"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "insight"
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 2
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1200
+                    }
+                  }
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 16
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "steps": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "layout"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "depth"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

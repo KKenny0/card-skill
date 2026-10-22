@@ -1,0 +1,305 @@
+{
+  "schema_version": 3,
+  "job_id": "whiteboard-publishing-series",
+  "publish_target": "whiteboard",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "用户授权的假设案例设计；同一规则比较单图与拆图，非真实发布制度"
+  },
+  "source_units": [
+    {
+      "id": "flow",
+      "excerpt": "以下是为布局实验构造的文章协作发布流程，不是实际公众号制度。正常顺序为写稿、内容审核、排版、发布确认，确认后才发布。在任何阶段发现缺少来源或数据冲突，都优先暂停当前动作，进入事实核对。普通内容审核问题与最终发布确认另外处理。总览用于定位当前路径，局部图用于执行该路径。 事实问题解决后，仍需重新审核与确认；恢复细节见事实回跳规则。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    },
+    {
+      "id": "fact",
+      "excerpt": "共享例外的触发条件是缺少来源或数据冲突，在任何阶段都优先于普通流程。先暂停当前动作并回到事实核对。问题未解决则停在事实核对，不排版、不发布。解决后必须依次改稿、内容重审、排版、重新确认发布，不得直接回到发生问题时的排版或发布步骤；此前获得的审核和发布确认不能代替重新确认。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    },
+    {
+      "id": "review",
+      "excerpt": "在不存在未解决事实问题的前提下，内容审核若仅发现表达问题，则退回改稿，再次内容审核；内容审核通过后进入排版，再请求发布确认。没有获得发布确认时保留草稿；获得确认后才发布。如果过程中出现缺来源或数据冲突，普通分支立即让位于共享例外。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "whiteboard",
+    "tier": "stable",
+    "selection_source": "user-override",
+    "reason": "用户要求共享例外与跨层回跳的总览＋局部分支拆图对照"
+  },
+  "outputs": [
+    {
+      "id": "overview-split",
+      "artifacts": [
+        {
+          "id": "overview-split",
+          "artifact_index": 1,
+          "basename": "overview-split.png",
+          "role": "claim",
+          "source_unit_ids": [
+            "flow"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "01 / 先判断走哪条路径",
+            "content_type": "argument",
+            "argument_structure": "network",
+            "visual_metaphor": null,
+            "layout_strategy": "总览负责选路；每张局部图自带进入条件、结果与回跳约束；用02/03交叉引用；正文44px；正式reasoning-notes显式布局合同",
+            "visual_hierarchy": [
+              "进入条件或起点",
+              "分支和恢复路径",
+              "停止与优先级"
+            ],
+            "avoid_patterns": [
+              "将假设写成真实制度",
+              "漏掉重审或重新确认",
+              "把局部图当成完整总流程"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "whiteboard",
+        "tone": "sharp",
+        "title": "先判断走哪条路径",
+        "subtitle": "推演札记 / 假设流程 · 总览 1/3",
+        "steps": [
+          {
+            "type": "chain",
+            "nodes": [
+              {
+                "text": "正常顺序\n写稿 → 内容审核 → 排版\n→ 发布确认 → 发布"
+              }
+            ],
+            "layout": "stack"
+          },
+          {
+            "type": "annotation",
+            "text": "先查共享例外｜任何阶段\n发现缺来源或数据冲突，\n优先暂停，转 02「事实回跳」。",
+            "layout": "exception"
+          },
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "有事实问题",
+                "desc": "优先走 02\n问题解决后，\n还要重新审核确认"
+              },
+              {
+                "name": "无事实问题",
+                "desc": "走 03\n处理表达退回\n与发布确认"
+              }
+            ],
+            "layout": "columns"
+          }
+        ],
+        "variant": "reasoning-notes",
+        "note_page": {
+          "series": "publishing",
+          "id": "01",
+          "role": "overview",
+          "entry": "先检查共享例外，再选择02或03。",
+          "exit": "总览负责选路；局部图负责恢复与停止。",
+          "links": [
+            {
+              "target": "02",
+              "label": "缺来源或数据冲突：事实回跳"
+            },
+            {
+              "target": "03",
+              "label": "无事实问题：普通审核与确认"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fact-return-split",
+      "artifacts": [
+        {
+          "id": "fact-return-split",
+          "artifact_index": 1,
+          "basename": "fact-return-split.png",
+          "role": "claim",
+          "source_unit_ids": [
+            "fact"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "02 / 事实回跳，重新走完",
+            "content_type": "argument",
+            "argument_structure": "network",
+            "visual_metaphor": null,
+            "layout_strategy": "总览负责选路；每张局部图自带进入条件、结果与回跳约束；用02/03交叉引用；正文44px；正式reasoning-notes显式布局合同",
+            "visual_hierarchy": [
+              "进入条件或起点",
+              "分支和恢复路径",
+              "停止与优先级"
+            ],
+            "avoid_patterns": [
+              "将假设写成真实制度",
+              "漏掉重审或重新确认",
+              "把局部图当成完整总流程"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "whiteboard",
+        "tone": "sharp",
+        "title": "事实回跳，重新走完",
+        "subtitle": "推演札记 / 假设流程 · 局部 2/3",
+        "steps": [
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "事实未解决",
+                "desc": "停在事实核对\n不排版、不发布"
+              },
+              {
+                "name": "事实已解决",
+                "desc": "进入下方恢复链\n不能原地续发"
+              }
+            ],
+            "layout": "columns"
+          },
+          {
+            "type": "chain",
+            "nodes": [
+              {
+                "text": "改稿 → 内容重审",
+                "highlight": true
+              },
+              {
+                "text": "→ 排版 → 重新确认发布"
+              }
+            ],
+            "layout": "stack"
+          }
+        ],
+        "variant": "reasoning-notes",
+        "note_page": {
+          "series": "publishing",
+          "id": "02",
+          "role": "detail",
+          "entry": "任何阶段发现缺来源或数据冲突。\n先暂停当前动作，再核对事实。",
+          "exit": "旧审核或发布确认不沿用。\n重审、排版后重新确认，不能原地续发。",
+          "links": [
+            {
+              "target": "03",
+              "label": "重审与排版后：重新确认发布"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ordinary-review-split",
+      "artifacts": [
+        {
+          "id": "ordinary-review-split",
+          "artifact_index": 1,
+          "basename": "ordinary-review-split.png",
+          "role": "claim",
+          "source_unit_ids": [
+            "review"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "03 / 普通审核与发布确认",
+            "content_type": "argument",
+            "argument_structure": "network",
+            "visual_metaphor": null,
+            "layout_strategy": "总览负责选路；每张局部图自带进入条件、结果与回跳约束；用02/03交叉引用；正文44px；正式reasoning-notes显式布局合同",
+            "visual_hierarchy": [
+              "进入条件或起点",
+              "分支和恢复路径",
+              "停止与优先级"
+            ],
+            "avoid_patterns": [
+              "将假设写成真实制度",
+              "漏掉重审或重新确认",
+              "把局部图当成完整总流程"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "whiteboard",
+        "tone": "sharp",
+        "title": "普通审核与发布确认",
+        "subtitle": "推演札记 / 假设流程 · 局部 3/3",
+        "steps": [
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "有表达问题",
+                "desc": "改稿 → 再次审核\n通过后才排版"
+              },
+              {
+                "name": "内容审核通过",
+                "desc": "排版\n→ 请求发布确认"
+              }
+            ],
+            "layout": "columns"
+          },
+          {
+            "type": "chain",
+            "nodes": [
+              {
+                "text": "发布确认是独立的一步"
+              }
+            ],
+            "layout": "stack"
+          },
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "已获确认",
+                "desc": "且无未解决的\n事实问题\n→ 发布"
+              },
+              {
+                "name": "尚未确认",
+                "desc": "保留草稿\n→ 不发布"
+              }
+            ],
+            "layout": "columns"
+          }
+        ],
+        "variant": "reasoning-notes",
+        "note_page": {
+          "series": "publishing",
+          "id": "03",
+          "role": "detail",
+          "entry": "无未解决事实问题。\n途中出现事实问题，优先暂停。",
+          "exit": "未获确认保留草稿；\n已获确认且无未解决事实问题才发布。",
+          "links": [
+            {
+              "target": "02",
+              "label": "途中出现事实问题：暂停并核对"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

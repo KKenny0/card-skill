@@ -1,0 +1,588 @@
+{
+  "a2a": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "看不到内部，怎样协作？",
+    "subtitle": "推演札记 / 01 · 协作的边界",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "01 / 场景\n采购助手委托外部 Agent\n评估公司的资质与风险。"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "内部｜不可见",
+            "desc": "模型选择\n任务规划\n工具调用"
+          },
+          {
+            "name": "协作｜需约定",
+            "desc": "介绍能力、交换消息\n跟踪任务、交付结果"
+          }
+        ],
+        "layout": "boundary"
+      },
+      {
+        "type": "annotation",
+        "text": "权限边界｜采购助手不知道，\n也无权查看对方内部。",
+        "layout": "note"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "02 / 沿过程追问"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "委托前",
+            "desc": "能评估哪些\n地区、行业？"
+          },
+          {
+            "name": "执行中",
+            "desc": "收到或完成？\n断线怎样追踪？"
+          },
+          {
+            "name": "交付时",
+            "desc": "交付的报告，\n有证据吗？"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "insight",
+        "text": "03 / 判断\nA2A 约定跨系统协作过程，\n对方内部实现仍不可见。"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "uncertainty": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "不确定时，怎样换问法？",
+    "subtitle": "推演札记 / 02 · 判断的支点",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "01 / 想要确定\n知道会幸福，\n才开始行动。"
+          },
+          {
+            "text": "却"
+          },
+          {
+            "text": "现实：无法预知\n哪条路\n会带来幸福。"
+          }
+        ],
+        "layout": "opposition"
+      },
+      {
+        "type": "annotation",
+        "text": "文中解释｜一种完美主义，\n想消灭后悔的可能。",
+        "layout": "note"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "02 / 换个问题"
+          },
+          {
+            "text": "从预知幸福，到辨认遗憾",
+            "highlight": true
+          },
+          {
+            "text": "20 年后，不选哪件事最遗憾？"
+          }
+        ],
+        "layout": "turn",
+        "depth": 1
+      },
+      {
+        "type": "annotation",
+        "text": "换问法提供支点，不保证结果。",
+        "layout": "note",
+        "depth": 1
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "03 / 可以尝试",
+            "desc": "给内心的吵闹声\n安排具体任务。"
+          },
+          {
+            "name": "未知仍在",
+            "desc": "哪条路会幸福，\n仍无法预知。"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "insight",
+        "text": "落点｜也问问自己：\n我最不愿错过什么？"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "conditions": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "条件齐了，就能对外发送？",
+    "subtitle": "推演札记 / 假设案例 · 长条件",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "01 / 假设采购试点\n外部报告完成，能直接发给客户吗？"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "先同时满足",
+            "desc": "评估已完成\n报告附有证据\n发送授权已确认"
+          },
+          {
+            "name": "再排除例外",
+            "desc": "同名公司未澄清\n资质资料有缺失\n任一存在，先澄清"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "annotation",
+        "text": "规则边界｜这是自设流程，\n不是 A2A 协议的授权要求。",
+        "layout": "note"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "案例甲｜缺授权",
+            "desc": "报告、证据齐全，\n也没有待澄清项。\n→ 仍只保留草稿"
+          },
+          {
+            "name": "案例乙｜有同名",
+            "desc": "报告、证据齐全，\n授权也已确认。\n→ 仍先澄清同名"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "insight",
+        "text": "02 / 推到判断\n报告完成只是条件之一。\n必要条件齐全，且例外已排除，\n才进入发送。"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "counterexample": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "犹豫，都因为害怕后悔？",
+    "subtitle": "推演札记 / 假设案例 · 反例",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "01 / 过度推断\n只要犹豫，\n就是怕后悔。"
+          },
+          {
+            "text": "但"
+          },
+          {
+            "text": "假设反例\n愿意承担选错，\n却还不能报名。"
+          }
+        ],
+        "layout": "opposition"
+      },
+      {
+        "type": "annotation",
+        "text": "缺的是什么？\n课程尚未排期，无法判断工作冲突。",
+        "layout": "note"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "02 / 修正判断"
+          },
+          {
+            "text": "先区分怕后悔与缺信息",
+            "highlight": true
+          },
+          {
+            "text": "这个案例先查排期，再判断冲突。"
+          }
+        ],
+        "layout": "turn",
+        "depth": 1
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "反例推翻了",
+            "desc": "“所有犹豫”\n都源于怕后悔。"
+          },
+          {
+            "name": "反例没有证明",
+            "desc": "怕后悔从来\n不会影响判断。"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "insight",
+        "text": "03 / 回到文章\n遗憾提问可以提供支点，\n但不能代替缺失的事实。"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "branches": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "读书会遇到变化，怎样决定？",
+    "subtitle": "推演札记 / 假设案例 · 复杂分支",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "01 / 先看负责人能否到场"
+          },
+          {
+            "text": "假设规则｜按层判断；得出结果即停止。"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "不能到场",
+            "desc": "→ 改期，停止"
+          },
+          {
+            "name": "能到场｜看天气",
+            "desc": "适合户外 → 原计划\n不适合 → 进入 02"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "02 / 只处理“不适合户外”"
+          }
+        ],
+        "layout": "stack",
+        "depth": 1
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "室内两项都满足",
+            "desc": "容量够、时段可用\n→ 转室内，停止"
+          },
+          {
+            "name": "室内任一不满足",
+            "desc": "容量不足或无时段\n→ 进入 03"
+          }
+        ],
+        "layout": "columns",
+        "depth": 1
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "03 / 只处理“室内不可用”"
+          }
+        ],
+        "layout": "stack",
+        "depth": 2
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "线上两项都满足",
+            "desc": "全员同意\n设备测试通过\n→ 转线上，停止"
+          },
+          {
+            "name": "线上任一不满足",
+            "desc": "有人不同意\n或设备未通过\n→ 改期，停止"
+          }
+        ],
+        "layout": "columns",
+        "depth": 2
+      },
+      {
+        "type": "annotation",
+        "text": "路径核对｜室内可用时，\n无需再检查线上条件。",
+        "layout": "note"
+      },
+      {
+        "type": "insight",
+        "text": "落点｜先后顺序与停止条件，\n和分支选项同样重要。"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "single": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "文章发布：退回后从哪里再走？",
+    "subtitle": "推演札记 / 假设流程 · 单图全貌",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "正常顺序\n写稿 → 内容审核 → 排版\n→ 发布确认 → 发布"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "annotation",
+        "text": "共享例外｜任何阶段发现\n缺来源或数据冲突：优先暂停，\n回到事实核对。",
+        "layout": "exception"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "只是表达问题",
+            "desc": "退回改稿\n→ 再次内容审核\n通过后才排版"
+          },
+          {
+            "name": "涉及事实问题",
+            "desc": "回到事实核对\n未解决：停在这里\n不排版、不发布"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "事实解决后，不能原地续发",
+            "highlight": true
+          },
+          {
+            "text": "改稿 → 内容重审 → 排版\n→ 重新确认发布"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "annotation",
+        "text": "此前的审核与确认，\n不能代替这一轮重新确认。",
+        "layout": "exception"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "已获发布确认",
+            "desc": "且无未解决的\n事实问题\n→ 发布"
+          },
+          {
+            "name": "未获发布确认",
+            "desc": "→ 保留草稿\n不直接发布"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "insight",
+        "text": "判断顺序｜事实问题优先。\n表达退回与事实回跳，\n不能走同一条恢复路径。"
+      }
+    ],
+    "variant": "reasoning-notes"
+  },
+  "overview": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "先判断走哪条路径",
+    "subtitle": "推演札记 / 假设流程 · 总览 1/3",
+    "steps": [
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "正常顺序\n写稿 → 内容审核 → 排版\n→ 发布确认 → 发布"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "annotation",
+        "text": "先查共享例外｜任何阶段\n发现缺来源或数据冲突，\n优先暂停，转 02「事实回跳」。",
+        "layout": "exception"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "有事实问题",
+            "desc": "优先走 02\n问题解决后，\n还要重新审核确认"
+          },
+          {
+            "name": "无事实问题",
+            "desc": "走 03\n处理表达退回\n与发布确认"
+          }
+        ],
+        "layout": "columns"
+      }
+    ],
+    "variant": "reasoning-notes",
+    "note_page": {
+      "series": "publishing",
+      "id": "01",
+      "role": "overview",
+      "entry": "先检查共享例外，再选择02或03。",
+      "exit": "总览负责选路；局部图负责恢复与停止。",
+      "links": [
+        {
+          "target": "02",
+          "label": "缺来源或数据冲突：事实回跳"
+        },
+        {
+          "target": "03",
+          "label": "无事实问题：普通审核与确认"
+        }
+      ]
+    }
+  },
+  "fact-return": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "事实回跳，重新走完",
+    "subtitle": "推演札记 / 假设流程 · 局部 2/3",
+    "steps": [
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "事实未解决",
+            "desc": "停在事实核对\n不排版、不发布"
+          },
+          {
+            "name": "事实已解决",
+            "desc": "进入下方恢复链\n不能原地续发"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "改稿 → 内容重审",
+            "highlight": true
+          },
+          {
+            "text": "→ 排版 → 重新确认发布"
+          }
+        ],
+        "layout": "stack"
+      }
+    ],
+    "variant": "reasoning-notes",
+    "note_page": {
+      "series": "publishing",
+      "id": "02",
+      "role": "detail",
+      "entry": "任何阶段发现缺来源或数据冲突。\n先暂停当前动作，再核对事实。",
+      "exit": "旧审核或发布确认不沿用。\n重审、排版后重新确认，不能原地续发。",
+      "links": [
+        {
+          "target": "03",
+          "label": "重审与排版后：重新确认发布"
+        }
+      ]
+    }
+  },
+  "ordinary-review": {
+    "mode": "whiteboard",
+    "tone": "sharp",
+    "title": "普通审核与发布确认",
+    "subtitle": "推演札记 / 假设流程 · 局部 3/3",
+    "steps": [
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "有表达问题",
+            "desc": "改稿 → 再次审核\n通过后才排版"
+          },
+          {
+            "name": "内容审核通过",
+            "desc": "排版\n→ 请求发布确认"
+          }
+        ],
+        "layout": "columns"
+      },
+      {
+        "type": "chain",
+        "nodes": [
+          {
+            "text": "发布确认是独立的一步"
+          }
+        ],
+        "layout": "stack"
+      },
+      {
+        "type": "layers",
+        "items": [
+          {
+            "name": "已获确认",
+            "desc": "且无未解决的\n事实问题\n→ 发布"
+          },
+          {
+            "name": "尚未确认",
+            "desc": "保留草稿\n→ 不发布"
+          }
+        ],
+        "layout": "columns"
+      }
+    ],
+    "variant": "reasoning-notes",
+    "note_page": {
+      "series": "publishing",
+      "id": "03",
+      "role": "detail",
+      "entry": "无未解决事实问题。\n途中出现事实问题，优先暂停。",
+      "exit": "未获确认保留草稿；\n已获确认且无未解决事实问题才发布。",
+      "links": [
+        {
+          "target": "02",
+          "label": "途中出现事实问题：暂停并核对"
+        }
+      ]
+    }
+  }
+}

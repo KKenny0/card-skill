@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { verifyWhiteboardNotes } from './validate-whiteboard-notes.mjs';
 import { verifyPersonalDiagrams } from './validate-personal-diagram.mjs';
 
 const require = createRequire(import.meta.url);
@@ -1741,6 +1742,7 @@ try {
   }
 
   verifyPersonalDiagrams();
+  verifyWhiteboardNotes();
   const compressionPackFixture = {
     mode: 'article-diagram',
     title: '多 Agent 的写入边界',

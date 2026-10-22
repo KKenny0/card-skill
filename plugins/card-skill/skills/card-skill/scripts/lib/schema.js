@@ -56,9 +56,11 @@ const SCHEMAS = {
   },
   whiteboard: {
     required: ['mode', 'title', 'steps'],
-    optional: ['design', 'tone', 'subtitle', 'accent_words', 'logo', 'brand_name'],
+    optional: ['design', 'tone', 'subtitle', 'accent_words', 'logo', 'brand_name', 'variant', 'note_page'],
     types: {
       mode: 'string',
+      variant: 'string',
+      note_page: 'object',
       title: 'string',
       steps: 'array',
       design: 'string',
@@ -437,8 +439,10 @@ function validate(input, { checkLocalFiles = true } = {}) {
     });
   }
 
-  if (mode === 'whiteboard' && Array.isArray(input.steps)) {
+  if (mode === 'whiteboard') errors.push(...require('./whiteboard-notes').validateNotes(input));
+  if (mode === 'whiteboard' && input.variant !== 'reasoning-notes' && Array.isArray(input.steps)) {
     input.steps.forEach((step, i) => {
+      if (!step || typeof step !== 'object' || Array.isArray(step)) { errors.push(`steps[${i}] must be an object`); return; }
       if (!step.type) errors.push(`steps[${i}]: missing "type"`);
       else if (!WHITEBOARD_STEP_TYPES.has(step.type)) errors.push(`steps[${i}]: unknown type "${step.type}". Allowed: ${[...WHITEBOARD_STEP_TYPES].join(', ')}`);
       if (step.type === 'chain' && !Array.isArray(step.nodes)) errors.push(`steps[${i}]: chain requires "nodes" array`);

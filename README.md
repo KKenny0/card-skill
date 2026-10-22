@@ -326,3 +326,5 @@ card-skill is inspired by:
 Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). Explicit variants, media/process/data posters, verbatim reading notes, and existing structured contracts keep their existing behavior.
 
 <p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>
+
+Natural-language whiteboards now use reasoning notes: explicit boundaries, opposition, turns and exception blocks, with 44px body text. Choose a single reading path or overview plus local branches by the reader’s task; split sets validate visible page navigation in one Visual Job. See [composition and splitting rules](references/whiteboard-reasoning-notes.md). Existing structured whiteboards retain classic rendering.

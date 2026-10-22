@@ -614,6 +614,7 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
   if (decision?.mode && decision.mode !== aggregateMode) errors.push(`decision.mode must equal aggregate output mode "${aggregateMode}"`);
   if (actualTiers.size === 1 && decision?.tier !== [...actualTiers][0]) errors.push(`decision.tier must equal aggregate output tier "${[...actualTiers][0]}"`);
   if (actualTiers.size > 1) errors.push('Visual Job cannot mix Stable and Studio outputs');
+  errors.push(...require('./whiteboard-notes').validateNoteSeries(job.outputs));
   noSensitiveKeys(job, 'job', errors);
   return { valid: errors.length === 0, errors };
 }
