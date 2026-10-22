@@ -1,44 +1,72 @@
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "job_id": "gallery-sketchnote",
-  "publish_target": "long-read",
+  "publish_target": "social-single",
   "source": {
     "kind": "pasted-text",
     "language": "zh",
-    "label": "《千脑智能》：从感觉到物体模型"
+    "label": "据用户提供的卢梭文章片段整理；本次为用户明确要求的同源设计对照"
   },
   "source_units": [
     {
-      "id": "arc",
-      "excerpt": "皮层柱把感知到的特征放在物体参考系中，再通过运动更新位置并预测新的感觉。"
+      "id": "reading",
+      "excerpt": "用户提供文章标题为“从世界之敌到自足如神：晚年卢梭的心灵避难所与存在之感”。正文导言说明卢梭晚年著作遭查禁、旧友反目，处于被外界排斥的境况。本文整理以该文章的存在之感主题为依据，呈现从外界排斥到当下安顿的阅读线索；开放提问属于编辑性阅读问题，并非用户的个人经历或原文结论。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
     }
   ],
   "decision": {
     "mode": "sketchnote",
     "tier": "studio",
-    "tone": "warm",
-    "reason": "感觉、定位与预测形成一条清晰的认识弧线，适合长幅手记。",
-    "selection_summary": "用三站式手记连接感觉、参考系与预测。",
-    "visual_risks": [
-      "装饰性涂鸦不能压过从感觉到预测的认识顺序"
-    ]
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户明确要求sketchnote现有方案与漫游札记同源对照；不虚构经历或失败"
   },
   "outputs": [
     {
-      "id": "sketchnote",
-      "basename": "sketchnote.png",
-      "source_unit_ids": [
-        "arc"
+      "id": "wandering-rousseau",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "wandering-rousseau",
+          "basename": "sketchnote.png",
+          "role": "reflection",
+          "source_unit_ids": [
+            "reading"
+          ],
+          "transformation": "visualize",
+          "visual_plan": {
+            "core_message": "片刻的安顿，不等于外界冲突已经消失。",
+            "content_type": "story",
+            "argument_structure": "reflective-arc",
+            "visual_metaphor": "同舟及外界标签不变，压力折线转为当下注意力围合，非史实复原",
+            "layout_strategy": "两条紧凑场景带保留同舟变化，文本连续阅读；取消重复标题与图注，短问句不硬断行",
+            "visual_hierarchy": [
+              "问题标题",
+              "处境与转向",
+              "理解边界与开放问题"
+            ],
+            "avoid_patterns": [
+              "脏背景",
+              "虚构个人经历",
+              "虚构历史尝试",
+              "以图像代替条件"
+            ]
+          }
+        }
       ],
-      "transformation": "visualize",
       "render_contract": {
         "mode": "sketchnote",
-        "title": "一个物体，是怎样被认识的？",
-        "subtitle": "《千脑智能》：从感觉到可预测的模型",
+        "tone": "sharp",
+        "title": "世界喧闹时，在哪里停一会儿？",
         "composition_required": true,
-        "tone": "warm",
-        "content_html": "<header class=\"opening\"><span class=\"kicker\">THOUSAND BRAINS / 01</span><h1>一个物体，<br>怎样被认识？</h1><p>不是把特征堆在一起，而是让感觉、位置和运动落进同一个模型。</p></header><main class=\"journey\"><article class=\"station recall\"><b>01</b><div><span class=\"label\">SENSE</span><h2>先遇见局部感觉</h2><p>摸到边缘、纹理或曲面，只得到一个尚未确定的线索。</p></div><i>↘</i></article><article class=\"station act\"><b>02</b><div><span class=\"label\">LOCATE</span><h2>把它放进参考系</h2><p>知道特征位于物体哪里，移动才有了可追踪的位置。</p></div><i>↙</i></article><article class=\"station bound\"><b>03</b><div><span class=\"label\">PREDICT</span><h2>预测下一次感觉</h2><p>预测不断被验证，局部线索才收敛为完整的物体模型。</p></div></article></main><footer><span>《千脑智能》的认识循环</span><strong>感觉 · 定位 · 预测</strong></footer>",
-        "custom_css": ".page{padding:78px 74px 64px;display:flex;flex-direction:column;gap:44px}.opening{border-left:12px solid var(--accent);padding:12px 0 18px 34px}.opening>span{font:700 24px/1 var(--mono);letter-spacing:.1em;color:var(--accent)}.opening h1{font:700 66px/1.05 var(--serif);margin:22px 0 24px}.opening p{font:500 36px/1.45 var(--sans);max-width:850px;color:var(--ink-muted)}.journey{display:flex;flex-direction:column;gap:24px;position:relative}.station{border:2px solid var(--ink);padding:28px 34px;display:grid;grid-template-columns:88px 1fr 80px;gap:22px;align-items:center;box-shadow:10px 10px 0 var(--surface-2);transform:rotate(-.7deg)}.station:nth-child(2){margin-left:96px;transform:rotate(.8deg);background:var(--surface-1)}.station:nth-child(3){margin-right:72px;background:var(--ink);color:var(--bg);transform:rotate(-.35deg)}.station>b{font:700 54px/1 var(--mono);color:var(--accent)}.label{display:block;font:700 24px/1 var(--mono);letter-spacing:.09em;margin:0 0 8px}.station h2{font:700 40px/1.1 var(--sans);margin:0 0 10px}.station div>p:last-child{font:500 36px/1.35 var(--sans);margin:0;opacity:.72}.station i{font:700 62px/1 var(--mono);color:var(--accent);font-style:normal}footer{margin-top:auto;border-top:3px solid var(--ink);padding-top:24px;display:flex;align-items:flex-end;justify-content:space-between}footer span{font:700 24px/1 var(--mono)}footer strong{font:700 38px/1 var(--serif);color:var(--accent)}"
+        "source": "据用户提供的卢梭文章片段整理",
+        "content_html": "<header class=\"head\"><p class=\"k\">野生肯尼 · 漫游札记 / 卢梭</p><h1>世界喧闹时，<br>在哪里停一会儿？</h1></header><p>书被查禁，旧友反目。文章中的晚年卢梭，处在被外界排斥的境况里。</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 175\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"2.5\" stroke-linecap=\"round\"><text x=\"38\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">书被查禁</text><text x=\"770\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">旧友反目</text><path d=\"M210 65 L270 90 L300 72 L356 98 M750 65 L690 90 L660 72 L604 98\" stroke=\"var(--ink)\"/><path d=\"M391 93 Q480 167 569 93 Z\" stroke=\"var(--ink)\" stroke-width=\"4\"/><circle cx=\"480\" cy=\"75\" r=\"9\" fill=\"var(--accent-1)\" stroke=\"none\"/><path d=\"M435 93 Q480 74 525 93 M310 152 Q395 136 480 152 T650 152\"/></g></svg></figure><aside class=\"pause\"><p>外界不再接纳，<span class=\"whole\">还能在哪里安顿自己？</span></p></aside><section class=\"quiet\"><h2>把注意力收回此刻</h2><p>不追随过去，也不急着跳到未来。材料把目光转向当下的存在。</p><figure class=\"scene\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 175\"><g fill=\"none\" stroke=\"var(--ink-muted)\" stroke-width=\"2.5\" stroke-linecap=\"round\"><text x=\"38\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">书被查禁</text><text x=\"770\" y=\"55\" stroke=\"none\" fill=\"var(--ink-muted)\" font-size=\"36\" font-family=\"XiangcuiDengcusong\">旧友反目</text><path d=\"M210 75 H320 M640 75 H750\" stroke-dasharray=\"3 9\"/><ellipse cx=\"480\" cy=\"90\" rx=\"134\" ry=\"70\" stroke=\"var(--accent-1)\"/><path d=\"M391 93 Q480 167 569 93 Z\" stroke=\"var(--ink)\" stroke-width=\"4\"/><circle cx=\"480\" cy=\"75\" r=\"9\" fill=\"var(--accent-1)\" stroke=\"none\"/><path d=\"M435 93 Q480 74 525 93 M310 152 Q395 136 480 152 T650 152\"/></g></svg></figure></section><section class=\"ending\"><p>外界的处境还在，注意的中心变了。片刻的安顿，不等于冲突已经消失。</p><p class=\"muted\">小舟是阅读意象，并非史实复原。</p><p class=\"muted open\">留一个问题：独处何时是休息，<span class=\"whole\">何时又成了退避？</span></p></section>",
+        "custom_css": ".scene { margin: 18px 0; }",
+        "variant": "wandering-notes"
       }
     }
   ]

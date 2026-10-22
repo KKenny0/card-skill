@@ -33,13 +33,13 @@
       "output_basename": "sketchnote.png",
       "mode": "sketchnote",
       "tier": "studio",
-      "design": "tone_warm",
-      "tone": "warm",
+      "design": "tone_sharp",
+      "tone": "sharp",
       "dpr": 2,
       "width": 2160,
-      "height": 2834,
-      "render_contract_sha256": "868caaa0d340ae45d3d0db942d9f2cdf216713e28a30292169152ce8ce32118a",
-      "png_sha256": "f596741c967f09d83c9d88a3cf698e437f6ce475eca373041c3f0bc12eec4dae"
+      "height": 3512,
+      "render_contract_sha256": "ffdc5288d4f5aa7c641c28bf6bff7836936d5ea803272c966bd0fcd50f411fad",
+      "png_sha256": "b4a2575a7581f9c65f867b415f4c807e5a30fa8cb882f77aceb8cf006a8183e6"
     },
     {
       "fixture": "evals/gallery/jobs/article-boundary-legacy.json",
@@ -163,13 +163,13 @@
       "output_basename": "whiteboard.png",
       "mode": "whiteboard",
       "tier": "stable",
-      "design": "tone_technical",
-      "tone": "technical",
+      "design": "tone_sharp",
+      "tone": "sharp",
       "dpr": 2,
       "width": 2160,
-      "height": 1614,
-      "render_contract_sha256": "18097005ab629f5d5e48dd054f3f496a0507c8e36257c4f5bbfdc69e85c1a979",
-      "png_sha256": "c793b0218b5f8d2b6370e6dd697ac8dadb7ae2d8fedccaae92a07e84d52794bf"
+      "height": 3132,
+      "render_contract_sha256": "f44c1acc79dc556895c97dd81a276651c74aeb589fc3b0c59f65617bfcf62a28",
+      "png_sha256": "5ff5d0de66e6450c0b6a93ef246546bea85796badb50c5efc1ce8a024bb6a309"
     }
   ]
 }

@@ -1,1 +1,100 @@
-{"schema_version":1,"job_id":"gallery-whiteboard","publish_target":"whiteboard","source":{"kind":"pasted-text","language":"zh","label":"《千脑智能》· 杰夫·霍金斯"},"source_units":[{"id":"chain","excerpt":"皮层柱通过把感觉与运动放入物体参考系，逐步预测新的感觉并形成物体模型。"}],"decision":{"mode":"whiteboard","tier":"stable","tone":"technical","reason":"认识物体的循环关系适合画成一条可跟随的推理链。"},"outputs":[{"id":"whiteboard","basename":"whiteboard.png","source_unit_ids":["chain"],"transformation":"visualize","render_contract":{"mode":"whiteboard","tone":"technical","title":"皮层柱如何认识杯子","subtitle":"《千脑智能》：感觉、参考系与预测","steps":[{"type":"chain","nodes":[{"text":"感觉"},{"text":"物体参考系","highlight":true},{"text":"预测","highlight":true}]},{"type":"annotation","text":"移动会更新位置，于是下一次感觉不再意外。"},{"type":"insight","text":"不是特征相加，而是<span class=\"accent-word\">在参考系中追踪位置</span>。"}]}}]}
+{
+  "schema_version": 1,
+  "job_id": "gallery-whiteboard",
+  "publish_target": "whiteboard",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "A2A：跨系统协作边界"
+  },
+  "source_units": [
+    {
+      "id": "chain",
+      "excerpt": "采购助手委托外部 Agent 评估公司的资质与风险。采购助手不知道，也无权查看外部 Agent 的模型选择、任务规划或工具调用。双方需要约定能力介绍、消息交换、任务跟踪与结果交付，并明确委托前的范围、执行中的状态及断线追踪、交付报告的证据。A2A 为跨系统协作提供这些共同约定。"
+    }
+  ],
+  "decision": {
+    "mode": "whiteboard",
+    "tier": "stable",
+    "tone": "sharp",
+    "reason": "用内外边界与过程追问呈现协作判断。"
+  },
+  "outputs": [
+    {
+      "id": "whiteboard",
+      "basename": "whiteboard.png",
+      "source_unit_ids": [
+        "chain"
+      ],
+      "transformation": "visualize",
+      "render_contract": {
+        "mode": "whiteboard",
+        "tone": "sharp",
+        "title": "看不到内部，怎样协作？",
+        "subtitle": "推演札记 / 01 · 协作的边界",
+        "steps": [
+          {
+            "type": "chain",
+            "nodes": [
+              {
+                "text": "01 / 场景\n采购助手委托外部 Agent\n评估公司的资质与风险。"
+              }
+            ],
+            "layout": "stack"
+          },
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "内部｜不可见",
+                "desc": "模型选择\n任务规划\n工具调用"
+              },
+              {
+                "name": "协作｜需约定",
+                "desc": "介绍能力、交换消息\n跟踪任务、交付结果"
+              }
+            ],
+            "layout": "boundary"
+          },
+          {
+            "type": "annotation",
+            "text": "权限边界｜采购助手不知道，\n也无权查看对方内部。",
+            "layout": "note"
+          },
+          {
+            "type": "chain",
+            "nodes": [
+              {
+                "text": "02 / 沿过程追问"
+              }
+            ],
+            "layout": "stack"
+          },
+          {
+            "type": "layers",
+            "items": [
+              {
+                "name": "委托前",
+                "desc": "能评估哪些\n地区、行业？"
+              },
+              {
+                "name": "执行中",
+                "desc": "收到或完成？\n断线怎样追踪？"
+              },
+              {
+                "name": "交付时",
+                "desc": "交付的报告，\n有证据吗？"
+              }
+            ],
+            "layout": "columns"
+          },
+          {
+            "type": "insight",
+            "text": "03 / 判断\nA2A 约定跨系统协作过程，\n对方内部实现仍不可见。"
+          }
+        ],
+        "variant": "reasoning-notes"
+      }
+    }
+  ]
+}

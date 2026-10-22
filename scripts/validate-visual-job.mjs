@@ -8,6 +8,24 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isolatedCodexArgs, revisionIdentity } from '../evals/runtime-policy.mjs';
+
+for (const platform of ['win32', 'linux', 'darwin']) {
+  const args = isolatedCodexArgs(platform);
+  assert.equal(args[args.indexOf('--sandbox') + 1], 'read-only');
+  assert.ok(args.includes('--ignore-user-config') && args.includes('--ignore-rules'));
+  assert.equal(args.includes('windows.sandbox="elevated"'), platform === 'win32');
+  assert.ok(!args.includes('--dangerously-bypass-approvals-and-sandbox'));
+}
+assert.throws(() => revisionIdentity({status:'blocked',error:'SKILL_READ_BLOCKED'}), /Not a revisable Visual Job/);
+assert.throws(() => revisionIdentity({schema_version:3,outputs:[{}]}), /requires artifacts/);
+const revisionProbe = {schema_version:3,job_id:'probe',outputs:[{id:'out',artifacts:[{id:'a',source_unit_ids:['u'],visual_plan:{old:true}}],render_contract:{old:true}}]};
+const revisionEdited = structuredClone(revisionProbe);
+revisionEdited.outputs[0].render_contract = {new:true};
+revisionEdited.outputs[0].artifacts[0].visual_plan = {new:true};
+assert.deepEqual(revisionIdentity(revisionProbe), revisionIdentity(revisionEdited));
+revisionEdited.outputs[0].artifacts[0].source_unit_ids = ['other'];
+assert.notDeepEqual(revisionIdentity(revisionProbe), revisionIdentity(revisionEdited));
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

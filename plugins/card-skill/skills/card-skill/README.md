@@ -44,11 +44,19 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 
 ## See it in 30 seconds
 
-One consistent visual grammar adapts to different publishing tasks: an article cover sets the mood, an in-article card explains a relation, and a whiteboard maps a trade-off.
+Five confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
 
-<img src="assets/readme-showcase.png" width="100%" alt="Showcase of social poster, editorial cover, and reasoning whiteboard">
+<img src="assets/readme-showcase.png" width="100%" alt="Five personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, and wandering sketchnote">
 
-<sub>One visual grammar, three publishing jobs: a claim becomes a social poster, core tension becomes an editorial cover, and a reasoning chain becomes a whiteboard.</sub>
+| Mode | Sole style | Reading task |
+|---|---|---|
+| cover / editorial-image | [Paper Wilderness](references/cover-paper-wilderness.md) | Recognize the series; distinguish topics through imagery |
+| poster | [Personal field notes](references/poster-field-notes.md) | Group meaning before pagination on fixed 3:4 pages |
+| article-diagram | [Personal relations](references/article-diagram-personal.md) | Explain content through six relationship layouts |
+| whiteboard | [Reasoning notes](references/whiteboard-reasoning-notes.md) | Follow boundaries, turns, and exceptions; split into overview and details when needed |
+| sketchnote | [Wandering notes](references/sketchnote-wandering-notes.md) | Let imagery evolve with the reading rhythm |
+
+<sub>All showcase images are rebuilt from repository contracts through the production renderer. Open the full samples for detail. See the <a href="references/personal-style-migration.md">migration guide</a> for retired styles.</sub>
 
 ## Supported formats
 
@@ -57,7 +65,7 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | Publishing goal | Mode | Tier | What it produces | Reference |
 |---|---|---|---|---|
 | WeChat or blog cover | `editorial-image` | Stable | Mood, tension, and metaphor (not a text summary) | [Docs](references/mode-editorial-image.md) |
-| In-article explanation | `article-diagram` | Stable | Formula cards, relation maps, process flows, boundaries | [Docs](references/mode-article-diagram.md) |
+| In-article explanation | `article-diagram` | Stable | Six personal relationship layouts | [Docs](references/mode-article-diagram.md) |
 | Social card series | `poster` | Stable | Multi-card breakdown for social media (Xiaohongshu, X) | [Docs](references/mode-poster.md) |
 | Technical decisions & systems | `whiteboard` | Stable | Problems, constraints, decision paths, and trade-offs | [Docs](references/mode-whiteboard.md) |
 | Long reading cards | `long` | Stable | Immersive long-form reading with rich typography | [Docs](references/mode-long.md) |
@@ -257,13 +265,13 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 ## Full gallery
 
 <details>
-<summary>Expand gallery (12 samples)</summary>
+<summary>Expand gallery (13 samples)</summary>
 
-<p><sub>Samples explore concepts from *A Thousand Brains* (Jeff Hawkins).</sub></p>
+<p><sub>Samples cover *A Thousand Brains*, A2A collaboration, and a Rousseau reading reflection.</sub></p>
 
 <table>
 <tr>
-<td width="50%"><img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="WeChat cover"><br><strong>editorial-image</strong> · Many models, one judgment</td>
+<td width="50%"><img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="WeChat cover"><br><strong>editorial-image</strong> · Collaboration across internal boundaries</td>
 <td width="50%"><img src="assets/gallery/article-formula.png" width="100%" alt="Personal hierarchy"><br><strong>article-diagram</strong> · Sensation, movement, reference frames</td>
 </tr>
 <tr>
@@ -272,7 +280,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 </tr>
 <tr>
 <td><img src="assets/gallery/long.png" width="100%" alt="Long card"><br><strong>long</strong> · Intelligence as modeling</td>
-<td><img src="assets/gallery/whiteboard.png" width="100%" alt="Whiteboard"><br><strong>whiteboard</strong> · Knowing a cup</td>
+<td><img src="assets/gallery/whiteboard.png" width="100%" alt="Whiteboard"><br><strong>whiteboard</strong> · A2A collaboration boundaries</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="Personal convergence"><br><strong>article-diagram</strong> · Reference frame model</td>
@@ -283,9 +291,10 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 <td><img src="assets/gallery/comic.png" width="100%" alt="Comic"><br><strong>comic</strong> · After touching one edge</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/sketchnote.png" width="100%" alt="Sketchnote"><br><strong>sketchnote</strong> · Sensation, location, prediction</td>
+<td><img src="assets/gallery/sketchnote.png" width="100%" alt="Sketchnote"><br><strong>sketchnote</strong> · Finding a moment of rest / Rousseau</td>
 <td><img src="assets/gallery/reading-report.png" width="100%" alt="Reading guide"><br><strong>poster</strong> · Reading guide</td>
 </tr>
+<tr><td colspan="2"><img src="assets/gallery/article-personal.png" width="720" alt="Personal timeline"><br><strong>article-diagram</strong> · Personal timeline</td></tr>
 </table>
 
 </details>
@@ -317,11 +326,3 @@ card-skill is inspired by:
 ## License
 
 [MIT](LICENSE) © 2026 Kenny Wu
-
-### Personal field-note posters
-
-Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). All Poster content blocks use field-notes, including media, process, data and paired reading notes.
-
-<p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>
-
-Natural-language whiteboards now use reasoning notes: explicit boundaries, opposition, turns and exception blocks, with 44px body text. Choose a single reading path or overview plus local branches by the reader’s task; split sets validate visible page navigation in one Visual Job. See [composition and splitting rules](references/whiteboard-reasoning-notes.md). Omitted variants also use reasoning notes; classic is retired.

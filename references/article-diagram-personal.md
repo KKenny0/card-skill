@@ -19,6 +19,14 @@ Use a 1080×720 canvas, 46px heading with a thin accent rule, controlled serif f
 
 The heading states the relationship; notes stay beside nodes; necessary conditions and scope stay visible in `sentence`. Escape text. Never truncate, hide relations, shrink type or split English identifiers to fit. Topology drives ordering; input order breaks sibling ties. Topic words and node IDs have no special behavior.
 
+## Heading and qualification budget
+
+`formula` and `sentence` are both required non-empty text. `formula` is the visible relationship heading; `title` is contract metadata. When there is no separate condition, `sentence` gives one concise source-supported relationship takeaway; it must not be empty. Do not copy the entire node chain into `formula` and then repeat it in the graph. Use a short, source-grounded relationship name unless the user explicitly needs a genuine formula shown.
+
+The heading has one line at 46px in about 950px; plan around 18 full-width Chinese characters. The combined `sentence`, `subtitle` and `caption` slot has one line at 36px in 972px; plan around 24 full-width Chinese characters. These are conservative planning guides, not character-count guarantees: mixed Latin text and actual font measurement decide fit. Avoid redundant descriptions of the same condition. Keep node-specific details in node labels/notes, and keep all essential qualifications visible. Do not paraphrase verbatim quotes or delete unique meaning merely to fit; split the reading responsibility if necessary.
+
+For a chronological diagram, the heading names the progression, node labels/notes retain the dates and events, and the qualification states once that spacing does not encode duration. Repeating every event in the heading adds no evidence and wastes the limited line.
+
 ## Measurement and splitting
 
 The renderer uses the injected browser adapter to measure actual heading, qualification, node and edge text. It selects only a fitting layout. Direct renderer callers must also provide measurement; there is no unmeasured fallback. The renderer owns all choreography, without CLI error-message matching.

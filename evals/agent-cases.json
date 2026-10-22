@@ -414,7 +414,7 @@
     },
     {
       "id": "mixed-claim-mechanism",
-      "request": "把一句主张和一个独立机制分别做成两张图。主张用 big；机制用 article-diagram 个人关系布局，formula 精确写为“回执更新输入 = 输入契约 + 允许动作 + 执行 + 回执”，完整顺序保留在 sentence。只输出 Visual Job JSON。",
+      "request": "把一句主张和一个独立机制分别做成两张图。主张用 big；机制用 article-diagram 个人关系布局，完整保留输入契约、允许动作、执行、回执与更新下一次输入的关系。只输出 Visual Job JSON。",
       "source_text": "主张：没有回执，就没有完成。机制：输入契约限制允许动作，执行结果生成回执，回执再更新下一次输入。",
       "publish_target": "social-single",
       "tier": "stable",
@@ -434,8 +434,8 @@
       "required_source_contract_mappings": [
         {
           "source_terms": [
-            "主张",
-            "回执"
+            "没有回执",
+            "没有完成"
           ],
           "contract_terms": [
             "回执",
@@ -444,8 +444,8 @@
         },
         {
           "source_terms": [
-            "机制",
-            "契约"
+            "输入契约",
+            "允许动作"
           ],
           "contract_terms": [
             "契约",
@@ -512,7 +512,6 @@
       "required_source_contract_mappings": [
         {
           "source_terms": [
-            "输入",
             "代码仓库"
           ],
           "contract_terms": [
@@ -530,7 +529,6 @@
         },
         {
           "source_terms": [
-            "输出",
             "文本包"
           ],
           "contract_terms": [
@@ -617,7 +615,7 @@
       "required_source_contract_mappings": [
         {
           "source_terms": [
-            "发布判断",
+            "Northstar 1.0",
             "可复核"
           ],
           "contract_terms": [
@@ -626,8 +624,8 @@
         },
         {
           "source_terms": [
-            "benchmark",
-            "40"
+            "40",
+            "36"
           ],
           "contract_terms": [
             "40",
@@ -636,7 +634,8 @@
         },
         {
           "source_terms": [
-            "当前能力",
+            "输入",
+            "步骤",
             "哈希回执"
           ],
           "contract_terms": [
@@ -646,8 +645,8 @@
         },
         {
           "source_terms": [
-            "当前案例",
-            "示例团队"
+            "示例团队",
+            "重建"
           ],
           "contract_terms": [
             "示例团队",
@@ -711,8 +710,8 @@
       "required_source_contract_mappings": [
         {
           "source_terms": [
-            "公开契约",
-            "parse(input)"
+            "parse(input)",
+            "节点数组"
           ],
           "contract_terms": [
             "parse(input)",
@@ -721,7 +720,7 @@
         },
         {
           "source_terms": [
-            "最小示例",
+            "const nodes",
             "parse(source)"
           ],
           "contract_terms": [
@@ -731,8 +730,8 @@
         },
         {
           "source_terms": [
-            "集成边界",
-            "调用方"
+            "调用方",
+            "不访问网络"
           ],
           "contract_terms": [
             "调用方",
@@ -794,8 +793,8 @@
       "required_source_contract_mappings": [
         {
           "source_terms": [
-            "当前界面",
-            "任务页"
+            "任务页",
+            "运行状态"
           ],
           "contract_terms": [
             "任务页",
@@ -804,8 +803,8 @@
         },
         {
           "source_terms": [
-            "当前结果",
-            "SHA-256"
+            "SHA-256",
+            "报告"
           ],
           "contract_terms": [
             "SHA-256",
@@ -878,11 +877,13 @@
         "body"
       ],
       "required_terms": [
-        "仅当",
         "有效",
         "除非",
         "过期",
         "重新读取"
+      ],
+      "required_contract_patterns": [
+        "(?:仅(?:当|在)?|只有)[^。！？；\"\\n]{0,40}有效[^。！？；\"\\n]{0,20}复用"
       ]
     },
     {

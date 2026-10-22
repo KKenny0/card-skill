@@ -8,10 +8,10 @@
 
 ## 步骤 1：读取模板
 
-Read `assets/infograph_template.html`
+Read `assets/infograph_template.html` and [taste](taste.md). Mixed-language CSS must put named fonts before generic fallbacks: use `font-family: 'DM Sans', var(--zh-serif)` for body text and `'DM Serif Display', var(--zh-serif)` for headings. Do not concatenate `var(--sans), var(--zh-serif)` because `--sans` already contains generic fallbacks.
 
 模板极简，只提供：
-- 字体加载（DM Serif Display + DM Sans + KingHwa_OldSong）
+- 字体加载（DM Serif Display + DM Sans + XiangcuiDengcusong）
 - CSS 变量（`--bg`, `--green`, `--pink`, `--yellow`, `--ink`, `--ink-light`, `--white`, `--serif`, `--sans`, `--mono`）
 - SVG 噪点纹理（自动叠加）
 - `.colophon` 署名栏
@@ -104,9 +104,10 @@ Read `assets/infograph_template.html`
 
 | 变量 | 值 | 用途 |
 |------|------|------|
-| `--serif` | DM Serif Display → KingHwa_OldSong | 标题、大字、金句 |
-| `--sans` | DM Sans → KingHwa_OldSong | 正文、标签 |
-| `--mono` | SF Mono | 数据标注、REF 编码 |
+| `--serif` | DM Serif Display → Georgia → serif | 西文标题；中西文标题使用正文前述具名字体栈 |
+| `--sans` | DM Sans → 系统 sans-serif | 西文正文；中西文正文使用正文前述具名字体栈 |
+| `--zh-serif` | XiangcuiDengcusong → serif | 中文字系，排在通用 fallback 之前 |
+| `--mono` | JetBrains Mono → SF Mono → Menlo → monospace | 数据标注、REF 编码 |
 | `--ink` | `#2D2926` | 主文字色 |
 | `--ink-light` | `#5C5350` | 次要文字 |
 
@@ -167,7 +168,7 @@ Read `assets/infograph_template.html`
 - 一行金句横跨全宽
 - 一个公式，周围是沉默
 
-其余信息（词源、解释）以 24-28px 安静地待在角落或底部。不争夺注意力。
+简短来源或辅助标签可用 24–28px；词源和解释若承载正文含义，仍须 ≥36px。用位置与留白降低次要信息的权重，不把正文缩成标注。
 
 **参考构图**：
 ```

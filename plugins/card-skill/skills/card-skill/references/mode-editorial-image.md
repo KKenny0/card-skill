@@ -14,6 +14,8 @@ Do not combine cover_art with cover_motif, content_html or composition_required:
 
 use=metaphor or use=in-article requires composition_required:true and non-empty content_html plus custom_css. Body relationships that need precise labels and arrows belong in article-diagram. These body Studio compositions retain their existing aspect options and safety restrictions; they do not use cover_series or cover_art.
 
+Before writing body HTML/CSS, read [taste](taste.md). Main explanatory text must be at least 36px in capture-canvas CSS pixels; short secondary labels at least 24px. A caption carrying the source's central message is body text, not a small metadata label. Fit it by reserving space, not by shrinking it.
+
 Default body aspects: in-article=body-3-2, metaphor=blog-hero. Explicit supported aspects remain documented in schemas/editorial-image.json. Tone/design change colors only. No implied author or watermark. Escape source text, avoid remote or embedded executable resources, and respect the normal Visual Job pipeline.
 
 ## Verification

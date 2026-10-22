@@ -63,6 +63,10 @@ Kenny Style 决定字体、正文尺度、卡片纪律和纸面材质。tone 与
 
 字体由包内 `assets/fonts/` 与 renderer 加载；完整构图沿用模板字系，不引入 Google Fonts CDN 或其他远程资源。
 
+混合中西文时，通用 fallback 必须排在具名字体之后。模板中的 `--sans` / `--serif` 已含 `sans-serif` / `serif`，不要写 `var(--sans), var(--zh-serif)` 或 `var(--serif), var(--zh-serif)`：通用字体会抢先接管中文，包内字体可能根本不加载。
+
+使用 `font-family: 'DM Sans', var(--zh-serif)` 作为中西文正文栈，使用 `font-family: 'DM Serif Display', var(--zh-serif)` 作为标题栈；纯中文可直接使用 `var(--zh-serif)`。其中 `--zh-serif` 仍由 mode 指定，不能按 tone 换字体。不得以预加载未使用字体的方式掩盖错误回退。
+
 ### 多卡一致性
 
 同一批次共享颜色、字系、语义字号层级和间距节奏。结构化模式复用同一 renderer contract；完整 HTML/CSS 构图在各卡中保留相同的基础 token，只让布局随内容变化。无需向用户输出 CSS 变量表。
@@ -79,7 +83,7 @@ Kenny Style 决定字体、正文尺度、卡片纪律和纸面材质。tone 与
 
 ### 正文
 - `line-height: ≥1.6`
-- 信息图：正文 ≥36px、标注 ≥24px
+- 所有完整 HTML/CSS 构图（包括正文插图、信息图、漫画、漫游札记）：承载来源主旨的正文 ≥36px，短标签和来源标注 ≥24px。画在图下方的主要说明仍是正文，不能因为叫 caption 就改用小字。以捕获画布的 CSS 像素计，输出倍率不改变字号门槛。
 - 层级符合内容主次，同级信息保持相近的视觉权重
 
 ### accent（弹点色）分级规则
@@ -96,6 +100,7 @@ palette accent 的视觉强度决定弹点计数方式。Kenny Style 默认将�
 
 ### 数字
 - 所有数字用 JetBrains Mono（等宽 = 打字机油墨感）
+- 大数字与较小的单位或正文并排时，使用独立元素组成 `display:flex; align-items:baseline` 的行，让父容器按最大元素自然撑高。不要只把正文行内的 `span` 放大，而保留较小父段落的行高；字形可能超出文本框。数字元素使用足够行高（如 `1.6`），不以裁切或负边距压紧字形。
 
 ## 3. 色彩校准
 

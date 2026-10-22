@@ -15,6 +15,13 @@ export function verifyPersonalDiagrams() {
   const fixtures=JSON.parse(fs.readFileSync(path.join(root,'evals/fixtures/article-diagram-personal.json')));
   const {artifactContractProjection}=require('./lib/visual-job');
   const contract=fixtures.timeline;
+  const publicSchema=JSON.parse(fs.readFileSync(path.join(root,'schemas/article-diagram.json'),'utf8'));
+  for (const field of ['formula','sentence']) {
+    assert.ok(publicSchema.required.includes(field));
+    assert.equal(publicSchema.properties[field].minLength,1);
+    assert.equal(publicSchema.properties[field].pattern,'\\S');
+    for (const blank of ['', '   ']) assert.equal(validate({...contract,[field]:blank}).valid,false);
+  }
   const projection=artifactContractProjection(contract,1);
   assert.equal(projection.formula,contract.formula);
   assert.equal(projection.sentence,contract.sentence);

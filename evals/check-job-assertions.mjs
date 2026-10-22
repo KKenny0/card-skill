@@ -125,6 +125,10 @@ function assertRequiredTermsInContracts(job, expected) {
   for (const term of expected.required_terms || []) {
     assert.ok(serialized.includes(term.toLocaleLowerCase('en-US')), `Render contracts lost required source term "${term}"`);
   }
+  for (const pattern of expected.required_contract_patterns || []) {
+    assert.ok(typeof pattern === 'string' && pattern.trim(), 'Contract patterns must be non-empty explicit expressions');
+    assert.ok(new RegExp(pattern, 'iu').test(serialized), `Render contracts lost required condition pattern "${pattern}"`);
+  }
   const usedContracts = new Set();
   for (const group of expected.required_contract_term_groups || []) {
     const normalizedGroup = group.map(term => term.toLocaleLowerCase('en-US'));
@@ -229,6 +233,26 @@ function assertRejectedEvidence(job, expected) {
 }
 
 if (process.argv.includes('--self-test')) {
+  const conditionExpected = cases.cases.find(item => item.id === 'content-summary-conditions');
+  const conditionJob = text => ({outputs:[{render_contract:{mode:'long',body:[{type:'paragraph',text}, {type:'paragraph',text:'除非确认过期，否则不必重新读取。'}]}}]});
+  for (const text of ['仅当数据仍然有效时，才能复用。','仅当数据仍然有效时才能复用。','仅在数据仍然有效时才能复用。','仅数据仍然有效时才能复用。','只有有效数据可复用。']) assert.doesNotThrow(() => assertRequiredTermsInContracts(conditionJob(text), conditionExpected));
+  for (const text of ['数据有效时可以复用。','只要数据有效就可以复用。','仅在数据过期时才可复用，有效数据不处理。']) assert.throws(() => assertRequiredTermsInContracts(conditionJob(text), conditionExpected), /lost required condition pattern/);
+  const mixedExpected = cases.cases.find(item => item.id === 'mixed-claim-mechanism');
+  const faithfulExcerpts = {
+    source_units: [
+      {id:'claim', excerpt:'没有回执，就没有完成。'},
+      {id:'mechanism', excerpt:'输入契约限制允许动作，执行结果生成回执，回执再更新下一次输入。'},
+    ],
+    outputs: [
+      {source_unit_ids:['claim'], render_contract:{mode:'big',phrase:'没有回执，就没有完成。'}},
+      {source_unit_ids:['mechanism'], render_contract:{mode:'article-diagram',formula:'输入契约与允许动作',sentence:'回执更新下一次输入。'}},
+    ],
+  };
+  assert.doesNotThrow(() => assertRequiredTermsInContracts(faithfulExcerpts, mixedExpected), 'faithful excerpts need not repeat wrapper headings');
+  const swappedExcerpts = structuredClone(faithfulExcerpts);
+  swappedExcerpts.outputs[0].source_unit_ids = ['mechanism'];
+  swappedExcerpts.outputs[1].source_unit_ids = ['claim'];
+  assert.throws(() => assertRequiredTermsInContracts(swappedExcerpts, mixedExpected), /lost contract term group/);
   assert.equal(cases.cases.length, 30, 'CardBench must contain exactly thirty cases');
   assert.equal(cases.cases.filter(item => item.kind !== 'revision').length, 26, 'expected twenty-six planning cases');
   assert.equal(cases.cases.filter(item => item.kind === 'revision').length, 4, 'expected four revision cases');

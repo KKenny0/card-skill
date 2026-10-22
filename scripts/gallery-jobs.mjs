@@ -58,57 +58,42 @@ function dataUri(file, mime) {
 
 async function buildReadmeShowcase(rendered) {
   const byBasename = new Map(rendered.map(item => [item.output_basename, item.png]));
-  const required = ['editorial-wechat-cover.png', 'poster.png', 'whiteboard.png'];
+  const required = ['editorial-wechat-cover.png', 'article-personal.png', 'poster.png', 'whiteboard.png', 'sketchnote.png'];
   for (const basename of required) {
     assert.ok(byBasename.has(basename), `README showcase source is missing: ${basename}`);
   }
 
   const output = path.join(temp, 'readme-showcase.png');
   const font = dataUri(path.join(ROOT, 'assets', 'fonts', 'DMSans-Variable.ttf'), 'font/ttf');
-  const poster = dataUri(byBasename.get('poster.png'), 'image/png');
-  const cover = dataUri(byBasename.get('editorial-wechat-cover.png'), 'image/png');
-  const whiteboard = dataUri(byBasename.get('whiteboard.png'), 'image/png');
-  const html = `<!doctype html>
-<html><head><meta charset="utf-8"><style>
+  const figures = required.map((basename, index) => {
+    const labels = ['COVER / PAPER WILDERNESS', 'ARTICLE-DIAGRAM / RELATIONS', 'POSTER / FIELD NOTES', 'WHITEBOARD / REASONING NOTES', 'SKETCHNOTE / WANDERING NOTES'];
+    return '<figure><figcaption><b>0'+(index+1)+'</b>'+labels[index]+'</figcaption><div class="image-shell"><img src="'+dataUri(byBasename.get(basename), 'image/png')+'" alt="'+labels[index]+'"></div></figure>';
+  });
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:DM Sans;src:url(${font}) format('truetype');font-weight:100 1000;font-display:block}
-*{box-sizing:border-box}
-html,body{margin:0;width:2400px;height:1600px;overflow:hidden;background:#f2efe8;color:#282722}
+*{box-sizing:border-box}html,body{margin:0;width:2400px;height:2000px;background:#f2efe8;color:#282722}
 body{font-family:"DM Sans",sans-serif;padding:54px 64px}
-.header{height:114px;border-bottom:1px solid #d4cdc0;display:flex;align-items:flex-start;justify-content:space-between;padding-top:2px}
-.brand{font-size:34px;font-weight:690;letter-spacing:.08em}
-.index{font-size:26px;font-weight:620;letter-spacing:.16em;color:#6a645b;padding-top:6px}
-.stage{height:1378px;padding-top:34px;display:grid;grid-template-columns:990px 1fr;gap:40px}
-.figure{margin:0;display:flex;flex-direction:column;align-items:flex-start;min-width:0}
-.tag{height:44px;display:flex;align-items:flex-start;font-size:24px;font-weight:650;letter-spacing:.075em;color:#625d55}
-.tag b{color:#315f8f;margin-right:18px;font-weight:760}
-.image-shell{border:1px solid #d4cdc0;background:#f8f5ee;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.image-shell img{display:block;width:auto;height:100%;object-fit:contain}
-.poster .image-shell{height:1268px;width:952px}
-.right{display:flex;flex-direction:column;gap:30px}
-.cover .image-shell{height:500px;width:1174px}
-.whiteboard{align-items:flex-end}
-.whiteboard .tag{width:1084px}
-.whiteboard .image-shell{height:744px;width:1084px}
-</style></head><body>
-<header class="header"><div class="brand">KENNY STYLE</div><div class="index">01—03</div></header>
-<main class="stage">
-  <figure class="figure poster"><figcaption class="tag"><b>01</b>POSTER</figcaption><div class="image-shell"><img src="${poster}" alt=""></div></figure>
-  <section class="right">
-    <figure class="figure cover"><figcaption class="tag"><b>02</b>EDITORIAL-IMAGE</figcaption><div class="image-shell"><img src="${cover}" alt=""></div></figure>
-    <figure class="figure whiteboard"><figcaption class="tag"><b>03</b>WHITEBOARD</figcaption><div class="image-shell"><img src="${whiteboard}" alt=""></div></figure>
-  </section>
-</main></body></html>`;
+header{height:100px;border-bottom:1px solid #d4cdc0;display:flex;justify-content:space-between;font-size:32px;letter-spacing:.06em}
+header span{color:#6a645b;font-size:26px}.stage{padding-top:30px;display:grid;gap:32px}
+.top{display:grid;grid-template-columns:1.4fr 1fr;gap:32px}.bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+figure{margin:0;min-width:0}figcaption{height:48px;font-size:23px;font-weight:650;letter-spacing:.025em;display:flex;align-items:flex-start;gap:16px}figcaption b{color:#a44532}
+.image-shell{border:1px solid #d4cdc0;background:#f8f5ee;display:flex;align-items:flex-start;justify-content:center;padding:0}
+.top .image-shell{height:620px;align-items:center}.bottom .image-shell{height:1000px}
+img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain}
+</style></head><body><header><strong>CARD-SKILL / KENNY STYLE</strong><span>FIVE CONFIRMED PERSONAL STYLES</span></header><main class="stage"><section class="top">${figures.slice(0,2).join('')}</section><section class="bottom">${figures.slice(2).join('')}</section></main></body></html>`;
 
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage({ viewport: { width: 2400, height: 1600 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: 2400, height: 2000 }, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
+    assert.ok(await page.evaluate(() => [...document.images].every(image => image.complete && image.naturalWidth > 0)), 'Showcase contains an unloaded image');
+    assert.ok(await page.evaluate(() => [...document.querySelectorAll('figure')].every(figure => { const r = figure.getBoundingClientRect(); return r.left >= 0 && r.right <= 2400 && r.bottom <= 2000; })), 'Showcase figure extends past the canvas');
     await page.screenshot({ path: output, type: 'png', animations: 'disabled' });
   } finally {
     await browser.close();
   }
-  assert.deepEqual(pngSize(output), { width: 2400, height: 1600 }, 'README showcase dimensions drifted');
+  assert.deepEqual(pngSize(output), { width: 2400, height: 2000 }, 'README showcase dimensions drifted');
   return output;
 }
 
@@ -203,16 +188,18 @@ try {
     }
 
     assert.ok(fs.existsSync(README_SHOWCASE), 'README showcase is missing; run npm run gallery:update');
-    assert.deepEqual(pngSize(README_SHOWCASE), { width: 2400, height: 1600 }, 'README showcase dimensions drifted');
+    assert.deepEqual(pngSize(README_SHOWCASE), { width: 2400, height: 2000 }, 'README showcase dimensions drifted');
     assert.equal(
       sha256Bytes(fs.readFileSync(README_SHOWCASE)),
       sha256Bytes(fs.readFileSync(stagedReadmeShowcase)),
       'README showcase drifted; run npm run gallery:update',
     );
 
-    const readme = fs.readFileSync(README, 'utf8');
-    const references = new Set([...readme.matchAll(/assets\/gallery\/([^")\s]+\.png)/g)].map(match => match[1]));
-    assert.deepEqual(references, expectedPngs, 'README gallery references and manifest PNG set differ');
+    for (const readmePath of [README, path.join(ROOT, 'README.zh-CN.md')]) {
+      const readme = fs.readFileSync(readmePath, 'utf8');
+      const references = new Set([...readme.matchAll(/assets\/gallery\/([^")\s]+\.png)/g)].map(match => match[1]));
+      assert.deepEqual(references, expectedPngs, path.basename(readmePath) + ' gallery references and manifest PNG set differ');
+    }
   }
 
   console.log(`Gallery ${update ? 'updated' : 'check passed'}: ${rendered.length} outputs rebuilt and byte-verified through the production path.`);

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill article-diagram mode input",
-  "description": "Structured input for in-article compression formula cards. The default shape is a compression pack: formula, one sentence, and a supporting structure map. Legacy concept-map, process-flow, and boundary-model inputs are still accepted for compatibility. Visible text should follow the source article or requested language unless the user explicitly asks for translation or bilingual output.",
+  "description": "Personal relationship diagrams on a fixed 1080x720 canvas. Use one of six explicit source-supported layouts. Legacy families and formula-only cards are retired. Visible language follows the source or requested language.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -58,18 +58,22 @@
     },
     "formula": {
       "type": "string",
-      "description": "Compression-pack formula. Express the core relation, invariant, or transformation in compact visible language."
+      "description": "Visible short relationship heading, not a repeated serialization of all graph nodes. It occupies one line at 46px within 950px (aim for at most 18 full-width Chinese characters). Preserve genuine source formulas when requested; otherwise name the relationship in plain language. Actual font measurement is authoritative.",
+      "minLength": 1,
+      "pattern": "\\S"
     },
     "sentence": {
       "type": "string",
-      "description": "Compression-pack one-sentence takeaway. This is the human-readable theorem."
+      "description": "Required non-empty visible scope or relationship takeaway. Visible scope or essential qualification, one line at 36px within 972px (aim for at most 24 full-width Chinese characters). State each condition once; do not duplicate the node contents. Subtitle and caption share this measured slot. Preserve all meaning; split if essential text cannot fit. If no extra condition is present, give one brief source-supported relationship takeaway; never leave this required field empty.",
+      "minLength": 1,
+      "pattern": "\\S"
     },
     "render_plan": {
       "const": "structure"
     },
     "structure": {
       "type": "object",
-      "description": "Compression-pack structure map that supports the formula and sentence.",
+      "description": "Source-supported relationship graph. Put full stage names, dates and node-specific details here rather than repeating them in the heading.",
       "required": [
         "nodes"
       ],

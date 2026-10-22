@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { isolatedCodexArgs, revisionIdentity } from './runtime-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NESTED_PACKAGE = path.join(ROOT, 'plugins', 'card-skill', 'skills', 'card-skill');
@@ -148,14 +149,22 @@ function parseAnswer(raw) {
 
 function codexJson(installed, prompt, outputPath, schemaPath, imagePath = null) {
   const args = [
-    'exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--sandbox', 'read-only',
+    ...isolatedCodexArgs(), '--json',
     '--skip-git-repo-check', '--cd', installed,
   ];
   if (schemaPath) args.push('--output-schema', schemaPath);
   args.push('--output-last-message', outputPath);
   if (imagePath) args.push('--image', imagePath);
   args.push('-');
-  run('codex', args, { cwd: installed, input: prompt, env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1' } });
+  const execution = spawnSync('codex', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, cwd: installed, input: prompt, env: { ...process.env, CARD_SKILL_DISABLE_UPDATE_CHECK: '1' } });
+  // Candidate directories are hash-bound: diagnostics must never change their file set.
+  const diagnostics = path.join(path.dirname(installed), 'diagnostics');
+  fs.mkdirSync(diagnostics, { recursive: true });
+  const logName = path.relative(path.resolve(installed, '../..'), outputPath).replace(/[\\/:]/g, '_');
+  fs.writeFileSync(path.join(diagnostics, logName + '.events.jsonl'), execution.stdout || '');
+  fs.writeFileSync(path.join(diagnostics, logName + '.stderr.log'), execution.stderr || '');
+  if (execution.error) throw execution.error;
+  if (execution.status !== 0) throw new Error(execution.stderr || `Codex exited ${execution.status}`);
   const parsed = parseAnswer(fs.readFileSync(outputPath, 'utf8'));
   fs.writeFileSync(outputPath, `${JSON.stringify(parsed.value, null, 2)}\n`);
   return parsed;
@@ -224,27 +233,14 @@ function completeMean(values) {
   return values.some(value => value === null || value === undefined) ? null : mean(values);
 }
 
-function revisionInvariant(job) {
-  return {
-    ...job,
-    outputs: job.outputs.map(output => {
-      const { visual_plan, render_contract, ...immutable } = output;
-      if (job.schema_version !== 3) return immutable;
-      return {
-        ...immutable,
-        artifacts: output.artifacts.map(({ visual_plan: artifactVisualPlan, ...artifactIdentity }) => artifactIdentity),
-      };
-    }),
-  };
-}
-
 function assertRevisionScope(before, after, caseId) {
-  assert.deepEqual(revisionInvariant(after), revisionInvariant(before), `${caseId} revision changed fields outside visual_plan/render_contract`);
+  assert.deepEqual(revisionIdentity(after), revisionIdentity(before), `${caseId} revision changed fields outside visual_plan/render_contract`);
 }
 
 const requestedCase = arg('--case');
 const requestedFrom = arg('--from');
 const reportPath = arg('--report');
+const artifactsPath = arg('--artifacts-dir');
 const cardbench = process.argv.includes('--cardbench');
 const listCases = process.argv.includes('--list-cases');
 if (process.argv.includes('--print-package-source')) { process.stdout.write(`${PACKAGED_SOURCE}\n`); process.exit(0); }
@@ -270,9 +266,15 @@ if (listCases) {
   process.exit(0);
 }
 if (!fs.existsSync(path.join(PACKAGED_SOURCE, 'SKILL.md'))) throw new Error('Packaged skill is missing; run npm run package-skill first');
+if (artifactsPath) {
+  assert.ok(!fs.existsSync(path.resolve(artifactsPath)), 'Use a new artifacts directory for each evaluation run');
+  fs.mkdirSync(path.resolve(artifactsPath), {recursive:true});
+}
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-fresh-context-'));
 const results = [];
+let activeCase = null;
+let completed = false;
 try {
   const installed = path.join(temp, 'installed', 'card-skill');
   fs.mkdirSync(path.dirname(installed), { recursive: true });
@@ -283,6 +285,8 @@ try {
   assert.ok(installedPlaywright.startsWith(`${fs.realpathSync(installed)}${path.sep}`), `isolated runtime resolved Playwright outside install root: ${installedPlaywright}`);
 
   for (const testCase of selected) {
+    activeCase = testCase;
+    process.stderr.write(`${cardbench ? 'cardbench' : 'fresh-context'} start: ${testCase.id}\n`);
     const caseRoot = path.join(temp, testCase.id);
     const answerPath = path.join(caseRoot, 'answer.json');
     const finalDir = path.join(caseRoot, 'published');
@@ -305,6 +309,7 @@ try {
         assertJob(installed, jobPath, testCase, job);
       } catch (error) {
         if (!cardbench) throw error;
+        try { revisionIdentity(job); } catch { throw error; }
         const previousJob = job;
         jobPath = path.join(caseRoot, 'revised.json');
         job = codexJson(installed, renderFailureRevisionPrompt(testCase, job, error.message), jobPath, null).value;
@@ -364,6 +369,14 @@ try {
     const receiptsDir = cardbench ? finalDir : candidateDir;
     const receipts = publication.outputs.map(basename => JSON.parse(fs.readFileSync(path.join(receiptsDir, `${path.basename(basename, '.png')}.receipt.json`), 'utf8')));
     assert.ok(receipts.every(item => item.job_success && item.checker?.pass), `${testCase.id} has a failed receipt`);
+    if (artifactsPath) {
+      const evidenceDir = path.join(path.resolve(artifactsPath), testCase.id);
+      fs.cpSync(caseRoot, evidenceDir, {recursive:true});
+      const logsDir = path.join(path.dirname(installed), 'diagnostics');
+      const savedLogs = path.join(evidenceDir, 'diagnostics');
+      fs.mkdirSync(savedLogs, {recursive:true});
+      for (const name of fs.readdirSync(logsDir).filter(name => name.startsWith(testCase.id+'_'))) fs.copyFileSync(path.join(logsDir,name),path.join(savedLogs,name));
+    }
     results.push({
       id: testCase.id,
       kind: testCase.kind || 'planning',
@@ -421,6 +434,19 @@ try {
   const serialized = `${JSON.stringify(report, null, 2)}\n`;
   if (reportPath) fs.writeFileSync(path.resolve(reportPath), serialized);
   process.stdout.write(serialized);
+  completed = true;
+} catch (error) {
+  const report = {
+    schema_version: 2, prompt_profile: 'skill-routed-v1', scope,
+    level: cardbench ? 'L2-agent-critic' : 'L1', installed_runtime: 'isolated-temp-install',
+    package_source: path.relative(ROOT, PACKAGED_SOURCE), cases: results,
+    failure: { case_id: activeCase?.id || 'setup', message: error.message, diagnostics_dir: temp },
+    summary: { passed: results.length, failed: 1, skipped: Math.max(0, selected.length-results.length-(activeCase ? 1 : 0)), completed: false,
+      l2_agent_critic: false, l2_maintainer_judgment: false, l3_real_user_evidence: false },
+  };
+  if (reportPath) fs.writeFileSync(path.resolve(reportPath), JSON.stringify(report, null, 2)+'\n');
+  process.stderr.write(`Evaluation failed: ${error.message}\nDiagnostics retained: ${temp}\n`);
+  process.exitCode = 1;
 } finally {
-  fs.rmSync(temp, { recursive: true, force: true });
+  if (completed) fs.rmSync(temp, { recursive: true, force: true });
 }
