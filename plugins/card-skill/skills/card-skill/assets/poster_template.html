@@ -388,38 +388,6 @@
   }
 
   /* ── Reading notes variant ────────────────────────────────────── */
-  .card.reading-notes {
-    padding: 72px 76px;
-  }
-
-  .card.reading-notes .title-area {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-    padding-bottom: 30px;
-    margin-bottom: 34px;
-    border-bottom: 1px solid var(--hairline);
-  }
-
-  .card.reading-notes .title-area h1 {
-    max-width: 880px;
-    font-size: 64px;
-    line-height: 1.12;
-    margin-bottom: 12px;
-  }
-
-  .card.reading-notes .title-area .subtitle {
-    font-size: 30px;
-    line-height: 1.4;
-  }
-
-  .card.reading-notes .header {
-    margin-bottom: 34px;
-  }
-
-  .card.reading-notes .body-content {
-    min-height: 0;
-  }
-
   .reading-card-title {
     font: 400 48px/1.22 var(--zh-serif) !important;
     margin-bottom: 28px !important;
@@ -617,6 +585,16 @@
   .field-notes .highlight p { font-size:38px; line-height:1.55; margin:0; }
   .field-notes .body-content:has(.highlight) .item { padding:28px 0; }
   .field-notes:not(:has(.title-area)) .body-content:has(.highlight) .item { padding:32px 0; }
+  /* Content capabilities share the same field-notes reading surface. */
+  .field-notes .reading-label { font:400 36px/1.4 var(--zh-serif); letter-spacing:0; }
+  .field-notes .reading-quote p, .field-notes .reading-thought p { font-size:38px; line-height:1.55; }
+  .field-notes .reading-thought { background:transparent; border:0; border-left:1px solid var(--hairline); border-radius:0; padding:0 0 0 24px; }
+  .field-notes .data-row { gap:24px; align-items:start; }
+  .field-notes .data-row .key { font:400 36px/1.55 var(--zh-serif); flex:0 0 156px; }
+  .field-notes .data-row .value { font:400 38px/1.55 var(--zh-serif); white-space:pre-line; overflow-wrap:anywhere; min-width:0; }
+  .field-notes .process-copy h3 { font-size:38px; }
+  .field-notes .process-copy p { font-size:38px; line-height:1.55; }
+  .field-notes .process-index, .field-notes .evidence-media figcaption { font-size:36px; }
 </style>
 </head>
 <body>

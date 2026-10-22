@@ -10,13 +10,7 @@ function validateNotes(input) {
   const keys = (x, allowed, label) => {
     for (const k of Object.keys(x)) if (!allowed.includes(k)) fail(`${label}: unknown field ${k}`);
   };
-  if (input.variant !== undefined && !['classic', 'reasoning-notes'].includes(input.variant)) fail('unknown variant');
-  const notes = input.variant === 'reasoning-notes';
-  if (input.note_page !== undefined && !notes) fail('note_page requires reasoning-notes');
-  if (!notes) {
-    for (const s of Array.isArray(input.steps) ? input.steps : []) if (s && (s.layout !== undefined || s.depth !== undefined)) fail('step layout/depth requires reasoning-notes');
-    return errors;
-  }
+  if (input.variant !== undefined && input.variant !== 'reasoning-notes') fail('classic retired; use reasoning-notes or omit variant');
   text(input.title, 'title', 200);
   if (input.accent_words !== undefined && (!Array.isArray(input.accent_words) || input.accent_words.some(w => typeof w !== 'string'))) fail('accent_words must be an array of strings');
   if (!Array.isArray(input.steps) || input.steps.length < 1 || input.steps.length > 16) fail('steps must contain 1 to 16 blocks; split by responsibility before rendering');

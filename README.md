@@ -1,8 +1,10 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
+Confirmed modes now have one supported personal style each. Covers use Paper Wilderness only; Poster retains all content blocks under field-notes. Old style contracts require migration; see [migration guide](references/personal-style-migration.md).
+
 <h1 align="center">card-skill</h1>
 
-New article-diagram requests default to six personal, browser-measured relationship layouts. See [contracts, fit limits and splitting rules](references/article-diagram-personal.md). Explicit formula requests and existing structured contracts remain compatible.
+New article-diagram requests default to six personal, browser-measured relationship layouts. See [contracts, fit limits and splitting rules](references/article-diagram-personal.md). Old formula and family contracts require replanning.
 
 <p align="center"><strong>Turn articles, ideas, and arguments into publish-ready visual cards.</strong></p>
 
@@ -36,7 +38,7 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 | WeChat covers, blog headers, article atmosphere images | Websites, landing pages, app/component UI |
 | Xiaohongshu / social opinion cards and carousels | Figma prototypes, logo / brand identity systems |
 | Argument whiteboards, system relations, technical decisions | Chart-library plotting (ECharts and similar) |
-| In-article diagrams: formula cards, relations, flows, boundaries | Generic photo editing or file conversion |
+| In-article diagrams: six source-grounded relationship layouts | Generic photo editing or file conversion |
 | WeChat Reading highlights and monthly reports (when requested) | Silently scanning an entire reading account |
 | Consistent batch PNGs with automated crop/overflow quality checks | One-off chat illustrations with no quality gate |
 
@@ -64,7 +66,7 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | Narrative & conflict | `comic` | Studio | Step-by-step conflict, turn, or before/after stories | [Docs](references/mode-comic.md) |
 | Personal reflections | `sketchnote` | Studio | Warm, notebook-style visual notes | [Docs](references/mode-sketchnote.md) |
 
-New sketchnote requests default to `variant: "wandering-notes"`: shared typography and spacing with source-driven metaphor changes, reading rhythm, and semantic Chinese line breaks. It remains a Studio composition; existing contracts without a variant stay compatible. [Rules and examples](references/sketchnote-wandering-notes.md).
+New sketchnote requests default to `variant: "wandering-notes"`: shared typography and spacing with source-driven metaphor changes, reading rhythm, and semantic Chinese line breaks. It remains a Studio composition; omitted variants also load wandering notes. [Rules and examples](references/sketchnote-wandering-notes.md).
 
 > **Stable vs. Studio:**
 > - **Stable modes** use deterministic built-in templates—fast, consistent, and ideal for batch generation.
@@ -129,16 +131,9 @@ Turn the article below into a WeChat cover image. Do not restate it as a summary
 [paste article or URL]
 ```
 
-**Paper Wilderness — an opt-in cover series**
+**Paper Wilderness — the only cover series**
 
-Ask for “纸上荒野系列” or “野生肯尼公众号封面” to retain large headlines, a paper terrain carrier and a red trail marker while changing the scene to match the article. An already selected series persists in the current conversation; generic covers do not activate it. Includes a neutral reference master, three examples and wide-cover layout. Uses the host’s image-generation capability or suitable user-selected art, with no new keys or setup. If neither is available, the agent reports the limitation instead of substituting a generic motif. First version supports `wechat-cover` only; no automatic square crop or default signature. [Series workflow](references/cover-paper-wilderness.md).
-
-**WeChat cover pair (explicit request)**
-```text
-Create a wide WeChat cover and a square share image from this article. Keep the same short headline, qualifications, and palette, but compose each canvas independently. Inspect both PNGs before delivery.
-```
-
-The pair uses existing `wechat-cover` and `square` aspects, with separate outputs linked by `cover_adaptation_of` in Visual Job v3. This bounded exception reuses evidence only within a cover pair; ordinary content cards still require independent evidence. Custom square layouts use the existing Studio contract, not `cover_art`. A request for one cover still produces one cover. [Workflow and example](references/visual-job.md#wechat-cover-pair).
+Every cover request uses large headlines, paper terrain and the red trail marker, with imagery based on the article. The renderer loads the shared layout. Suitable artwork or an available image-generation tool is required; no generic motif fallback. Only the verified wechat-cover ratio is supported for now. Square adaptation is not yet available. Branding is opt-in. [Series workflow](references/cover-paper-wilderness.md).
 
 **In-article diagram / personal relation layouts**
 ```text
@@ -269,7 +264,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 <table>
 <tr>
 <td width="50%"><img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="WeChat cover"><br><strong>editorial-image</strong> · Many models, one judgment</td>
-<td width="50%"><img src="assets/gallery/article-formula.png" width="100%" alt="Formula card"><br><strong>article-diagram</strong> · Sensation, movement, reference frames</td>
+<td width="50%"><img src="assets/gallery/article-formula.png" width="100%" alt="Personal hierarchy"><br><strong>article-diagram</strong> · Sensation, movement, reference frames</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/big.png" width="100%" alt="One-line card"><br><strong>big</strong> · Explore the world</td>
@@ -280,7 +275,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 <td><img src="assets/gallery/whiteboard.png" width="100%" alt="Whiteboard"><br><strong>whiteboard</strong> · Knowing a cup</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="Boundary model"><br><strong>article-diagram</strong> · Reference frame model</td>
+<td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="Personal convergence"><br><strong>article-diagram</strong> · Reference frame model</td>
 <td><img src="assets/gallery/reading-notes.png" width="100%" alt="Reading notes"><br><strong>poster</strong> · Reading notes</td>
 </tr>
 <tr>
@@ -325,8 +320,8 @@ card-skill is inspired by:
 
 ### Personal field-note posters
 
-Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). Explicit variants, media/process/data posters, verbatim reading notes, and existing structured contracts keep their existing behavior.
+Natural-language text poster requests default to the `field-notes` variant: fixed 3:4 pages, sidebar labels, continuous prose, and semantic grouping before pagination. Related short sections can share a page without shrinking body text. See [the composition and pagination guide](references/poster-field-notes.md). All Poster content blocks use field-notes, including media, process, data and paired reading notes.
 
 <p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>
 
-Natural-language whiteboards now use reasoning notes: explicit boundaries, opposition, turns and exception blocks, with 44px body text. Choose a single reading path or overview plus local branches by the reader’s task; split sets validate visible page navigation in one Visual Job. See [composition and splitting rules](references/whiteboard-reasoning-notes.md). Existing structured whiteboards retain classic rendering.
+Natural-language whiteboards now use reasoning notes: explicit boundaries, opposition, turns and exception blocks, with 44px body text. Choose a single reading path or overview plus local branches by the reader’s task; split sets validate visible page navigation in one Visual Job. See [composition and splitting rules](references/whiteboard-reasoning-notes.md). Omitted variants also use reasoning notes; classic is retired.

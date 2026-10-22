@@ -83,10 +83,14 @@ function nodeHtml(n,b,measureId='') {
   return `<div class="node${b.row?' row':''}${measureId?' measure':''}" ${measureId?`data-measure-id="${measureId}"`:''} style="left:${b.x}px;top:${b.y}px;width:${b.w}px;${b.inline?'display:flex;justify-content:center;gap:24px;align-items:baseline;':''}"><h2>${esc(n.label)}</h2>${n.note?`<p>${esc(n.note)}</p>`:''}</div>`;
 }
 function documentHtml(styles,body) { return `<!doctype html><html><head><meta charset="utf-8"><style>${styles}</style></head><body>${body}</body></html>`; }
-function render(input,htmlPath,ctx) {
+function render(input,htmlPath,ctx = {}) {
   const g=analyze(input), plans=candidates(g), styles=css(getDesign(resolveDesignNameForInput(input,'stripe')))+'h1.measure{width:972px}';
   if (typeof ctx.measure !== 'function') fail('browser measurement adapter is required');
-  let probes='<h1 class="measure" data-measure-id="heading">'+esc(input.formula)+'</h1><p class="qualification measure" data-measure-id="footer">'+esc(input.sentence)+'</p>';
+  const qualification=[input.sentence,input.subtitle,input.caption].filter(Boolean).join(' · ');
+  const credit=[input.source,input.brand_name].filter(Boolean).join(' · ');
+  const hasCredit=Boolean(credit||input.logo);
+  let probes='<h1 class="measure" data-measure-id="heading">'+esc(input.formula)+'</h1><p class="qualification measure" data-measure-id="footer">'+esc(qualification)+'</p>';
+  if(hasCredit) probes+=`<div class="measure" data-measure-id="credit" style="width:${input.logo?920:972}px;font-size:24px;line-height:1.3">${esc(credit)}</div>`;
   const tokens = text => String(text||'').match(/[A-Za-z0-9_]+|[^\s]/gu)||[];
   plans.forEach((p,k)=>{
     p.boxes.forEach((b,j)=>{
@@ -100,7 +104,7 @@ function render(input,htmlPath,ctx) {
   fs.writeFileSync(measurePath,documentHtml(styles,probes));
   const m=ctx.measure({htmlPath:measurePath,captureWidth:1080,captureHeight:720,fullpage:false});
   const height=(id,max)=>Number.isFinite(m?.[id]?.height)&&m[id].height<=max+0.5;
-  if (!height('heading',90)||!height('footer',76)) fail('heading or qualification exceeds its reserved area');
+  if (!height('heading',90)||!height('footer',hasCredit?64:76)|| (hasCredit&&!height('credit',32))) fail('heading or qualification exceeds its reserved area');
   const chosen=plans.find((p,k)=>p.boxes.every((b,j)=>{
     const n=g.ns[b.i];
     const widths=(text,prefix,limit)=>tokens(text).every((_,z)=>Number.isFinite(m?.[prefix+z]?.width)&&m[prefix+z].width<=limit);
@@ -108,7 +112,7 @@ function render(input,htmlPath,ctx) {
   })&&p.labels.every((l,j)=>height(`p${k}e${j}`,l.h||46)));
   if (!chosen) fail('labels, notes or subtrees exceed the available width/height');
   const lines=chosen.lines.map(l=>`<polyline class="wire" points="${l.points.map(p=>p.join(',')).join(' ')}"${l.arrow?' marker-end="url(#tip)"':''}/>`).join('');
-  const body=`<div class="page" data-card-mode="article-diagram" data-personal-layout="${g.kind}" data-personal-orientation="${chosen.name}"><h1>${esc(input.formula)}</h1><div class="stage"><svg aria-hidden="true" viewBox="0 0 972 460"><defs><marker id="tip" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="currentColor"/></marker></defs>${lines}</svg>${chosen.boxes.map(b=>nodeHtml(g.ns[b.i],b)).join('')}${chosen.labels.map(l=>`<div class="edge-label" style="left:${l.x}px;top:${l.y}px;width:${l.w}px">${esc(l.text)}</div>`).join('')}</div><p class="qualification">${esc(input.sentence)}</p></div>`;
+  const body=`<div class="page" data-card-mode="article-diagram" data-personal-layout="${g.kind}" data-personal-orientation="${chosen.name}"><h1>${esc(input.formula)}</h1><div class="stage"><svg aria-hidden="true" viewBox="0 0 972 460"><defs><marker id="tip" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="currentColor"/></marker></defs>${lines}</svg>${chosen.boxes.map(b=>nodeHtml(g.ns[b.i],b)).join('')}${chosen.labels.map(l=>`<div class="edge-label" style="left:${l.x}px;top:${l.y}px;width:${l.w}px">${esc(l.text)}</div>`).join('')}</div><p class="qualification">${esc(qualification)}</p>${hasCredit?`<footer class="colophon" style="position:absolute;left:54px;top:684px;width:972px;display:flex;gap:16px;align-items:center;font-size:24px;line-height:1.3">${input.logo?`<img style="height:28px;width:auto" alt="logo" src="${esc(pathToFileURL(path.resolve(input.logo)).href)}">`:""}<span>${esc(credit)}</span></footer>`:""}</div>`;
   fs.writeFileSync(htmlPath,documentHtml(styles,body));
   return {htmlPath,captureWidth:1080,captureHeight:720,fullpage:false};
 }

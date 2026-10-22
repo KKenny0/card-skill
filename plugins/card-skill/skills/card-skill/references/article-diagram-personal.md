@@ -1,6 +1,6 @@
 # Personal article diagrams
 
-Personal relation diagrams are the default for new natural-language article-diagram requests. The Agent selects `personal_layout` from source semantics and writes it explicitly; users need not name the style. Requires `render_plan: "structure"` and `aspect: "body-3-2"` (or omitted aspect). Existing structured contracts without this field retain their formula behavior, and explicit legacy families remain supported. For an explicit formula-card request or a genuine formula better served by equation layout, write `render_plan: "summary"` without personal_layout. This is a layout contract, not a tone.
+Personal relation diagrams are the default for new natural-language article-diagram requests. The Agent selects `personal_layout` from source semantics and writes it explicitly; users need not name the style. Requires `render_plan: "structure"` and `aspect: "body-3-2"` (or omitted aspect). Legacy families and formula-only cards are retired. Replan their source with an explicit supported relation; never guess topology. This is a layout contract, not a tone.
 
 | Value | Relation contract | Boundary |
 |---|---|---|
@@ -32,3 +32,5 @@ Six nodes is a contract limit, not a readability guarantee. Label width, note he
 `evals/fixtures/article-diagram-personal.json` contains A2A exchange, uncertainty convergence/tension, PDCA cycle, Web timeline, Python hierarchy, dense timeline and two boundary cases. `scripts/validate-personal-diagram.mjs` runs real browser measurement, output checks, topology rejection and overlong-content checks; the full `scripts/validate.mjs` invokes it.
 
 Use the normal Visual Job v3 → candidate → actual PNG inspection → review → hash-bound publication chain. The default is a planning policy, not an inferred graph-topology switch: convergence and tension can have the same graph, and a chain alone does not prove chronological evolution. If no relation fits, split at planning time or explain the limitation; never silently substitute a formula or discard labels.
+
+Optional subtitle/caption are visibly appended to the qualification, and explicitly supplied source/brand/logo receive a measured footer. If their combined text does not fit, replan instead of silently dropping it.

@@ -62,11 +62,11 @@ Treat one paired highlight plus thought as one content unit. A standalone though
 Default routing:
 
 - one requested quotation: `big`, using `attribution` for the book source;
-- personal notes without another requested format: `poster` with `variant: "reading-notes"`;
+- personal notes without another requested format: `poster` with `variant: "field-notes"`;
 - a reading-note essay or explicit long-card request: `long`;
 - an explicit request to compress a relationship, mechanism, or argument: `article-diagram`.
 
-For the default `poster` + `reading-notes` route:
+For the default `poster` + `field-notes` route:
 
 - 1-8 content units: keep every unit;
 - more than 8 units without an explicit quantity: group by chapter and theme into 6-8 coherent cards with about 2-4 related units per card, prioritize units containing the user's own thought, and report `used / available` counts in the delivery message;

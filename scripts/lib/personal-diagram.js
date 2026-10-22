@@ -7,6 +7,11 @@ function analyze(input) {
   if (input.aspect && input.aspect !== 'body-3-2') fail('requires body-3-2');
   const ns = input.structure?.nodes, rs = input.structure?.relations;
   if (!Array.isArray(ns) || ns.length < 2 || ns.length > 6 || !Array.isArray(rs) || rs.length > 6) fail('requires 2–6 nodes and at most 6 relations');
+  for (const n of ns) {
+    if (!n || typeof n !== 'object' || typeof n.label !== 'string' || !n.label.trim() || n.label.length > 36) fail('node label must be non-empty text of at most 36 characters');
+    if (n.note !== undefined && typeof n.note !== 'string') fail('node note must be text');
+  }
+  for (const r of rs) if (!r || typeof r !== 'object' || (r.label !== undefined && (typeof r.label !== 'string' || r.label.length > 24))) fail('relation label must be text of at most 24 characters');
   const ids = ns.map(n => n?.id);
   if (ids.some(id => typeof id !== 'string' || !id) || new Set(ids).size !== ids.length) fail('node ids must be unique strings');
   const edges = rs.map(r => [ids.indexOf(r?.from), ids.indexOf(r?.to)]);

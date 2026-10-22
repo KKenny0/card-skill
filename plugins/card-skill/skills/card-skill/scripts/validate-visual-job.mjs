@@ -59,18 +59,18 @@ function baseJob(overrides = {}) {
         transformation: 'visualize',
         render_contract: {
           mode: 'article-diagram',
-          family: 'concept-map',
+          personal_layout:'convergence', render_plan:'structure', formula:'A + B = C', sentence:'Parts contribute.',
           tone: 'sharp',
           title: 'A compact formula',
-          nodes: [
+          structure: {nodes: [
             { id: 'a', label: 'A' },
             { id: 'b', label: 'B' },
             { id: 'c', label: 'C' },
           ],
-          links: [
+          relations: [
             { from: 'a', to: 'c', label: 'contributes' },
             { from: 'b', to: 'c', label: 'contributes' },
-          ],
+          ]},
         },
       },
     ],
@@ -188,15 +188,15 @@ assert.equal(validateVisualJob(v3Job()).valid, true, validateVisualJob(v3Job()).
 
 // Execute the published example so documentation cannot promise an invalid pair.
 const pairSection = fs.readFileSync(path.join(ROOT, 'references/visual-job.md'), 'utf8').split('## WeChat cover pair')[1];
-const coverPair = JSON.parse(pairSection.match(/```json\s*([\s\S]*?)```/)[1]);
-assert.equal(validateVisualJob(coverPair).valid, true, validateVisualJob(coverPair).errors.join('\n'));
+const coverPair = JSON.parse(fs.readFileSync(path.join(ROOT,'evals/fixtures/retired-cover-pair.json'),'utf8'));
+assert.equal(validateVisualJob(coverPair).valid, false, validateVisualJob(coverPair).errors.join('\n'));
 const jobSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas/visual-job.json'), 'utf8'));
 assert.equal(jobSchema.properties.outputs.items.properties.cover_adaptation_of.type, 'string');
 assert.equal(jobSchema.properties.source_units.items.properties.cover_adaptation_of, undefined);
 const reversedPair = clone(coverPair);
 reversedPair.outputs[0].render_contract.aspect = 'square';
 reversedPair.outputs[1].render_contract.aspect = 'wechat-cover';
-assert.equal(validateVisualJob(reversedPair).valid, true);
+assert.equal(validateVisualJob(reversedPair).valid, false);
 const stablePair = clone(coverPair);
 stablePair.decision.tier = 'stable';
 for (const output of stablePair.outputs) {
@@ -205,7 +205,7 @@ for (const output of stablePair.outputs) {
   delete output.render_contract.custom_css;
   output.render_contract.cover_motif = 'drawer';
 }
-assert.equal(validateVisualJob(stablePair).valid, true);
+assert.equal(validateVisualJob(stablePair).valid, false);
 for (const [name, mutate, expected] of [
   ['undeclared reuse', job => { delete job.outputs[1].cover_adaptation_of; }, /not used by another artifact/],
   ['unknown original', job => { job.outputs[1].cover_adaptation_of = 'missing'; }, /earlier output/],
@@ -665,7 +665,7 @@ assert.equal(validate({
 assert.equal(validate({ ...studio, composition_required: false }).valid, false);
 assert.match(validate({
   mode: 'whiteboard', title: 'Broken chain', steps: [{ type: 'chain', nodes: [{ label: 'invisible' }] }],
-}).errors.join('\n'), /requires non-empty "text"/);
+}).errors.join('\n'), /node.text must be non-empty text/);
 assert.equal(validate({
   mode: 'whiteboard', title: 'Visible chain', steps: [{ type: 'chain', nodes: [{ text: '事实', highlight: true }, { text: '约束', muted: true }] }],
 }).valid, true);
@@ -1311,8 +1311,8 @@ try {
         mode: 'poster',
         title: 'Legacy series',
         cards: [
-          { body: [{ type: 'heading', text: 'First' }] },
-          { body: [{ type: 'heading', text: 'Second' }] },
+          { body: [{ type: 'paragraph', text: 'First responsibility: preserve the source and its important conditions.' }] },
+          { body: [{ type: 'paragraph', text: 'Second responsibility: verify the result before handing it to a reader.' }] },
         ],
       },
     }],

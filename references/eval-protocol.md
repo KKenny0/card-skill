@@ -4,7 +4,7 @@
 
 For behavior, schema, renderer, or skill-instruction changes, run `npm run package-skill`, `npm test`, `npm run smoke`, and `git diff --check`. Inspect the generated mirror diff; never edit the mirror independently. The local suite uses disposable fixtures, including real browser captures; run it without a per-command approval round. When VERSION changes, rebuild the version-bound gallery with npm run gallery:update, run npm run gallery:check, then package the generated assets. Do not fix version drift by changing only the manifest version. `npm run check-output` only prints CLI help and is not a test gate.
 
-Review representative actual PNGs when changing visual behavior or instructions. Palette changes require reflective/sharp/warm/technical plus one explicit design; article-diagram changes require a formula card and the three legacy families. Use `scripts/gallery-jobs.mjs` for gallery verification; mode-specific regression fixtures remain in `scripts/validate.mjs`.
+Review representative actual PNGs when changing visual behavior or instructions. Palette changes require reflective/sharp/warm/technical plus one explicit design; article-diagram changes require all six personal relationship layouts, dense-label boundary fixtures, and rejection checks for retired formula-only and legacy-family contracts. Use `scripts/gallery-jobs.mjs` for gallery verification; mode-specific regression fixtures remain in `scripts/validate.mjs`.
 
 `npm test` proves L0 only: fixture definitions, Visual Job validation, and output checks work. It does not call a model.
 

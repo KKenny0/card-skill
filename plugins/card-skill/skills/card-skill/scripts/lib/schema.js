@@ -100,6 +100,7 @@ const SCHEMAS = {
       'visual_metaphor',
       'cover_motif',
       'cover_art',
+      'cover_series',
       'art_direction',
       'text_plan',
       'composition_required',
@@ -121,6 +122,7 @@ const SCHEMAS = {
       visual_metaphor: 'string',
       cover_motif: 'string',
       cover_art: 'object',
+      cover_series: 'string',
       art_direction: 'string',
       text_plan: 'string',
       composition_required: 'boolean',
@@ -231,7 +233,7 @@ const SCHEMAS = {
 const LONG_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'blockquote', 'layer_card', 'section_break']);
 const WHITEBOARD_STEP_TYPES = new Set(['chain', 'annotation', 'layers', 'insight']);
 const POSTER_BODY_TYPES = new Set(['paragraph', 'heading', 'highlight', 'items', 'data_row', 'divider', 'reading_unit', 'media', 'process']);
-const POSTER_VARIANTS = new Set(['reading-notes', 'field-notes']);
+const POSTER_VARIANTS = new Set(['field-notes']);
 const POSTER_MAX_CARDS = 20;
 const POSTER_MAX_BODY_ELEMENTS = 24;
 const POSTER_MAX_TOTAL_TEXT = 40_000;
@@ -389,7 +391,7 @@ function validate(input, { checkLocalFiles = true } = {}) {
   }
 
   if (mode === 'sketchnote' && input.variant !== undefined && input.variant !== 'wandering-notes') {
-    errors.push('sketchnote variant must be wandering-notes; omit variant for an existing custom composition');
+    errors.push('sketchnote variant must be wandering-notes; omit variant to use wandering-notes');
   }
 
   if (STUDIO_MODES.has(mode)) {
@@ -445,25 +447,6 @@ function validate(input, { checkLocalFiles = true } = {}) {
   }
 
   if (mode === 'whiteboard') errors.push(...require('./whiteboard-notes').validateNotes(input));
-  if (mode === 'whiteboard' && input.variant !== 'reasoning-notes' && Array.isArray(input.steps)) {
-    input.steps.forEach((step, i) => {
-      if (!step || typeof step !== 'object' || Array.isArray(step)) { errors.push(`steps[${i}] must be an object`); return; }
-      if (!step.type) errors.push(`steps[${i}]: missing "type"`);
-      else if (!WHITEBOARD_STEP_TYPES.has(step.type)) errors.push(`steps[${i}]: unknown type "${step.type}". Allowed: ${[...WHITEBOARD_STEP_TYPES].join(', ')}`);
-      if (step.type === 'chain' && !Array.isArray(step.nodes)) errors.push(`steps[${i}]: chain requires "nodes" array`);
-      else if (step.type === 'chain') step.nodes.forEach((node, j) => {
-        if (!node || typeof node !== 'object' || Array.isArray(node)) {
-          errors.push(`steps[${i}].nodes[${j}] must be an object`);
-          return;
-        }
-        if (typeof node.text !== 'string' || !node.text.trim()) errors.push(`steps[${i}].nodes[${j}] requires non-empty "text"`);
-        if (node.highlight !== undefined && typeof node.highlight !== 'boolean') errors.push(`steps[${i}].nodes[${j}].highlight must be boolean`);
-        if (node.muted !== undefined && typeof node.muted !== 'boolean') errors.push(`steps[${i}].nodes[${j}].muted must be boolean`);
-      });
-      if (step.type === 'layers' && !Array.isArray(step.items)) errors.push(`steps[${i}]: layers requires "items" array`);
-    });
-  }
-
   if (mode === 'poster' && Array.isArray(input.cards)) {
     if (totalStringLength(input, POSTER_MAX_TOTAL_TEXT) > POSTER_MAX_TOTAL_TEXT) errors.push(`poster visible and contract text must total at most ${POSTER_MAX_TOTAL_TEXT} characters`);
     for (const [field, maximum] of [['title', 240], ['kicker', 160], ['subtitle', 500], ['source', 500], ['brand_name', 160]]) {
@@ -474,9 +457,7 @@ function validate(input, { checkLocalFiles = true } = {}) {
     }
     if (input.cards.length === 0) errors.push('cards[] must have at least 1 card');
     if (input.cards.length > POSTER_MAX_CARDS) errors.push(`poster supports at most ${POSTER_MAX_CARDS} cards per batch`);
-    if (input.variant === 'reading-notes' && input.cards.length > 8) {
-      errors.push('poster variant "reading-notes" supports at most 8 cards per batch');
-    }
+
     input.cards.forEach((card, i) => {
       if (!card || typeof card !== 'object' || Array.isArray(card)) {
         errors.push(`cards[${i}] must be an object`);
@@ -487,9 +468,7 @@ function validate(input, { checkLocalFiles = true } = {}) {
         errors.push(`cards[${i}].title must be a non-empty string when provided`);
       }
       if (typeof card.title === 'string' && card.title.length > 200) errors.push(`cards[${i}].title must be at most 200 characters`);
-      if (card.title !== undefined && input.variant !== 'reading-notes') {
-        errors.push(`cards[${i}].title is only supported by poster variant "reading-notes"`);
-      }
+
       if (!Array.isArray(card.body)) errors.push(`cards[${i}]: missing "body" array`);
       else {
         if (card.body.length > POSTER_MAX_BODY_ELEMENTS) errors.push(`cards[${i}].body supports at most ${POSTER_MAX_BODY_ELEMENTS} elements`);
@@ -557,16 +536,10 @@ function validate(input, { checkLocalFiles = true } = {}) {
               if (step.text !== undefined && (typeof step.text !== 'string' || step.text.trim() === '' || step.text.length > 400)) errors.push(`cards[${i}].body[${j}].steps[${k}].text must be a non-empty string of at most 400 characters when provided`);
             });
           }
-          if (input.variant === 'reading-notes' && ['media', 'process'].includes(el.type)) {
-            errors.push(`cards[${i}].body[${j}]: ${el.type} is not supported by poster variant "reading-notes"`);
-          }
-          if (input.variant === 'field-notes' && !['paragraph', 'heading', 'highlight', 'items'].includes(el.type)) {
-            errors.push(`cards[${i}].body[${j}]: ${el.type} is not supported by poster variant "field-notes"`);
-          }
+
+
           if (el.type === 'reading_unit') {
-            if (input.variant !== 'reading-notes') {
-              errors.push(`cards[${i}].body[${j}]: reading_unit requires poster variant "reading-notes"`);
-            }
+
             if (typeof el.quote !== 'string' || el.quote.trim() === '') {
               errors.push(`cards[${i}].body[${j}].quote must be a non-empty string`);
             }
@@ -582,6 +555,14 @@ function validate(input, { checkLocalFiles = true } = {}) {
   }
 
   if (mode === 'editorial-image') {
+    const cover = !input.use || input.use === 'cover';
+    if (cover) {
+      if (input.cover_series !== undefined && input.cover_series !== 'paper-wilderness') errors.push('cover_series must be paper-wilderness');
+      if (!input.cover_art) errors.push('Paper Wilderness cover requires cover_art; supply a suitable local illustration or generate it before rendering');
+      if (input.aspect && input.aspect !== 'wechat-cover') errors.push('Paper Wilderness currently supports only wechat-cover; other ratios need a verified series adaptation');
+      if (input.cover_motif !== undefined || input.content_html !== undefined || input.composition_required === true) errors.push('Legacy cover motif/free composition retired; migrate to Paper Wilderness cover_art');
+    } else if (input.cover_series !== undefined) errors.push('cover_series is only supported for cover use');
+
     if (Object.hasOwn(input, 'cover_art')) {
       const art = input.cover_art;
       if (!art || typeof art !== 'object' || Array.isArray(art)) {
@@ -635,173 +616,11 @@ function validate(input, { checkLocalFiles = true } = {}) {
   }
 
   if (mode === 'article-diagram') {
-    const usesLegacyFamily = Boolean(input.family);
-    if (input.personal_layout !== undefined) {
-      try { require('./personal-diagram').analyze(input); }
-      catch (error) { errors.push(error.message); }
-    }
-    const compressionFields = ['formula', 'sentence', 'structure', 'render_plan', 'personal_layout']
-      .filter(field => Object.prototype.hasOwnProperty.call(input, field));
-
-    if (input.family && !ARTICLE_DIAGRAM_FAMILIES.has(input.family)) {
-      errors.push(`family must be one of: ${[...ARTICLE_DIAGRAM_FAMILIES].join(', ')}`);
-    }
-    if (input.aspect && !ARTICLE_DIAGRAM_ASPECTS.has(input.aspect)) {
-      errors.push(`aspect must be one of: ${[...ARTICLE_DIAGRAM_ASPECTS].join(', ')}`);
-    }
-    if (input.render_plan && !ARTICLE_DIAGRAM_RENDER_PLANS.has(input.render_plan)) {
-      errors.push(`render_plan must be one of: ${[...ARTICLE_DIAGRAM_RENDER_PLANS].join(', ')}`);
-    }
-
-    if (usesLegacyFamily && compressionFields.length > 0) {
-      errors.push(`legacy article-diagram family input cannot include compression fields: ${compressionFields.join(', ')}`);
-    }
-
-    if (!usesLegacyFamily) {
-      if (input.logo !== undefined) {
-        errors.push('article-diagram compression pack does not support logo; use a legacy family diagram when branded chrome is required');
-      }
-      if (!input.formula || typeof input.formula !== 'string') {
-        errors.push('article-diagram compression pack requires string "formula"');
-      }
-      if (!input.sentence || typeof input.sentence !== 'string') {
-        errors.push('article-diagram compression pack requires string "sentence"');
-      }
-      if (!input.structure || typeof input.structure !== 'object' || Array.isArray(input.structure)) {
-        errors.push('article-diagram compression pack requires object "structure"');
-      } else {
-        const structureNodes = input.structure.nodes;
-        const structureRelations = input.structure.relations;
-        if (!Array.isArray(structureNodes) || structureNodes.length < 2) {
-          errors.push('structure.nodes[] must have at least 2 nodes');
-        } else {
-          if (structureNodes.length > 6) errors.push('structure.nodes[] supports at most 6 nodes');
-          const structureNodeIds = new Set();
-          structureNodes.forEach((node, i) => {
-            if (!node || typeof node !== 'object' || Array.isArray(node)) {
-              errors.push(`structure.nodes[${i}] must be an object`);
-              return;
-            }
-            if (!node.id || typeof node.id !== 'string') errors.push(`structure.nodes[${i}]: missing string "id"`);
-            if (!node.label || typeof node.label !== 'string') errors.push(`structure.nodes[${i}]: missing string "label"`);
-            if (node.note !== undefined && typeof node.note !== 'string') errors.push(`structure.nodes[${i}].note must be string`);
-            if (node.id) {
-              if (structureNodeIds.has(node.id)) errors.push(`structure.nodes[${i}]: duplicate id "${node.id}"`);
-              structureNodeIds.add(node.id);
-            }
-            if (typeof node.label === 'string' && node.label.length > 36) {
-              errors.push(`structure.nodes[${i}].label must be 36 characters or fewer`);
-            }
-          });
-
-          if (structureRelations !== undefined) {
-            if (!Array.isArray(structureRelations)) {
-              errors.push('structure.relations must be an array');
-            } else {
-              if (structureRelations.length > 6) errors.push('structure.relations[] supports at most 6 relations');
-              structureRelations.forEach((relation, i) => {
-                if (!relation || typeof relation !== 'object' || Array.isArray(relation)) {
-                  errors.push(`structure.relations[${i}] must be an object`);
-                  return;
-                }
-                if (!relation.from || typeof relation.from !== 'string') errors.push(`structure.relations[${i}]: missing string "from"`);
-                if (!relation.to || typeof relation.to !== 'string') errors.push(`structure.relations[${i}]: missing string "to"`);
-                if (relation.from && !structureNodeIds.has(relation.from)) errors.push(`structure.relations[${i}].from references unknown node "${relation.from}"`);
-                if (relation.to && !structureNodeIds.has(relation.to)) errors.push(`structure.relations[${i}].to references unknown node "${relation.to}"`);
-                if (relation.label !== undefined && typeof relation.label !== 'string') errors.push(`structure.relations[${i}].label must be string`);
-                if (typeof relation.label === 'string' && relation.label.length > 24) errors.push(`structure.relations[${i}].label must be 24 characters or fewer`);
-              });
-            }
-          }
-        }
-      }
-
-      if (input.nodes !== undefined || input.links !== undefined || input.zones !== undefined) {
-        errors.push('compression article-diagram uses structure.nodes/structure.relations; legacy nodes/links/zones require family');
-      }
-
-      return { valid: errors.length === 0, errors };
-    }
-
-    const nodeIds = new Set();
-    if (Array.isArray(input.nodes)) {
-      const maxNodes = input.family === 'concept-map' ? 5 : 6;
-      if (input.nodes.length < 2) errors.push('nodes[] must have at least 2 nodes');
-      if (input.nodes.length > maxNodes) errors.push(`${input.family || 'article-diagram'} supports at most ${maxNodes} nodes`);
-
-      input.nodes.forEach((node, i) => {
-        if (!node || typeof node !== 'object' || Array.isArray(node)) {
-          errors.push(`nodes[${i}] must be an object`);
-          return;
-        }
-        if (!node.id || typeof node.id !== 'string') errors.push(`nodes[${i}]: missing string "id"`);
-        if (!node.label || typeof node.label !== 'string') errors.push(`nodes[${i}]: missing string "label"`);
-        if (node.note !== undefined && typeof node.note !== 'string') errors.push(`nodes[${i}].note must be string`);
-        if (node.zone !== undefined && typeof node.zone !== 'string') errors.push(`nodes[${i}].zone must be string`);
-        if (node.id) {
-          if (nodeIds.has(node.id)) errors.push(`nodes[${i}]: duplicate id "${node.id}"`);
-          nodeIds.add(node.id);
-        }
-        if (typeof node.label === 'string' && node.label.length > 36) {
-          errors.push(`nodes[${i}].label must be 36 characters or fewer`);
-        }
-      });
-    }
-
-    if (Array.isArray(input.links)) {
-      if (input.links.length > 6) errors.push('links[] supports at most 6 links');
-      input.links.forEach((link, i) => {
-        if (!link || typeof link !== 'object' || Array.isArray(link)) {
-          errors.push(`links[${i}] must be an object`);
-          return;
-        }
-        if (!link.from || typeof link.from !== 'string') errors.push(`links[${i}]: missing string "from"`);
-        if (!link.to || typeof link.to !== 'string') errors.push(`links[${i}]: missing string "to"`);
-        if (link.from && !nodeIds.has(link.from)) errors.push(`links[${i}].from references unknown node "${link.from}"`);
-        if (link.to && !nodeIds.has(link.to)) errors.push(`links[${i}].to references unknown node "${link.to}"`);
-        if (link.label !== undefined && typeof link.label !== 'string') errors.push(`links[${i}].label must be string`);
-        if (typeof link.label === 'string' && link.label.length > 24) errors.push(`links[${i}].label must be 24 characters or fewer`);
-        if (link.direction !== undefined && !['one-way', 'two-way', 'none'].includes(link.direction)) {
-          errors.push(`links[${i}].direction must be one of: one-way, two-way, none`);
-        }
-      });
-    }
-
-    if (input.family === 'boundary-model') {
-      if (!Array.isArray(input.zones) || input.zones.length < 2) {
-        errors.push('boundary-model requires zones[] with at least 2 zones');
-      } else {
-        if (input.zones.length > 4) errors.push('boundary-model supports at most 4 zones');
-        const zoneIds = new Set();
-        input.zones.forEach((zone, i) => {
-          if (!zone || typeof zone !== 'object' || Array.isArray(zone)) {
-            errors.push(`zones[${i}] must be an object`);
-            return;
-          }
-          if (!zone.id || typeof zone.id !== 'string') errors.push(`zones[${i}]: missing string "id"`);
-          if (!zone.label || typeof zone.label !== 'string') errors.push(`zones[${i}]: missing string "label"`);
-          if (zone.description !== undefined && typeof zone.description !== 'string') errors.push(`zones[${i}].description must be string`);
-          if (zone.id) {
-            if (zoneIds.has(zone.id)) errors.push(`zones[${i}]: duplicate id "${zone.id}"`);
-            zoneIds.add(zone.id);
-          }
-          if (typeof zone.label === 'string' && zone.label.length > 32) {
-            errors.push(`zones[${i}].label must be 32 characters or fewer`);
-          }
-        });
-        if (Array.isArray(input.nodes)) {
-          input.nodes.forEach((node, i) => {
-            if (!node || typeof node !== 'object') return;
-            if (!node.zone) errors.push(`nodes[${i}]: boundary-model nodes require "zone"`);
-            else if (!zoneIds.has(node.zone)) errors.push(`nodes[${i}].zone references unknown zone "${node.zone}"`);
-          });
-        }
-      }
-    }
-
-    if (input.family !== 'boundary-model' && input.zones !== undefined) {
-      errors.push('zones[] is only supported for boundary-model');
-    }
+    if (!input.personal_layout) errors.push('article-diagram requires personal_layout; legacy families and formula-only cards are retired. Replan the source using a supported relation layout');
+    for (const field of ['family', 'nodes', 'links', 'zones']) if (input[field] !== undefined) errors.push(`Retired article-diagram field ${field}; use structure.nodes/structure.relations and personal_layout`);
+    try { require('./personal-diagram').analyze(input); }
+    catch (error) { errors.push(error.message); }
+    for (const key of ['formula', 'sentence']) if (typeof input[key] !== 'string' || !input[key].trim()) errors.push(`${key} must be non-empty text`);
   }
 
   return { valid: errors.length === 0, errors };

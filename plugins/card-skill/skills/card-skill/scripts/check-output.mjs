@@ -1160,6 +1160,7 @@ async function inspectPage(opts, html, issues) {
               bodyFillRatio,
               bottomGapRatio,
               processOnly: card.classList.contains('process-only-poster'),
+              fieldNotes: card.classList.contains('field-notes'),
             });
           }
         }

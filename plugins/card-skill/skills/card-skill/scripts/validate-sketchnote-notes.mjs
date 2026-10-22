@@ -75,7 +75,7 @@ export async function verifySketchnoteNotes() {
     assert.equal(validate(legacy).valid, true);
     const legacyPath = path.join(dir,'legacy.html'); renderer.render(legacy,legacyPath);
     const legacyHtml = fs.readFileSync(legacyPath,'utf8');
-    assert.doesNotMatch(legacyHtml,/data-card-variant|Shared geometry for explicit/);
+    assert.match(legacyHtml,/data-card-variant="wandering-notes"/);
     // Palette choice may change tokens, never the shared layout or metaphor markup.
     const shapes = [];
     for (const tone of ['reflective','sharp','warm','technical']) {

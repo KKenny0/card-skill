@@ -230,12 +230,12 @@ const PAGE_DECISION_CHECKS = [
     decide(report, opts, html, emit) {
       const invalidPosterProcess = report.posterProcessMetrics.filter(item => (
         item.widthRatio < 0.78
-        || item.heightRatio < 0.38
+        || item.heightRatio < (item.fieldNotes ? 0.16 : 0.38)
         || item.heightRatio > (item.processOnly ? 0.84 : 0.65)
         || item.steps < 2
         || item.steps > 5
-        || item.bodyFillRatio < 0.72
-        || item.bottomGapRatio > 0.16
+        || (!item.fieldNotes && item.bodyFillRatio < 0.72)
+        || (!item.fieldNotes && item.bottomGapRatio > 0.16)
       ));
       if (invalidPosterProcess.length > 0) {
         emit('Poster-native process evidence must fill the reading field with two to five legible steps.',
@@ -554,6 +554,8 @@ function selfTestPageDecisionChecks() {
     { code: 'poster_evidence_media_density', evidence: { posterMediaMetrics: [passingPosterMedia] }, expectSilent: true },
     { code: 'poster_evidence_media_density', evidence: { posterMediaMetrics: [{ ...passingPosterMedia, widthRatio: 0.5 }] } },
     { code: 'poster_process_density', evidence: { posterProcessMetrics: [passingPosterProcess] }, expectSilent: true },
+    { code: 'poster_process_density', evidence: { posterProcessMetrics: [{...passingPosterProcess,fieldNotes:true,heightRatio:0.3,bodyFillRatio:0.5,bottomGapRatio:0.3}] }, expectSilent: true },
+    { code: 'poster_process_density', evidence: { posterProcessMetrics: [{...passingPosterProcess,fieldNotes:true,steps:1}] } },
     { code: 'poster_process_density', evidence: { posterProcessMetrics: [{ ...passingPosterProcess, steps: 1 }] } },
     { code: 'article_diagram_formula_metrics_missing', evidence: { expectsFormulaCard: true, formulaCardMetrics: [passingFormulaMetric] }, expectSilent: true },
     { code: 'article_diagram_formula_metrics_missing', evidence: { expectsFormulaCard: true, formulaCardMetrics: [] } },

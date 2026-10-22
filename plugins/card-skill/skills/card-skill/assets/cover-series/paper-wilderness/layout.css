@@ -6,3 +6,7 @@
 .editorial-copy h1 { font-size: 56px; line-height: 1.15; }
 .editorial-subtitle { font-size: 23px; line-height: 1.5; margin-top: 20px; }
 .editorial-visual { height: 330px; min-width: 0; }
+
+/* Keep the series background clean; texture belongs inside the illustration. */
+[data-cover-series="paper-wilderness"] > .grain,
+[data-cover-series="paper-wilderness"] .editorial-frame::before { display:none; }

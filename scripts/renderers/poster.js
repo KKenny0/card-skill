@@ -129,7 +129,8 @@ function isDenseMediaCopyCard(card) {
 function render(input, outputDir) {
   let design = getDesign(resolveDesignNameForInput(input, 'stripe'));
   if (!design) throw new Error(`Design not found: ${input.design}`);
-  const isFieldNotes = input.variant === 'field-notes';
+  if (input.variant !== undefined && input.variant !== 'field-notes') throw new Error('Poster styles retired; use field-notes or omit variant. All body types remain supported.');
+  const isFieldNotes = true;
   if (isFieldNotes && !input.design && (!input.tone || input.tone === 'reflective')) {
     design = { ...design, canvas: '#f7f4ec', accent: '#b53d2c', ink: '#292923', inkMuted: '#625e52', hairline: '#d3ccbd' };
   }
@@ -146,7 +147,7 @@ function render(input, outputDir) {
   const hasBranding = Boolean(logoPath || brandName);
   const hasColophon = Boolean(source || hasBranding);
   const totalCards = input.cards.length;
-  const isReadingNotes = input.variant === 'reading-notes';
+  const isReadingNotes = input.cards.some(card => card.body?.some(el => el.type === 'reading_unit'));
 
   const results = [];
 
@@ -192,24 +193,23 @@ function render(input, outputDir) {
     html = html.replace(/(--radius):\s*[^;]+;/g, `$1: ${design.radius};`);
     html = html.replaceAll('{{HEADER_BLOCK}}', headerBlock);
     html = html.replaceAll('{{TITLE_BLOCK}}', titleBlock);
-    const cardTitle = isReadingNotes && card.title
+    const cardTitle = card.title
       ? `<h2 class="reading-card-title">${escapeHtml(card.title)}</h2>`
       : '';
     const bodyHtml = Array.isArray(card.body) ? renderCardBody(card.body) : '';
     const sparseClass = !isReadingNotes && !isFieldNotes && isSparsePosterCard(card) ? ' sparse-poster' : '';
-    const evidenceClass = !isReadingNotes && card.body?.some(element => element?.type === 'media') ? ' evidence-poster' : '';
-    const processClass = !isReadingNotes && card.body?.some(element => element?.type === 'process') ? ' process-poster' : '';
-    const hasMediaCaption = !isReadingNotes && card.body?.some(element => element?.type === 'media' && typeof element.caption === 'string' && element.caption.trim());
-    const mediaOnlyClass = !isReadingNotes && card.body?.length === 1 && card.body[0]?.type === 'media' && !hasMediaCaption ? ' media-only-poster' : '';
-    const mediaWithCopyClass = !isReadingNotes
-      && card.body?.some(element => element?.type === 'media')
+    const evidenceClass = card.body?.some(element => element?.type === 'media') ? ' evidence-poster' : '';
+    const processClass = card.body?.some(element => element?.type === 'process') ? ' process-poster' : '';
+    const hasMediaCaption = card.body?.some(element => element?.type === 'media' && typeof element.caption === 'string' && element.caption.trim());
+    const mediaOnlyClass = card.body?.length === 1 && card.body[0]?.type === 'media' && !hasMediaCaption ? ' media-only-poster' : '';
+    const mediaWithCopyClass = card.body?.some(element => element?.type === 'media')
       && (hasMediaCaption || card.body?.some(element => !['media', 'divider'].includes(element?.type)))
       ? ' media-with-copy-poster'
       : '';
     const denseMediaCopyClass = mediaWithCopyClass && isDenseMediaCopyCard(card) ? ' media-copy-dense' : '';
-    const processOnlyClass = !isReadingNotes && card.body?.length === 1 && card.body[0]?.type === 'process' ? ' process-only-poster' : '';
+    const processOnlyClass = card.body?.length === 1 && card.body[0]?.type === 'process' ? ' process-only-poster' : '';
     const singleClass = totalCards === 1 ? ' single-poster' : '';
-    html = html.replaceAll('{{CARD_CLASS}}', `${isReadingNotes ? ' reading-notes' : ''}${isFieldNotes ? ' field-notes' : ''}${singleClass}${sparseClass}${evidenceClass}${processClass}${mediaOnlyClass}${mediaWithCopyClass}${denseMediaCopyClass}${processOnlyClass}`);
+    html = html.replaceAll('{{CARD_CLASS}}', `${isFieldNotes ? ' field-notes' : ''}${singleClass}${sparseClass}${evidenceClass}${processClass}${mediaOnlyClass}${mediaWithCopyClass}${denseMediaCopyClass}${processOnlyClass}`);
     html = html.replaceAll('{{BODY_HTML}}', `${cardTitle}${bodyHtml}`);
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophonBlock);
     html = html.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');

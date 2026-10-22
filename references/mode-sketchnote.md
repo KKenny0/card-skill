@@ -4,7 +4,7 @@
 
 ## 合同与运行
 
-仍是 Studio 模式，必须提供 `title`、`composition_required: true`、非空 `content_html` 和 `custom_css`。`variant` 选择共享样式，不自动生成故事、图像或正文。省略 `variant` 的已有自定义构图保持原行为。
+仍是 Studio 模式，必须提供 `title`、`composition_required: true`、非空 `content_html` 和 `custom_css`。`variant` 选择共享样式，不自动生成故事、图像或正文。省略 `variant` 仍加载漫游札记样式。
 
 基础模板为 `assets/sketchnote_template.html`；显式变体由 renderer 加载 `assets/sketchnote-wandering-notes.css`，然后加载本次 `custom_css`。样式只使用颜色 token，tone/design 不得改变几何或叙事。
 

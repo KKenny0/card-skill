@@ -35,8 +35,8 @@
     },
     "title": {
       "type": "string",
-      "description": "Main title. Use accent_words to highlight specific words.",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 200
     },
     "accent_words": {
       "type": "array",
@@ -47,111 +47,207 @@
     },
     "steps": {
       "type": "array",
-      "description": "Ordered reasoning steps. Each step is one of: chain, annotation, layers, insight.",
       "items": {
         "oneOf": [
           {
             "type": "object",
+            "additionalProperties": false,
             "required": [
               "type",
               "nodes"
             ],
             "properties": {
               "type": {
-                "type": "string",
                 "const": "chain"
+              },
+              "layout": {
+                "enum": [
+                  "stack",
+                  "opposition",
+                  "turn"
+                ]
+              },
+              "depth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
               },
               "nodes": {
                 "type": "array",
                 "items": {
                   "type": "object",
+                  "additionalProperties": false,
                   "required": [
                     "text"
                   ],
                   "properties": {
                     "text": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
                     },
                     "highlight": {
-                      "type": "boolean",
-                      "default": false
+                      "type": "boolean"
                     },
                     "muted": {
-                      "type": "boolean",
-                      "default": false
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 6
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "required": [
+                    "layout"
+                  ],
+                  "properties": {
+                    "layout": {
+                      "const": "opposition"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "nodes": {
+                      "minItems": 3,
+                      "maxItems": 3
                     }
                   }
                 }
               }
-            }
+            ]
           },
           {
             "type": "object",
-            "required": [
-              "type",
-              "text"
-            ],
-            "properties": {
-              "type": {
-                "type": "string",
-                "const": "annotation"
-              },
-              "text": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "type": "object",
+            "additionalProperties": false,
             "required": [
               "type",
               "items"
             ],
             "properties": {
               "type": {
-                "type": "string",
                 "const": "layers"
+              },
+              "layout": {
+                "enum": [
+                  "columns",
+                  "boundary"
+                ]
+              },
+              "depth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
               },
               "items": {
                 "type": "array",
                 "items": {
                   "type": "object",
+                  "additionalProperties": false,
                   "required": [
                     "name",
                     "desc"
                   ],
                   "properties": {
                     "name": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
                     },
                     "desc": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1200
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 3
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "required": [
+                    "layout"
+                  ],
+                  "properties": {
+                    "layout": {
+                      "const": "boundary"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "items": {
+                      "minItems": 2,
+                      "maxItems": 2
                     }
                   }
                 }
               }
-            }
+            ]
           },
           {
             "type": "object",
+            "additionalProperties": false,
             "required": [
               "type",
               "text"
             ],
             "properties": {
               "type": {
-                "type": "string",
-                "const": "insight"
+                "const": "annotation"
+              },
+              "layout": {
+                "enum": [
+                  "note",
+                  "exception"
+                ]
+              },
+              "depth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
               },
               "text": {
                 "type": "string",
-                "description": "HTML allowed: <span class=\"accent-word\">"
+                "minLength": 1,
+                "maxLength": 1200
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "text"
+            ],
+            "properties": {
+              "type": {
+                "const": "insight"
+              },
+              "depth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1200
               }
             }
           }
         ]
       },
-      "minItems": 1
+      "minItems": 1,
+      "maxItems": 16
     },
     "logo": {
       "type": "string",
@@ -164,11 +260,8 @@
       "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
     },
     "variant": {
-      "enum": [
-        "classic",
-        "reasoning-notes"
-      ],
-      "description": "Natural-language default: reasoning-notes. Omission in existing structured contracts preserves classic."
+      "const": "reasoning-notes",
+      "description": "Only reasoning notes; omission selects the same style."
     },
     "note_page": {
       "type": "object",
@@ -232,271 +325,5 @@
         }
       }
     }
-  },
-  "allOf": [
-    {
-      "if": {
-        "required": [
-          "note_page"
-        ]
-      },
-      "then": {
-        "required": [
-          "variant"
-        ],
-        "properties": {
-          "variant": {
-            "const": "reasoning-notes"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "variant"
-        ],
-        "properties": {
-          "variant": {
-            "const": "reasoning-notes"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200
-          },
-          "steps": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "nodes"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "chain"
-                    },
-                    "layout": {
-                      "enum": [
-                        "stack",
-                        "opposition",
-                        "turn"
-                      ]
-                    },
-                    "depth": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 2
-                    },
-                    "nodes": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "text"
-                        ],
-                        "properties": {
-                          "text": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 600
-                          },
-                          "highlight": {
-                            "type": "boolean"
-                          },
-                          "muted": {
-                            "type": "boolean"
-                          }
-                        }
-                      },
-                      "minItems": 1,
-                      "maxItems": 6
-                    }
-                  },
-                  "allOf": [
-                    {
-                      "if": {
-                        "required": [
-                          "layout"
-                        ],
-                        "properties": {
-                          "layout": {
-                            "const": "opposition"
-                          }
-                        }
-                      },
-                      "then": {
-                        "properties": {
-                          "nodes": {
-                            "minItems": 3,
-                            "maxItems": 3
-                          }
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "items"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "layers"
-                    },
-                    "layout": {
-                      "enum": [
-                        "columns",
-                        "boundary"
-                      ]
-                    },
-                    "depth": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 2
-                    },
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "name",
-                          "desc"
-                        ],
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 120
-                          },
-                          "desc": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 1200
-                          }
-                        }
-                      },
-                      "minItems": 1,
-                      "maxItems": 3
-                    }
-                  },
-                  "allOf": [
-                    {
-                      "if": {
-                        "required": [
-                          "layout"
-                        ],
-                        "properties": {
-                          "layout": {
-                            "const": "boundary"
-                          }
-                        }
-                      },
-                      "then": {
-                        "properties": {
-                          "items": {
-                            "minItems": 2,
-                            "maxItems": 2
-                          }
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "text"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "annotation"
-                    },
-                    "layout": {
-                      "enum": [
-                        "note",
-                        "exception"
-                      ]
-                    },
-                    "depth": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 2
-                    },
-                    "text": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 1200
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "text"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "insight"
-                    },
-                    "depth": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 2
-                    },
-                    "text": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 1200
-                    }
-                  }
-                }
-              ]
-            },
-            "minItems": 1,
-            "maxItems": 16
-          }
-        }
-      },
-      "else": {
-        "properties": {
-          "steps": {
-            "items": {
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "layout"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "depth"
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  ]
+  }
 }

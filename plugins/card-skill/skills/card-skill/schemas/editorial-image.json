@@ -4,17 +4,34 @@
   "description": "Structured input for aspect-aware editorial images for WeChat/blog covers, concept metaphors, and quiet in-article mood illustrations. Use article-diagram for explanatory body diagrams.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "title"],
+  "required": [
+    "mode",
+    "title"
+  ],
   "properties": {
-    "mode": { "type": "string", "const": "editorial-image" },
+    "mode": {
+      "type": "string",
+      "const": "editorial-image"
+    },
     "use": {
       "type": "string",
-      "enum": ["cover", "in-article", "metaphor"],
+      "enum": [
+        "cover",
+        "in-article",
+        "metaphor"
+      ],
       "description": "Editorial job, not a canvas ratio. Use cover for article covers, in-article for quiet body mood illustrations, and metaphor for concept/stance images. Defaults to cover behavior when omitted."
     },
     "aspect": {
       "type": "string",
-      "enum": ["wechat-cover", "blog-hero", "body-3-2", "body-4-3", "cinematic", "square"],
+      "enum": [
+        "wechat-cover",
+        "blog-hero",
+        "body-3-2",
+        "body-4-3",
+        "cinematic",
+        "square"
+      ],
       "description": "Canvas ratio. Defaults by use: cover -> blog-hero unless WeChat is requested, metaphor -> blog-hero, in-article -> body-3-2. Do not put aspect values into use."
     },
     "design": {
@@ -23,7 +40,12 @@
     },
     "editorial_tone": {
       "type": "string",
-      "enum": ["reflective", "sharp", "warm", "technical"],
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
       "description": "Automatic Kenny Style color tone used only when design is omitted. It changes color tokens only."
     },
     "title": {
@@ -45,17 +67,38 @@
     },
     "cover_motif": {
       "type": "string",
-      "enum": ["paper-stack", "drawer", "window", "lens", "path", "archive", "layers"],
+      "enum": [
+        "paper-stack",
+        "drawer",
+        "window",
+        "lens",
+        "path",
+        "archive",
+        "layers"
+      ],
       "description": "Deterministic right-side visual for use=cover. Choose the concrete article object: drawer for durable write-back, window for reportable access, lens for interpretation, path for a handoff or workflow, archive for retrieval, and layers for stacked system views. Omit only for the deliberately generic legacy paper-stack cover."
     },
     "cover_art": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "alt"],
+      "required": [
+        "path",
+        "alt"
+      ],
       "description": "Agent-generated or user-provided conceptual illustration, not factual source evidence. Static PNG/JPEG/WebP, <=32 MiB, <=8192px per side, <=40 million pixels. Centered with contain; no automatic crop. Candidate jobs require Visual Job v3.",
       "properties": {
-        "path": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))" },
-        "alt": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S" }
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))"
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S"
+        }
       }
     },
     "art_direction": {
@@ -93,60 +136,165 @@
     "brand_name": {
       "type": "string",
       "description": "Optional brand or author name in the colophon footer. Omit for an unbranded output; do not use an author alias."
+    },
+    "cover_series": {
+      "const": "paper-wilderness",
+      "description": "Only cover series; default for use=cover or omitted use."
     }
   },
   "allOf": [
     {
-      "if": { "required": ["cover_art"] },
-      "then": {
-        "properties": {
-          "use": { "const": "cover" },
-          "aspect": { "enum": ["blog-hero", "wechat-cover", "cinematic"] },
-          "composition_required": { "const": false }
-        },
-        "not": { "anyOf": [{ "required": ["cover_motif"] }, { "required": ["content_html"] }] }
-      }
-    },
-    {
       "if": {
-        "properties": { "composition_required": { "const": true } },
-        "required": ["composition_required"]
+        "required": [
+          "cover_art"
+        ]
       },
       "then": {
-        "required": ["content_html", "custom_css"],
         "properties": {
-          "content_html": { "type": "string", "minLength": 1, "pattern": "\\S" },
-          "custom_css": { "type": "string", "minLength": 1, "pattern": "\\S" }
+          "use": {
+            "const": "cover"
+          },
+          "aspect": {
+            "enum": [
+              "blog-hero",
+              "wechat-cover",
+              "cinematic"
+            ]
+          },
+          "composition_required": {
+            "const": false
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "cover_motif"
+              ]
+            },
+            {
+              "required": [
+                "content_html"
+              ]
+            }
+          ]
         }
       }
     },
     {
       "if": {
-        "properties": { "use": { "enum": ["in-article", "metaphor"] } },
-        "required": ["use"]
+        "properties": {
+          "composition_required": {
+            "const": true
+          }
+        },
+        "required": [
+          "composition_required"
+        ]
       },
       "then": {
-        "not": { "required": ["cover_motif"] },
+        "required": [
+          "content_html",
+          "custom_css"
+        ],
         "properties": {
-          "composition_required": { "const": true },
-          "content_html": { "type": "string", "minLength": 1, "pattern": "\\S" },
-          "custom_css": { "type": "string", "minLength": 1, "pattern": "\\S" }
-        },
-        "required": ["composition_required", "content_html", "custom_css"]
+          "content_html": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "custom_css": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        }
       }
-    }
-  ],
-  "examples": [
+    },
     {
-      "mode": "editorial-image",
-      "use": "cover",
-      "aspect": "wechat-cover",
-      "editorial_tone": "reflective",
-      "kicker": "ESSAY",
-      "title": "工具让人遗忘什么",
-      "subtitle": "一篇关于自动化、记忆和写作边界的札记",
-      "visual_metaphor": "A writing desk with one labeled drawer missing.",
-      "cover_motif": "drawer"
+      "if": {
+        "properties": {
+          "use": {
+            "enum": [
+              "in-article",
+              "metaphor"
+            ]
+          }
+        },
+        "required": [
+          "use"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "cover_motif"
+          ]
+        },
+        "properties": {
+          "composition_required": {
+            "const": true
+          },
+          "content_html": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "custom_css": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "composition_required",
+          "content_html",
+          "custom_css"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "use": {
+            "const": "cover"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "cover_art"
+        ],
+        "properties": {
+          "aspect": {
+            "const": "wechat-cover"
+          },
+          "composition_required": {
+            "const": false
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "cover_motif"
+              ]
+            },
+            {
+              "required": [
+                "content_html"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "cover_series"
+          ]
+        }
+      }
     }
   ]
 }

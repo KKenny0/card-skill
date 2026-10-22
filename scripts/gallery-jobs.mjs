@@ -120,10 +120,22 @@ try {
   for (const fixturePath of fixtures) {
     const fixtureName = path.basename(fixturePath, '.json');
     const output = path.join(temp, fixtureName);
+    const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+    for (const item of fixture.outputs) {
+      const art = item.render_contract.cover_art;
+      if (art && !path.isAbsolute(art.path)) {
+        const resolved = path.resolve(ROOT, art.path);
+        if (!resolved.startsWith(path.join(ROOT, 'assets') + path.sep)) throw new Error('Gallery artwork must be inside assets');
+        art.path = resolved;
+      }
+    }
+    const resolvedFixture = path.join(temp, fixtureName + '.json');
+    fs.writeFileSync(resolvedFixture, JSON.stringify(fixture));
     const run = spawnSync(process.execPath, [
       path.join(ROOT, 'scripts', 'render-job.mjs'),
-      '--input', fixturePath,
+      '--input', resolvedFixture,
       '--output-dir', output,
+      '--candidate',
       '--json',
     ], {
       cwd: ROOT,

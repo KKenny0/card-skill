@@ -6,7 +6,7 @@ Source routing happens before mode routing. A source archetype chooses the evide
 
 ## Precedence
 
-Conceptual cover artwork is chosen by the Agent before rendering: use an available image-generation tool and a bounded `cover_art` slot, or keep the existing motif / Studio composition when no such tool is available. Both remain `editorial-image`; `series-cover` is a composition pattern, not a mode or routing override. See [cover art](mode-editorial-image.md#agent-generated-cover-art).
+Covers use Paper Wilderness only. The Agent supplies suitable conceptual `cover_art`; no generation/material means stop, never motif/Studio fallback. Current verified cover ratio is wechat-cover. Body metaphor compositions remain Studio.
 
 1. A publishing target with a fixed delivery contract wins.
 2. Otherwise content type and argument structure select the mode.

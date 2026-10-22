@@ -16,17 +16,13 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-cover-test-'));
 const started = performance.now();
-const base = { mode: 'editorial-image', aspect: 'cinematic', title: 'Shared language' };
+const base = { mode: 'editorial-image', aspect: 'wechat-cover', title: 'Shared language' };
 const writeJson = (name, value) => { const file = path.join(tmpDir, name); fs.writeFileSync(file, JSON.stringify(value)); return file; };
 function publish(candidate, name) {
   return spawnSync(process.execPath, [path.join(ROOT, 'scripts/publish-reviewed-job.mjs'), '--candidate-dir', candidate,
     '--output-dir', path.join(tmpDir, name), '--expected-candidate-sha256', candidateDirectorySha256(candidate), '--json'], { encoding: 'utf8', env: isolatedEnv() });
 }
 try {
-  cardCli({ tmpDir, name: 'long-brand', input: {
-    mode: 'editorial-image', aspect: 'cinematic', title: 'A2A',
-    cover_motif: 'path', brand_name: 'Editorial series author',
-  } });
   const emitted = [];
   PAGE_DECISION_CHECKS.find(check => check.code === 'body_text_too_small').decide({ textSizes: [
     { tag: 'P', className: '', text: 'Ordinary long body text', fontSize: 24 },
@@ -68,9 +64,9 @@ try {
   const huge = Buffer.from(fs.readFileSync(assets.png)); huge.writeUInt32BE(8193, 16); fs.writeFileSync(malformed, huge);
   assert.equal(validate({ ...input, cover_art: { ...art, path: malformed } }).valid, false);
 
-  for (const [index, aspect] of ['cinematic', 'wechat-cover', 'blog-hero'].entries()) {
+  for (const [index, format] of ['png', 'jpeg', 'webp'].entries()) {
     const mediaPath = assets[['png', 'jpeg', 'webp'][index]];
-    const name = `art-${aspect}`;
+    const name = `art-${format}`; const aspect = 'wechat-cover';
     const reportPath = path.join(tmpDir, `${name}.report.json`);
     cardCli({ tmpDir, name, input: { ...input, aspect, cover_art: { ...art, path: mediaPath }, ...(index === 0 ? { brand_name: 'Editorial series author', logo: assets.png } : {}) },
       extraArgs: ['--report', reportPath, '--checked-html-dir', tmpDir] });
@@ -81,9 +77,9 @@ try {
     assert.equal(report.artifacts[0].cover_art_snapshot.sha256, sha256Bytes(fs.readFileSync(mediaPath)));
     assert.equal(report.artifacts[0].effective_contract.cover_art.path, mediaPath);
   }
-  for (const mode of ['editorial-image', 'article-diagram']) {
+  for (const mode of ['editorial-image']) {
     const renderer = require(`./renderers/${mode}`);
-    const contract = mode === 'editorial-image' ? base : { mode, formula: 'A + B = C', sentence: 'Parts combine.' };
+    const contract = mode === 'editorial-image' ? input : { mode, formula: 'A + B = C', sentence: 'Parts combine.' };
     for (const logo of [undefined, assets.png]) {
       const htmlPath = path.join(tmpDir, `${mode}-${Boolean(logo)}.html`);
       renderer.render({ ...contract, ...(logo ? { logo } : {}) }, htmlPath);
@@ -95,14 +91,14 @@ try {
   const styleBrowser = await chromium.launch({ headless: true });
   try {
     const page = await styleBrowser.newPage();
-    await page.goto(pathToFileURL(path.join(tmpDir, 'art-cinematic.checked.html')).href);
+    await page.goto(pathToFileURL(path.join(tmpDir, 'art-png.checked.html')).href);
     assert.equal(await page.locator('.editorial-visual').evaluate(el => getComputedStyle(el).filter), 'none', 'cover art must not inherit motif desaturation');
     await page.goto(pathToFileURL(path.join(tmpDir, 'editorial-image-false.html')).href);
-    assert.equal(await page.locator('.editorial-visual').evaluate(el => getComputedStyle(el).filter), 'saturate(0.92)', 'legacy motifs should keep their existing styling');
+    assert.equal(await page.locator('.editorial-visual').evaluate(el => getComputedStyle(el).filter), 'none', 'default series must retain artwork colors');
   } finally { await styleBrowser.close(); }
 
   const job = {
-    schema_version: 3, job_id: 'cover-art-test', publish_target: 'blog-hero',
+    schema_version: 3, job_id: 'cover-art-test', publish_target: 'wechat-cover',
     source: { kind: 'pasted-text', language: 'en' },
     source_units: [{ id: 'claim', excerpt: 'A shared language connects separate systems.', evidence: { kind: 'claim', strength: 'primary', freshness: 'current' } }],
     decision: { mode: 'editorial-image', tier: 'stable', selection_source: 'taxonomy', reason: 'A conceptual article cover.' },

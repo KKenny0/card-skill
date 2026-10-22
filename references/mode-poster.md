@@ -1,6 +1,6 @@
 # 模具：多卡（-c）
 
-自然语言文字型 Poster 默认选择 `variant: "field-notes"`，先读取 [个人札记规则](poster-field-notes.md)。媒体、流程、数据行与逐字划线配对使用下述专用合同；显式选择其他样式时遵从用户。旧结构化输入保持兼容。
+所有 Poster 只用个人札记 field-notes；先读 [分组与分页](poster-field-notes.md)。省略 variant 与显式 field-notes 等价，旧风格退休，全部内容块保留。
 
 ## 步骤 1：读取模板
 
@@ -34,22 +34,22 @@ Read `assets/poster_template.html`
 
 这是一种编辑方式，不是新 variant，也不增加任意 HTML/CSS 插槽。普通 Poster 仅在多卡时显示顶部 running header；单卡传 `kicker` 不会显示页眉，不承诺单卡刊号或专用 Issue Strip。只有用户提供真实专栏、期号或署名时才使用，缺省省略。需要超出现有骨架的专用封皮布局时，先说明能力边界，不伪造字段。
 
-导读规则不覆盖下方 reading-notes 的首卡要求。检查真实 PNG，确认阅读起点、标签与内页对应、无孤字和署名截断；机器检查通过不等于视觉审核完成。
+导读规则不覆盖下方划线配对内容 的首卡要求。检查真实 PNG，确认阅读起点、标签与内页对应、无孤字和署名截断；机器检查通过不等于视觉审核完成。
 
-### `reading-notes` 组合变体
+### 划线与想法配对内容
 
-当输入是多条个人划线 / 想法，且没有明确要求长图或结构图时，使用 `mode: "poster"` + `variant: "reading-notes"`。这不是新的 mode，也不改变普通 Poster 的默认行为。
+当输入是多条个人划线 / 想法，且没有明确要求长图或结构图时，使用 `mode: "poster"` + `variant: "field-notes"`。这不是新的 mode，也不改变普通 Poster 的默认行为。
 
-reading-notes 是固定文字布局：首卡书名 → 每卡主题标签 → 划线与配对想法，续卡用页眉显示系列信息。它不绘制图形隐喻，也不支持自定义字号或位置；`visual_plan.visual_metaphor` 用 `null`，计划描述实际阅读顺序，不承诺重排模板层级或把引用边线当成概念图。
+划线配对使用个人札记的文字布局：首卡书名 → 每卡主题标签 → 划线与配对想法，续卡用页眉显示系列信息。它不绘制图形隐喻，也不支持自定义字号或位置；`visual_plan.visual_metaphor` 用 `null`，计划描述实际阅读顺序，不承诺重排模板层级或把引用边线当成概念图。
 
-普通 Poster 只使用 contract 顶层 `title`；不要给 `cards[]` 添加 `title`。`cards[].title` 仅由下面的 `reading-notes` 变体支持。
+顶层 title 为系列标题，cards[].title 可填写本页主题；两者不重复正文。
 
 标题、副标题和 heading 使用短标签，完整长句放 paragraph 或 highlight；不需要副标题时省略，不重复整段正文。固定 1080×1440 画布中，所有标题、段落、条目和留白共享高度预算；视觉重量估计不能代替真实 PNG 的边界和换行检查。
 
 ```json
 {
   "mode": "poster",
-  "variant": "reading-notes",
+  "variant": "field-notes",
   "title": "边界练习｜第一章",
   "source": "微信读书 · 《边界练习》",
   "cards": [
@@ -125,7 +125,7 @@ reading-notes 是固定文字布局：首卡书名 → 每卡主题标签 → �
 - `media` 是主证据场，不是把完整卡片、带标题的 article-diagram 或另一张 poster 再嵌进来。界面与输出必须来自当前版本，`alt` 只用于可访问性，事实说明放在可见 `caption`。
 - `media.fit` 默认是 `contain`，保证界面、终端输出和图表边缘不被静默裁掉。只有在裁切不会损失证据且构图确实需要时，才显式选择 `cover`。
 - `process` 固定为 2–5 步，只接受 `label`、`title`、`text`；短流程优先使用它，不要先生成一张流程图截图再塞回 poster。仅含一个 `process` 的首卡或续卡会让流程按可用阅读区伸展，避免固定高度留下无意的大空洞。
-- 每张普通卡应只选择一个主证据职责；`reading-notes` 变体不接受 `media` 或 `process`。
+- 每张普通卡应只选择一个主证据职责；配对阅读页也允许 media 和 process，但必须保留原文与想法的区分。
 - `check-output` 会拒绝缩成小块或在正文后留下意外大空洞的 media/process。主体宽度至少占卡片约 78%；证据图根据首卡、续卡和相邻正文在画布约 25%–76% 之间自适应，流程场约占 38%–65%，正文主场需填满可用阅读区。`fit: contain` 按图片实际绘制矩形而非 CSS 容器计量；只能形成细条的极端横图或竖图不能冒充主证据场。
 - 多卡系列可用顶层 `kicker` 作为统一的 running label；首卡与续卡都显示同一骨架和 `01 / 03` 式页码。没有 `kicker` 时，首卡 running label 留空以避免与主标题重复，续卡回退到系列标题。
 
@@ -144,7 +144,7 @@ reading-notes 是固定文字布局：首卡书名 → 每卡主题标签 → �
 
 ## 步骤 4：语义切分
 
-以下按章节严格拆卡规则适用于通用 Poster。显式选择 `variant: "field-notes"` 时，改用 [个人札记分组与分页规则](poster-field-notes.md)：允许服务于同一阅读职责的相邻短节合页。`reading-notes` 继续遵守其划线/想法配对与批次规则。
+所有 Poster 按个人札记规则分组与分页；划线配对继续遵守全量/精选与批次约定。
 
 ### 核心原则：一卡一题
 

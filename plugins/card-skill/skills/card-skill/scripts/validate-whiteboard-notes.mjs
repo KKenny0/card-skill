@@ -35,7 +35,7 @@ export function verifyWhiteboardNotes() {
   invalid(x => x.steps[0].layout = 'guess');
   invalid(x => x.steps[0] = null);
   invalid(x => x.steps[1].items[0].desc = ' ');
-  invalid(x => delete x.variant);
+  assert.equal(validate({...fixtures.a2a,variant:undefined}).valid,true);
   invalid(x => x.note_page = null);
   invalid(x => x.accent_words = [42]);
   assert.doesNotThrow(() => validate({ mode:'whiteboard', title:'test', steps:{} }));
@@ -66,9 +66,10 @@ export function verifyWhiteboardNotes() {
     assert.notDeepEqual(artifactContractProjection(changed, 1), original, 'navigation must bind to review identity');
     const classic = { mode:'whiteboard', title:'Classic', steps:[{type:'annotation',text:'Existing structured contract.'}] };
     const a = path.join(dir,'classic.html'), b = path.join(dir,'explicit.html');
-    renderer.render(classic,a); renderer.render({...classic,variant:'classic'},b);
+    renderer.render(classic,a); renderer.render({...classic,variant:'reasoning-notes'},b);
+    assert.equal(validate({...classic,variant:'classic'}).valid,false);
     assert.equal(fs.readFileSync(a,'utf8'),fs.readFileSync(b,'utf8'));
   } finally { fs.rmSync(dir, { recursive:true, force:true }); }
-  console.log('Whiteboard notes: nine browser-checked fixtures, navigation graph, invalid contracts and classic compatibility passed.');
+  console.log('Whiteboard notes: nine browser-checked fixtures, navigation graph, invalid contracts and omitted-variant default passed.');
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) verifyWhiteboardNotes();

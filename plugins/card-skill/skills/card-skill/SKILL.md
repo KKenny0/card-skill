@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.17.0"
+version: "0.18.0"
 ---
 
 # card-skill
@@ -40,12 +40,12 @@ version: "0.17.0"
 | 规划自然语言出图 | [visual-job](references/visual-job.md)、[visual-taxonomy](references/visual-taxonomy.md)、`schemas/visual-job.json` |
 | 来源是开源工具/仓库，且任务要求出图 | [source-open-source-tool](references/source-open-source-tool.md) |
 | 明确请求微信读书个人划线、想法或统计出图 | [source-weread](references/source-weread.md)；认证与读取由官方 Tencent/WeChatReading Skill 负责 |
-| 明确要求野生肯尼公众号封面、纸上荒野系列，或会话已选择该系列 | [cover-paper-wilderness](references/cover-paper-wilderness.md) |
+| 制作封面（唯一纸上荒野系列） | [cover-paper-wilderness](references/cover-paper-wilderness.md) |
 | 制作文字型 Poster（默认个人札记），或明确选择 field-notes | [poster-field-notes](references/poster-field-notes.md) |
 | 已选模式的内容和字段 | `references/mode-{mode}.md` 与 `schemas/{mode}.json` |
 | 制作视觉手记（默认漫游札记） | [sketchnote-wandering-notes](references/sketchnote-wandering-notes.md)；按来源安排意象变化、阅读节奏与语义断行 |
 | 制作推理白板（默认推演札记） | [whiteboard-reasoning-notes](references/whiteboard-reasoning-notes.md)；按关系选择布局，先决定单图或总览＋局部 |
-| 制作正文解释图（默认个人关系布局） | [article-diagram-personal](references/article-diagram-personal.md)；按来源选择六类关系，公式卡仅用于明确要求或实际公式 |
+| 制作正文解释图（默认个人关系布局） | [article-diagram-personal](references/article-diagram-personal.md)；按来源选择六类关系，旧公式卡入口已退休 |
 | 写完整 HTML/CSS 构图或处理视觉质量问题 | [taste](references/taste.md) 与对应 `assets/{mode}_template.html`；editorial-image 使用其模式文档 |
 | 需要颜色 token 或用户指定 design | [design-index](references/design-index.md) |
 | 用户要求先看候选 | [codex-inline-preview](references/codex-inline-preview.md)；不支持交互时使用同一份候选的文字列表 |
@@ -61,21 +61,18 @@ version: "0.17.0"
 
 Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 及需要完整构图的 `editorial-image`）由 Agent 提供非空 `content_html` + `custom_css`，写入现有 `render_contract`，再进入同一候选生产链。按 taste 核对初稿与修订稿的元素均在父布局容器及画布内，不用负定位悬挂文字。不要另写 HTML 后手工截图交付。
 
-明确请求「野生肯尼公众号封面」「纸上荒野系列」或 `Paper Wilderness`，以及当前会话已选择该公众号系列时，先读取 [cover-paper-wilderness](references/cover-paper-wilderness.md)。它使用固定纸质地形与红色路标、保留大标题；不是 mode、tone 或 design。普通封面请求或来源正文中的名字不触发，不自动加署名。首版仅验证 `wechat-cover`。缺少合适素材及可用生图能力时须说明无法兑现本系列，不能以通用 motif 冒充。
+封面只采用 [纸上荒野](references/cover-paper-wilderness.md)，不需要用户指定系列名。写入 `use: "cover"`、`cover_series: "paper-wilderness"`、`aspect: "wechat-cover"` 与 `cover_art`。renderer 自动加载系列排版。先检查当前 Agent 实际生图能力，有合适的用户插画则直接使用，否则按系列参考生成并检查；没有可用素材时停止，不回退 motif 或自由构图。当前仅支持已验证的微信横封面，其他比例明确报告边界。正文 `in-article` / `metaphor` 插图仍使用完整 Studio 构图，不属于封面退休范围。
 
-`editorial-image` 的 `use` 表示编辑用途，`aspect` 表示比例。封面需要概念插画时，先检查当前 Agent 实际可调用的生图能力：有能力就由 Agent 生成单独插画，查看结果并取得宿主允许的本地 PNG/JPEG/WebP，通过 `cover_art: { path, alt }` 交给 renderer；标题、副标题、Kicker 和署名仍由 renderer 排版。已有用户指定素材时直接使用，不重复生图。
+正文 Studio 的 `composition_required: true` 必须同时提供非空 `content_html` 与 `custom_css`，不得绕过候选生产链。
 
-无生图能力时沿用现有 editorial-image 流程：`cover_motif` 能表达隐喻就使用 Stable；否则采用完整 `content_html` + `custom_css` 的 Studio 构图。不要求用户安装生图工具或配置密钥，不根据 Agent 名称猜能力。工具失败或未产出可用本地文件时说明结果，在候选渲染前回到现有流程；用户明确要求必须生图时报告限制，不擅自替换。不能用此分流绕过 renderer 的 safety / quality_gate 失败。
+已确认的 mode 只提供各自一种个人风格，省略 variant 与显式个人风格等价。旧风格请求说明已退休，不擅自复现或保留隐藏入口。tone/design 仍只改变颜色；布局按内容变化，不能把风格统一理解成固定模板。
 
-`cover_art` 仅用于 `use=cover`（可省略）和 `blog-hero` / `wechat-cover` / `cinematic`，与 `cover_motif`、`content_html`、`composition_required:true` 互斥。完整构图以及 `in-article` / `metaphor` 仍须设置 `composition_required: true` 并提供非空 `content_html` 与 `custom_css`。两条路径都走同一 Visual Job v3 审核发布链；详细资源和系列规范见模式文档。
+- Poster：`field-notes` 个人札记，固定3:4，按 [分组与分页规则](references/poster-field-notes.md)。支持全部正文块，包括 `reading_unit` 原文—想法配对、media、process、data_row；内容能力不是独立风格。逐字引用和证据规则不变。
+- article-diagram：只采用 [个人关系布局](references/article-diagram-personal.md)，明确选择六类 `personal_layout`，写入 `render_plan: "structure"`，使用3:2。旧 family 和公式卡入口退休；不能自动把任意关系改成时间轴或伪造因果，无法表达时说明限制并重新规划。
+- whiteboard：只采用 `reasoning-notes` [推演札记](references/whiteboard-reasoning-notes.md)，保留全部步骤类型、单图及总览＋局部的导航。classic 退休。
+- sketchnote：只采用 `wandering-notes` [漫游札记](references/sketchnote-wandering-notes.md)。仍提供完整 Studio 构图；意象随有依据的认识变化，阅读节奏随内容变化。共享样式始终加载，检查360px PNG和语义断行。
 
-`article-diagram` 的自然语言请求默认采用个人关系布局。先读取 [article-diagram-personal](references/article-diagram-personal.md)，根据来源语义选择 `personal_layout`，并明确写入 `render_plan: "structure"` 和 `aspect: "body-3-2"`；无需用户额外说“个人风格”。`formula` 在此承载关系标题，`sentence` 承载必要条件，节点与关系均可见。按内容选择交换、汇聚、张力、循环、时间演变或层级；不能只凭节点形状猜关系，也不能把普通流程伪装成时间轴。超过布局边界先按阅读职责拆图。明确要求公式卡或来源本身是适合公式呈现的关系时，使用 `render_plan: "summary"`；不强造公式。明确指定旧 family 和已有省略 personal_layout 的结构化合同保持兼容。
-
-`whiteboard` 自然语言请求默认写入 `variant: "reasoning-notes"`，按 [推演与拆图规则](references/whiteboard-reasoning-notes.md) 选择显式块布局。连续阅读优先单图；共享例外、跨层回跳或按问题查阅时评估总览＋局部。拆图使用同一 Visual Job、多 outputs 和可见 `note_page` 导航，保留入口、停止条件、恢复出口和独有证据职责；不按高度机械切页、不缩正文。已有省略 variant 的结构化合同与显式 classic 保持兼容。
-
-文字型 Poster 默认使用个人札记 `variant: "field-notes"`，按 [poster-field-notes](references/poster-field-notes.md) 组织内容：连续解释用段落、并列信息用边栏，相关短节允许合页，先确定阅读职责再确定张数。固定 3:4，不缩字填页；不是 tone，也不覆盖逐字划线的 `reading-notes` 规则。普通文字型 Poster 请求无需额外指定风格。明确选择其他变体、逐字划线配对、媒体/流程/数据任务保留各自合同；已有省略 variant 的结构化合同保持兼容，不自动补署名。
-
-`sketchnote` 自然语言请求默认采用漫游札记，写入 `variant: "wandering-notes"`，读取 [漫游札记规则](references/sketchnote-wandering-notes.md)。共享样式由 renderer 加载，Agent仍提供完整Studio构图。意象随来源支持的认识变化，保留未解决的条件；不套固定站点，不虚构失败。短问句保持完整，长问句按语义断行，检查360px实际PNG。无需用户额外说“漫游札记”。用户明确要求其他构图时尊重其选择；省略variant的既有Studio合同保持兼容。
+旧合同的迁移边界见 [个人风格收敛](references/personal-style-migration.md)。不改变 big、long、infograph、comic；不自动署名。
 
 ## 执行与交付
 

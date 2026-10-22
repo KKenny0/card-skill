@@ -1,7 +1,7 @@
 # Paper Wilderness reference assets
 
 Maintainer-approved original AI-generated conceptual artwork, created with the
-host's built-in image generation tool on 2026-10-20 for this repository's optional
+host's built-in image generation tool on 2026-10-20 for this repository's sole
 Paper Wilderness series. These assets are distributed under the repository's
 license. They contain no article screenshots, portraits, third-party podcast
 artwork, private account statistics or source-document evidence.
@@ -12,7 +12,7 @@ artwork, private account statistics or source-document evidence.
 - `uncertainty.png`: three paths entering fog.
 - `cooperation.png`: separate enclosed systems with a shared exchange point.
 - `rest.png`: quiet water and an empty boat.
-- `layout.css`: the approved wide-cover layout starting point, copied into the
+- `layout.css`: the approved wide-cover layout, automatically loaded by the
   existing `custom_css` field, never imported remotely.
 
 Read `references/cover-paper-wilderness.md` from the skill root for activation,

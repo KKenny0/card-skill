@@ -1,11 +1,11 @@
 # 纸上荒野 / Paper Wilderness
 
-这是「野生肯尼」公众号明确启用的封面系列规范，不是所有用户的默认风格，也不是新的 mode、tone 或 design。
+这是所有 cover 请求唯一支持的系列，不是新的 mode、tone 或 design；不自动添加作者身份。
 
 ## 何时使用
 
-- 用户要求「野生肯尼公众号封面」「纸上荒野系列」或 `Paper Wilderness`；当前会话已经明确选择该公众号的封面系列，也可沿用。
-- 普通「公众号封面」、文章正文中提到这些名字、仅引用作者文章，都不构成启用。用户后续指定其他风格时停止沿用。
+- 所有封面请求使用纸上荒野，无需指定系列名。
+- 其他封面风格已退休；解释支持范围，不生成替代风格。
 - 启用不授权自动填入 `brand_name`、`logo` 或署名。系列身份由画面建立。
 - 首版只覆盖 `use: cover`、`aspect: wechat-cover`。其他画幅先说明此规范未验证；不能把宽图裁成方图，不能给 square 填入不受支持的 `cover_art`。
 
@@ -35,13 +35,13 @@
 
 > Preserve the reference's paper terrain carrier, shallow elevated perspective, front paper strata and single red marker at front left. Change only the interior scene to express the supplied article relationship. Use clean warm ivory paper, restrained graphite contours and red only on the marker. Keep a readable dominant subject at thumbnail size. No typography, logo, invented facts or documentary reconstruction. Remove decorative scratches, tangled fibers and dense grain. Outside the island must be genuinely transparent: no gray/brown haze, halo, backdrop or drop shadow. Keep the top 8% and four 2% corner squares empty and transparent. Keep any meaningful fog inside the island. Do not copy the example's topic into a different article.
 
-没有生图能力、生成失败或无法取得本地文件时，若已有用户指定且适合的插画，可继续使用；否则明确说明无法兑现本系列并停止该封面的生产。普通 editorial-image 的 motif/Studio 退路不能被称为等价的纸上荒野成品。用户另行选择其他方向后才使用它们。不要求用户安装工具或提供密钥。
+没有生图能力、生成失败或无法取得本地文件时，若已有用户指定且适合的插画，可继续使用；否则明确说明无法兑现本系列并停止该封面的生产。普通 editorial-image 的 motif/Studio 退路不能被称为等价的纸上荒野成品。旧封面路径已退休。不要求用户安装工具或提供密钥。
 
 ## 排版与契约
 
-继续使用 Visual Job v3 / `editorial-image` / Stable；`selection_source` 仍为 `taxonomy`。不新增系列字段。将系列意图记录在 `visual_plan.layout_strategy` 与 `avoid_patterns`，将实际布局写入 `custom_css`。
+继续使用 Visual Job v3 / `editorial-image` / Stable；`selection_source` 仍为 `taxonomy`。写入 `cover_series: "paper-wilderness"`，省略也选择同一系列。将系列意图记录在 `visual_plan.layout_strategy` 与 `avoid_patterns`，系列布局由 renderer 自动加载。
 
-使用 `assets/cover-series/paper-wilderness/layout.css` 的内容作为横版 `custom_css` 起点。它保留大标题、左右分栏与较大的主题插画：标题 56px，插画区高 330px，栏间距 28px，1080×460 CSS 像素画布。不通过 `@import` 引入文件。
+renderer 加载 `assets/cover-series/paper-wilderness/layout.css`。它保留大标题、左右分栏与较大的主题插画：标题 56px，插画区高 330px，栏间距 28px，1080×460 CSS 像素画布。不通过 `@import` 引入文件。
 
 按正文写标题和必要副标题；允许手动换行。长标题应在同一结构内调整换行或字号，不能强制三张同样行数，不能缩到不可读。默认 reflective；显式颜色选择沿用颜色层边界，不自动重染栅格插画，也不以换 tone 修改版式。
 

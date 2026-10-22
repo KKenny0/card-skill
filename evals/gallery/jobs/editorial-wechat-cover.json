@@ -1,1 +1,71 @@
-{"schema_version":1,"job_id":"gallery-editorial-wechat","publish_target":"wechat-cover","source":{"kind":"pasted-text","language":"zh","label":"《千脑智能》· 杰夫·霍金斯"},"source_units":[{"id":"thesis","excerpt":"智能来自许多皮层柱通过运动建立世界模型，并在彼此之间达成共识。"}],"decision":{"mode":"editorial-image","tier":"stable","tone":"reflective","reason":"封面用叠层模型承载“许多局部模型共同判断”的核心张力。"},"outputs":[{"id":"cover","basename":"editorial-wechat-cover.png","source_unit_ids":["thesis"],"transformation":"visualize","render_contract":{"mode":"editorial-image","title":"千个模型，如何共识","use":"cover","aspect":"wechat-cover","editorial_tone":"reflective","cover_motif":"layers","visual_metaphor":"许多皮层柱各自建立模型，再把局部判断汇成稳定认识。"}}]}
+{
+  "schema_version": 3,
+  "job_id": "gallery-editorial-wechat",
+  "publish_target": "wechat-cover",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "A2A 协作场景"
+  },
+  "source_units": [
+    {
+      "id": "thesis",
+      "excerpt": "采购助手把资质与风险评估交给外部机构的 Agent；双方交换任务和结果，内部实现保持不可见。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "editorial-image",
+    "tier": "stable",
+    "tone": "reflective",
+    "reason": "纸上荒野以独立地形和交接处表达跨系统协作。",
+    "selection_source": "taxonomy"
+  },
+  "outputs": [
+    {
+      "id": "cover",
+      "render_contract": {
+        "mode": "editorial-image",
+        "title": "协作，止于内部边界",
+        "use": "cover",
+        "aspect": "wechat-cover",
+        "cover_series": "paper-wilderness",
+        "cover_art": {
+          "path": "assets/cover-series/paper-wilderness/cooperation.png",
+          "alt": "两个独立系统在交接处协作，内部实现不可见"
+        }
+      },
+      "artifacts": [
+        {
+          "basename": "editorial-wechat-cover.png",
+          "source_unit_ids": [
+            "thesis"
+          ],
+          "transformation": "visualize",
+          "id": "cover",
+          "artifact_index": 1,
+          "role": "claim",
+          "visual_plan": {
+            "core_message": "采购助手把资质与风险评估交给外部机构的 Agent；双方交换任务和结果，内部实现保持不可见。",
+            "content_type": "idea",
+            "argument_structure": "single-claim",
+            "visual_metaphor": "独立的纸质地形在交接处协作",
+            "layout_strategy": "纸上荒野左右标题与插画",
+            "visual_hierarchy": [
+              "标题",
+              "交接意象"
+            ],
+            "avoid_patterns": [
+              "内部实现可见",
+              "背景污渍"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

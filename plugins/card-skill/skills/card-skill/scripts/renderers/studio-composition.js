@@ -45,6 +45,7 @@ function colophon(input, designName, comic = false) {
 }
 
 function render(input, outputHtmlPath) {
+  if (input.mode === 'sketchnote' && input.variant !== undefined && input.variant !== 'wandering-notes') throw new Error('Only wandering-notes is supported');
   const defaults = MODE_DEFAULTS[input.mode];
   if (!defaults) throw new Error(`Unsupported Studio composition mode: ${input.mode}`);
   const designName = resolveDesignNameForInput(input, defaults.fallback);
@@ -103,7 +104,7 @@ function render(input, outputHtmlPath) {
     if (!logoUrl && !brandName && !sourceLine) html = html.replace(/\s*<div class="colophon">\s*<\/div>/, '');
   }
 
-  const wanderingNotes = input.mode === 'sketchnote' && input.variant === 'wandering-notes';
+  const wanderingNotes = input.mode === 'sketchnote';
   const variantCss = wanderingNotes
     ? fs.readFileSync(path.join(ASSETS, 'sketchnote-wandering-notes.css'), 'utf8')
     : '';

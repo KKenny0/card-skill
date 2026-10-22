@@ -1,10 +1,10 @@
 # 个人札记 Poster / field-notes
 
-自然语言请求制作文字型 Poster 时，默认使用 `mode: "poster", variant: "field-notes"`，无需用户额外声明个人札记风格。来源里的作者姓名不触发署名。用户明确选择其他变体时遵从选择；微信读书划线与配对想法继续使用 `reading-notes`，媒体证据、流程和数据行继续使用通用 Poster。现有变体暂不退休。已有结构化合同不隐式改写；省略 variant 的旧合同保留原行为。
+所有 Poster 只使用个人札记 `field-notes`，省略 variant 同样使用。旧 reading-notes 风格退休，原文—想法配对保留为 reading_unit 内容块。
 
 ## 渲染合同
 
-- 支持 `paragraph`、`heading`、`highlight`、`items`；使用现有顶层 `title`、`subtitle` 和 `cards[].body`。不支持媒体、流程、数据行、分隔线及 `reading_unit`，不使用任意 HTML/CSS。
+- 支持 `paragraph`、`heading`、`highlight`、`items`；使用现有顶层 `title`、`subtitle` 和 `cards[].body`。同时支持 media、process、data_row、divider 与 reading_unit，以及 cards[].title。它们采用相同札记样式，不使用任意 HTML/CSS。
 - 固定 1080×1440，默认导出 2160×2880。正文 38px，边栏 156px、标签 36px；短竖线，无条目横线。内容自然向下排，关键句跟随正文，不拉伸条目填页。
 - 默认与 reflective 使用浅米色和克制红色标记。显式其他 tone 或 design 仅换颜色，不改几何；不会自动添加野生肯尼署名。
 - 首卡有标题和实际内容；续页显示系列页眉。沿用标题长度适配，不扩大稀疏页正文。正文之后的新小节增加 24px 停顿；首个小节没有额外上间距。
@@ -12,7 +12,7 @@
 
 ## 分组与分页
 
-本节替代通用 Poster 的按章节严格拆卡规则，仅适用于选择本变体的内容规划。renderer 按 `cards[]` 输出，不自动合页、删字或推断来源关系。
+所有 Poster 使用本节分组规则；逐字划线仍遵守来源全量/精选约定，原文与想法不混写。renderer 按 `cards[]` 输出，不自动合页、删字或推断来源关系。
 
 1. 识别完整信息单元及其证据：判断连同条件、例子连同说明、建议连同限制。先遵守 preserve/compress 意图；引文逐字保留，不能为了排版删除否定或例外。
 2. 每页写一句阅读职责。标题是语义线索，不是自动分页边界。问题与应对、观点与例证、连续解释可以在同页；仅因两页空或主题宽泛相同，不能合并。

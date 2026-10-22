@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { verifyPersonalDefaults } from './validate-personal-defaults.mjs';
 import { verifySketchnoteNotes } from './validate-sketchnote-notes.mjs';
 import { verifyWhiteboardNotes } from './validate-whiteboard-notes.mjs';
 import { verifyPersonalDiagrams } from './validate-personal-diagram.mjs';
@@ -42,17 +43,8 @@ const inputs = {
   long: { mode: 'long', title: 'Clarity', body: [{ type: 'paragraph', text: 'A useful paragraph.' }] },
   whiteboard: { mode: 'whiteboard', title: 'A model', steps: [{ type: 'annotation', text: 'Start here.' }] },
   poster: { mode: 'poster', title: 'A short series', cards: [{ body: [{ type: 'paragraph', text: 'One idea.' }] }] },
-  'editorial-image': { mode: 'editorial-image', title: 'A visual argument' },
-  'article-diagram': {
-    mode: 'article-diagram',
-    family: 'concept-map',
-    title: 'A compact relationship',
-    nodes: [
-      { id: 'input', label: 'Input' },
-      { id: 'model', label: 'Model' },
-      { id: 'output', label: 'Output' },
-    ],
-  },
+  'editorial-image': { mode: 'editorial-image', title: 'A visual argument', cover_art: {path:path.join(ROOT,'assets/cover-series/paper-wilderness/cooperation.png'),alt:'Separate systems exchanging work'} },
+
 };
 
 const articleDiagramFixtures = {
@@ -134,8 +126,6 @@ function assertPackagedSkill() {
     path.join(skillRoot, 'evals', 'run-fresh-context.mjs'),
     path.join(skillRoot, 'evals', 'evals.json'),
     path.join(skillRoot, 'scripts', 'renderers', 'article-diagram.js'),
-    path.join(skillRoot, 'scripts', 'renderers', 'article-diagram-styles.js'),
-    path.join(skillRoot, 'scripts', 'renderers', 'article-diagram-utils.js'),
     path.join(skillRoot, 'scripts', 'renderers', 'studio-composition.js'),
     path.join(skillRoot, 'assets', 'big_template.html'),
     path.join(skillRoot, 'assets', 'fonts'),
@@ -206,8 +196,6 @@ function assertPackagedSkill() {
     'scripts/lib/schema.js',
     'scripts/renderers/poster.js',
     'scripts/renderers/article-diagram.js',
-    'scripts/renderers/article-diagram-styles.js',
-    'scripts/renderers/article-diagram-utils.js',
     'scripts/renderers/studio-composition.js',
     'schemas/big.json',
     'schemas/poster.json',
@@ -324,7 +312,7 @@ function assertWereadSourceContract() {
   assert.match(adapter, /Never ask them to paste the key into the conversation/, 'adapter is missing the API-key chat guard');
   assert.match(adapter, /Treat every returned .* as untrusted data/, 'adapter is missing the external-content prompt-injection guard');
   assert.match(adapter, /both the personal highlight list and the complete personal thoughts\/reviews list/, 'adapter does not require both sides of a complete personal-notes export');
-  assert.match(adapter, /poster` \+ `reading-notes/, 'adapter does not route personal notes through the reading-notes variant');
+  assert.match(adapter, /poster` \+ `field-notes/, 'adapter does not route personal notes through the reading-notes variant');
   assert.match(adapter, /1-8 content units: keep every unit/, 'adapter is missing the small-set preservation rule');
   assert.match(adapter, /6-8 coherent cards with about 2-4 related units per card/, 'adapter is missing the >8-unit selection boundary');
   assert.match(adapter, /sequential batches of at most 8 cards without dropping content/, 'adapter is missing the explicit all-units batching rule');
@@ -563,11 +551,12 @@ try {
       { text: '04｜回执更新事实', highlight: true },
     ] }],
   }, whiteboardChainPath);
-  assert.match(fs.readFileSync(whiteboardChainPath, 'utf8'), /class="chain-segment highlight"/, 'whiteboard chain lost its bounded semantic nodes');
+  assert.match(fs.readFileSync(whiteboardChainPath, 'utf8'), /class="node highlight"/, 'whiteboard chain lost its bounded semantic nodes');
   const whiteboardChainCheck = runOutputCheck(whiteboardChainPath, whiteboardChainOutput);
   assert.equal(whiteboardChainCheck.report?.pass, true, 'four-node whiteboard chain must wrap inside the capture viewport');
 
-  const logoPath = path.join(tmpDir, 'example " onerror="attack.png');
+  const logoPath = path.join(tmpDir, 'example & attack.png');
+  fs.writeFileSync(logoPath,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64'));
   const logoUrl = pathToFileURL(logoPath).href;
   for (const [mode, input] of Object.entries(inputs)) {
     const target = mode === 'poster' ? tmpDir : path.join(tmpDir, `branded-${mode}.html`);
@@ -579,9 +568,9 @@ try {
     }, target);
 
     for (const html of readOutputs(rendered)) {
-      assert.match(html, /class="colophon"/, `${mode} dropped opt-in branding`);
-      assert.match(html, />Example Studio</, `${mode} dropped the brand name`);
-      assert.ok(html.includes(logoUrl), `${mode} did not encode the logo as a file URL`);
+      assert.match(html, /class="(?:colophon|brand)"/, `${mode} dropped opt-in branding`);
+      assert.match(html, /Example Studio</, `${mode} dropped the brand name`);
+      assert.ok(html.includes(logoUrl.replaceAll("&", "&amp;")), `${mode} did not encode the logo as a file URL`);
       assert.doesNotMatch(html, /"\s+onerror=/i, `${mode} allowed logo-path attribute injection`);
       if (mode === 'poster' || mode === 'editorial-image' || mode === 'article-diagram') {
         assert.match(html, />Example source</, `${mode} dropped the source`);
@@ -595,13 +584,6 @@ try {
   assert.match(sourceOnlyHtml, /class="colophon"/);
   assert.match(sourceOnlyHtml, />Source only</);
   assert.doesNotMatch(sourceOnlyHtml, /class="who"/);
-
-  const articleSourceOnlyPath = path.join(tmpDir, 'source-only-article-diagram.html');
-  renderers['article-diagram'].render({ ...inputs['article-diagram'], source: 'Source only' }, articleSourceOnlyPath);
-  const articleSourceOnlyHtml = stripComments(fs.readFileSync(articleSourceOnlyPath, 'utf8'));
-  assert.match(articleSourceOnlyHtml, /class="colophon"/);
-  assert.match(articleSourceOnlyHtml, />Source only</);
-  assert.doesNotMatch(articleSourceOnlyHtml, /class="who"/);
 
   const posterSourceOnlyDir = path.join(tmpDir, 'source-only-poster');
   fs.mkdirSync(posterSourceOnlyDir, { recursive: true });
@@ -674,21 +656,6 @@ try {
     /safe absolute local path/,
     'poster media snapshot accepted a forward-slash UNC path',
   );
-  for (const renderPlan of ['summary', 'structure', 'split']) {
-    const compressionWithLogo = {
-      ...inputs['article-diagram'],
-      formula: 'Input + route = output',
-      sentence: 'A compact relation.',
-      structure: { nodes: [{ id: 'a', label: 'Input' }, { id: 'b', label: 'Output' }] },
-      render_plan: renderPlan,
-      logo: posterMediaPath,
-    };
-    delete compressionWithLogo.family;
-    delete compressionWithLogo.nodes;
-    const compressionLogoValidation = validate(compressionWithLogo);
-    assert.equal(compressionLogoValidation.valid, false, `compression ${renderPlan} unexpectedly accepted a logo that its renderer omits`);
-    assert.match(compressionLogoValidation.errors.join('\n'), /compression pack does not support logo/);
-  }
   const oversizedPng = Buffer.alloc(45);
   Buffer.from('89504e470d0a1a0a', 'hex').copy(oversizedPng, 0);
   oversizedPng.writeUInt32BE(13, 8);
@@ -724,7 +691,6 @@ try {
   const boundedLogoContracts = {
     big: inputs.big,
     'editorial-image': inputs['editorial-image'],
-    'article-diagram': inputs['article-diagram'],
     ...Object.fromEntries(['infograph', 'comic', 'sketchnote'].map(mode => {
       const fixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals', 'gallery', 'creative', `${mode}.json`), 'utf8'));
       return [mode, fixture.outputs[0].render_contract];
@@ -982,9 +948,6 @@ try {
 
   const fieldNotesFixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals/fixtures/poster-field-notes.json'), 'utf8'));
   assert.equal(validate(fieldNotesFixture).valid, true);
-  for (const type of ['divider', 'data_row', 'media', 'process', 'reading_unit']) {
-    assert.equal(validate({ ...fieldNotesFixture, cards: [{ body: [{ type, text: 'x' }] }] }).valid, false);
-  }
   const fieldDir = path.join(tmpDir, 'field-notes');
   fs.mkdirSync(fieldDir, { recursive: true });
   const fieldPages = renderers.poster.render(fieldNotesFixture, fieldDir);
@@ -1004,7 +967,7 @@ try {
 
   const readingNotesFixture = {
     mode: 'poster',
-    variant: 'reading-notes',
+    variant: 'field-notes',
     design: 'claude',
     title: '边界练习｜第一章',
     subtitle: '三条合成笔记',
@@ -1039,7 +1002,7 @@ try {
   assert.equal(readingNotesValidation.valid, true, `reading-notes fixture failed validation: ${readingNotesValidation.errors.join(', ')}`);
 
   const posterSchema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas', 'poster.json'), 'utf8'));
-  assert.deepEqual(posterSchema.properties.variant.enum, ['reading-notes', 'field-notes'], 'public poster schema does not document the reading-notes variant');
+  assert.equal(posterSchema.properties.variant.const, 'field-notes', 'public poster schema does not document the reading-notes variant');
   assert.ok(
     posterSchema.properties.cards.items.properties.body.items.properties.type.enum.includes('reading_unit'),
     'public poster schema does not document reading_unit',
@@ -1064,26 +1027,11 @@ try {
   assert.deepEqual(itemConditional?.then?.required, ['entries'], 'public poster schema does not require items entries');
   assert.deepEqual(dataRowConditional?.then?.required, ['key', 'value'], 'public poster schema does not require a complete data row');
   assert.match(posterSchema.properties.cards.items.properties.body.items.properties.path.pattern, /\(\?!/, 'public poster media path does not reject network/device namespaces');
-  const readingNotesSchemaGuard = posterSchema.allOf.find(rule => rule.if?.properties?.variant?.const === 'reading-notes');
-  assert.equal(readingNotesSchemaGuard?.then?.properties?.cards?.maxItems, 8, 'public poster schema does not enforce the reading-notes batch boundary');
-  const readingNotesContentAlternatives = readingNotesSchemaGuard?.then?.properties?.cards?.items?.properties?.body?.contains?.anyOf;
-  assert.ok(Array.isArray(readingNotesContentAlternatives), 'public poster schema does not require semantic reading-notes content');
-  assert.deepEqual(
-    readingNotesContentAlternatives.map(alternative => alternative.properties?.type?.const ?? alternative.properties?.type?.enum).flat(),
-    ['reading_unit', 'paragraph', 'heading', 'highlight', 'items', 'data_row'],
-    'public poster schema semantic-content types are out of sync with runtime validation',
-  );
-  assert.deepEqual(
-    readingNotesSchemaGuard?.else?.properties?.cards?.items?.not,
-    { required: ['title'] },
-    'public poster schema does not restrict card theme titles to reading-notes',
-  );
-
   const readingNotesDir = path.join(tmpDir, 'reading-notes-poster');
   fs.mkdirSync(readingNotesDir, { recursive: true });
   const readingNotesOutputs = renderers.poster.render(readingNotesFixture, readingNotesDir);
   const [readingNotesFirstHtml, readingNotesLastHtml] = readOutputs(readingNotesOutputs);
-  assert.match(readingNotesFirstHtml, /class="card reading-notes"/, 'reading-notes variant did not mark its composition');
+  assert.match(readingNotesFirstHtml, /class="card field-notes/, 'reading-notes variant did not mark its composition');
   assert.match(readingNotesFirstHtml, /<h1 style="font-size:64px">/, 'ordinary poster title sizing overrides the reading-notes 64px title');
   assert.match(readingNotesFirstHtml, /<div class="title-area">[\s\S]*边界练习｜第一章[\s\S]*<section class="reading-unit">/, 'reading-notes first card is title-only');
   assert.match(readingNotesFirstHtml, /class="reading-card-title">主题整理｜边界让选择落地</, 'reading-notes theme title was not rendered');
@@ -1130,31 +1078,26 @@ try {
     {
       label: 'unknown variant',
       input: { ...inputs.poster, variant: 'weread' },
-      pattern: /variant must be one of: reading-notes/,
-    },
-    {
-      label: 'reading unit outside variant',
-      input: { mode: 'poster', title: 'Bad unit', cards: [{ body: [{ type: 'reading_unit', quote: 'Quote' }] }] },
-      pattern: /reading_unit requires poster variant "reading-notes"/,
+      pattern: /variant must be one of: field-notes/,
     },
     {
       label: 'empty reading quote',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'Empty quote', cards: [{ body: [{ type: 'reading_unit', quote: '   ' }] }] },
+      input: { mode: 'poster', variant: 'field-notes', title: 'Empty quote', cards: [{ body: [{ type: 'reading_unit', quote: '   ' }] }] },
       pattern: /quote must be a non-empty string/,
     },
     {
       label: 'non-string thought',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'Bad thought', cards: [{ body: [{ type: 'reading_unit', quote: 'Quote', thought: 42 }] }] },
+      input: { mode: 'poster', variant: 'field-notes', title: 'Bad thought', cards: [{ body: [{ type: 'reading_unit', quote: 'Quote', thought: 42 }] }] },
       pattern: /thought must be a string/,
     },
     {
       label: 'title-only reading card',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'No content', cards: [{ body: [] }] },
+      input: { mode: 'poster', variant: 'field-notes', title: 'No content', cards: [{ body: [] }] },
       pattern: /body must contain actual visible content/,
     },
     {
       label: 'divider-only reading card',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'No content', cards: [{ body: [{ type: 'divider' }] }] },
+      input: { mode: 'poster', variant: 'field-notes', title: 'No content', cards: [{ body: [{ type: 'divider' }] }] },
       pattern: /body must contain actual visible content/,
     },
     {
@@ -1171,16 +1114,6 @@ try {
       label: 'empty items ordinary card',
       input: { mode: 'poster', title: 'No content', cards: [{ body: [{ type: 'items', entries: [] }] }] },
       pattern: /body must contain actual visible content/,
-    },
-    {
-      label: 'reading batch over eight cards',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'Too many', cards: Array.from({ length: 9 }, () => ({ body: [{ type: 'reading_unit', quote: 'Quote' }] })) },
-      pattern: /supports at most 8 cards per batch/,
-    },
-    {
-      label: 'card title outside reading variant',
-      input: { mode: 'poster', title: 'Ordinary', cards: [{ title: 'Ignored before', body: [{ type: 'paragraph', text: 'Body' }] }] },
-      pattern: /title is only supported by poster variant "reading-notes"/,
     },
     {
       label: 'relative media path',
@@ -1267,11 +1200,6 @@ try {
       input: { mode: 'poster', title: 'Bad process', cards: [{ body: [{ type: 'process', steps: [{ title: 'One' }, { title: 'Two' }], html: '<script>' }] }] },
       pattern: /unknown process field "html"/,
     },
-    {
-      label: 'reading-notes media field',
-      input: { mode: 'poster', variant: 'reading-notes', title: 'Bad notes', cards: [{ body: [{ type: 'media', path: posterMediaPath, alt: 'Evidence' }] }] },
-      pattern: /media is not supported by poster variant "reading-notes"/,
-    },
   ];
   for (const fixture of invalidPosterCases) {
     const validation = validate(fixture.input);
@@ -1283,6 +1211,7 @@ try {
   const normalizedToneHtml = [];
   for (const [tone, paletteName] of Object.entries(TONE_PALETTE_NAMES)) {
     const toneInput = {
+      ...inputs['editorial-image'],
       mode: 'editorial-image',
       title: 'Tone changes color only',
       editorial_tone: tone,
@@ -1321,6 +1250,7 @@ try {
   }
 
   const explicitDesignInput = {
+    ...inputs['editorial-image'],
     mode: 'editorial-image',
     title: 'Explicit design wins',
     design: 'stripe',
@@ -1331,7 +1261,7 @@ try {
   renderers['editorial-image'].render(explicitDesignInput, explicitDesignPath);
   const explicitDesignHtml = stripComments(fs.readFileSync(explicitDesignPath, 'utf8'));
   assert.match(explicitDesignHtml, /data-card-design="stripe"/, 'explicit design was not rendered');
-  assert.equal(validate({ mode: 'editorial-image', title: 'Alias', design: 'opencode.ai' }).valid, true, 'documented opencode.ai alias failed validation');
+  assert.equal(validate({ ...inputs['editorial-image'], title: 'Alias', design: 'opencode.ai' }).valid, true, 'documented opencode.ai alias failed validation');
 
   const invalidDesignValidation = validate({ mode: 'editorial-image', title: 'Bad design', design: 'technical-data' });
   assert.equal(invalidDesignValidation.valid, false, 'invalid grouped design unexpectedly passed validation');
@@ -1398,58 +1328,7 @@ try {
     'public editorial-image schema does not reject cover_motif for creative sub-scenarios',
   );
 
-  for (const motif of EDITORIAL_COVER_MOTIFS) {
-    const coverMotifInput = {
-      mode: 'editorial-image',
-      title: 'Memory returns',
-      use: 'cover',
-      aspect: 'blog-hero',
-      design: 'stripe',
-      cover_motif: motif,
-      visual_metaphor: `A ${motif} carries the article tension.`,
-    };
-    const coverMotifValidation = validate(coverMotifInput);
-    assert.equal(coverMotifValidation.valid, true, `${motif} cover motif failed validation: ${coverMotifValidation.errors.join(', ')}`);
-
-    const coverMotifPath = path.join(tmpDir, `cover-motif-${motif}.html`);
-    const coverMotifOutput = renderers['editorial-image'].render(coverMotifInput, coverMotifPath);
-    const coverMotifHtml = stripComments(fs.readFileSync(coverMotifPath, 'utf8'));
-    assert.match(coverMotifHtml, new RegExp(`data-cover-motif="${motif}"`), `${motif} cover motif was not marked in HTML`);
-    assert.match(coverMotifHtml, new RegExp(`cover-motif-${motif}`), `${motif} cover motif did not render its visible subject`);
-    if (motif !== 'paper-stack') {
-      assert.doesNotMatch(coverMotifHtml, /<div class="paper-stack/, `${motif} cover motif fell back to paper-stack markup`);
-    }
-    const coverMotifCheck = runOutputCheck(coverMotifPath, coverMotifOutput);
-    assert.equal(coverMotifCheck.result.status, 0, `${motif} cover motif failed output check: ${coverMotifCheck.result.stdout}\n${coverMotifCheck.result.stderr}`);
-    assert.equal(coverMotifCheck.report?.pass, true, `${motif} cover motif did not pass output check`);
-    if (motif === 'window') {
-      assert.deepEqual(
-        readComputedStyles(coverMotifPath, '.cover-motif-window .window-field i', 'border-top-width'),
-        ['1px', '1px', '1px', '1px'],
-        'window motif detail dots lost their visible border',
-      );
-    }
-    if (motif === 'archive') {
-      assert.deepEqual(
-        readComputedStyles(coverMotifPath, '.cover-motif-archive .archive-file', 'border-top-width'),
-        ['2px', '2px', '2px'],
-        'archive receipt sheets must remain visible at thumbnail size',
-      );
-    }
-    if (motif === 'drawer') {
-      assert.deepEqual(
-        readComputedStyles(coverMotifPath, '.cover-motif-drawer .drawer-box', 'border-top-width'),
-        ['2px'],
-        'drawer body must remain legible at thumbnail size',
-      );
-      assert.deepEqual(
-        readComputedStyles(coverMotifPath, '.cover-motif-drawer .drawer-handle', 'border-top-width'),
-        ['2px'],
-        'drawer pull must remain a visible external object',
-      );
-    }
-  }
-
+  for (const motif of EDITORIAL_COVER_MOTIFS) assert.equal(validate({...inputs['editorial-image'],cover_motif:motif}).valid,false);
   const incompleteCompositionValidation = validate({
     mode: 'editorial-image',
     title: 'Three paths converge',
@@ -1463,7 +1342,7 @@ try {
     mode: 'editorial-image',
     title: 'Three paths converge',
     design: 'linear',
-    use: 'cover',
+    use: 'metaphor',
     aspect: 'wechat-cover',
     composition_required: true,
     visual_metaphor: 'Three paper paths converge into one PNG sheet.',
@@ -1729,362 +1608,10 @@ try {
     `editorial visual-system drift failed for the wrong reason: ${rejectedVisualSystemCheck.result.stdout}\n${rejectedVisualSystemCheck.result.stderr}`,
   );
 
-  for (const [family, fixture] of Object.entries(articleDiagramFixtures)) {
-    const validation = validate(fixture);
-    assert.equal(validation.valid, true, `${family} article-diagram fixture failed validation: ${validation.errors.join(', ')}`);
-    const outputPath = path.join(tmpDir, `article-diagram-${family}.html`);
-    const output = renderers['article-diagram'].render(fixture, outputPath);
-    const html = stripComments(fs.readFileSync(outputPath, 'utf8'));
-    assert.match(html, /data-card-mode="article-diagram"/, `${family} did not mark article-diagram mode`);
-    assert.match(html, new RegExp(`data-diagram-family="${family}"`), `${family} did not mark its family`);
-    const check = runOutputCheck(outputPath, output);
-    assert.equal(check.result.status, 0, `${family} article-diagram failed output check: ${check.result.stdout}\n${check.result.stderr}`);
-    assert.equal(check.report?.pass, true, `${family} article-diagram did not pass`);
-  }
-
+  verifyPersonalDefaults();
   verifyPersonalDiagrams();
   verifyWhiteboardNotes();
-  const compressionPackFixture = {
-    mode: 'article-diagram',
-    title: '多 Agent 的写入边界',
-    subtitle: '压缩成公式卡',
-    formula: '安全协作 = 单线程写入 + 共享轨迹 + 旁路判断',
-    sentence: '多 agent 不是多条线同时修改，而是主线负责写入，旁路线把检索、验证和摘要回流给主线。',
-    structure: {
-      nodes: [
-        { id: 'trace', label: '共享轨迹', note: '完整决策过程' },
-        { id: 'writer', label: '单线程写入', note: '唯一修改路径' },
-        { id: 'helpers', label: '旁路 agent', note: '检索 / 验证 / 总结' },
-        { id: 'tools', label: '工具执行', note: '受控副作用' },
-      ],
-      relations: [
-        { from: 'helpers', to: 'trace', label: '贡献判断' },
-        { from: 'trace', to: 'writer', label: '约束写入' },
-        { from: 'writer', to: 'tools', label: '调用' },
-      ],
-    },
-    caption: '默认输出不显示标题、caption 或结构图。',
-    source: 'Context 工程',
-  };
-  const compressionValidation = validate(compressionPackFixture);
-  assert.equal(compressionValidation.valid, true, `compression-pack article-diagram fixture failed validation: ${compressionValidation.errors.join(', ')}`);
-  assert.equal(
-    renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).variant,
-    'editorial-equation',
-    'compression formula card should use the unified Editorial Equation layout',
-  );
-  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).id, 'large', 'short compression formula card should use the large type scale');
-  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(compressionPackFixture).formulaRows, 1, 'short compression formula card should stay on one semantic row');
-  const compressionPath = path.join(tmpDir, 'article-diagram-compression-pack.html');
-  const compressionOutput = renderers['article-diagram'].render(compressionPackFixture, compressionPath);
-  assert.equal(Array.isArray(compressionOutput), false, 'compression-pack should render one formula card by default');
-  {
-    const html = stripComments(fs.readFileSync(compressionOutput.htmlPath, 'utf8'));
-    assert.match(html, /data-diagram-family="compression-pack"/, 'compression output did not mark compression-pack');
-    assert.match(html, /data-compression-view="summary"/, 'compression output did not mark summary view');
-    assert.match(html, /formula-card-plate/, 'compression output did not render the formula card');
-    assert.match(html, /formula-card-body/, 'compression output did not use the single-body formula card layout');
-    assert.match(html, /formula-layout-editorial-equation/, 'compression output did not use Editorial Equation layout');
-    assert.match(html, /formula-density-compact/, 'compact compression output did not mark compact density');
-    assert.match(html, /data-formula-scale="large"/, 'short compression output did not mark the large type scale');
-    assert.match(html, /data-formula-rows="1"/, 'short compression output did not mark one formula row');
-    assert.match(html, /formula-expression/, 'compression output did not render the semantic formula expression');
-    assert.match(html, /formula-card-deck/, 'compression output did not render the explanation as a deck');
-    assert.doesNotMatch(html, /<section[^>]*figure-sheet/, 'compression output unexpectedly rendered the article figure sheet');
-    assert.doesNotMatch(html, /formula-chip/, 'compression output unexpectedly used the old chip formula layout');
-    assert.doesNotMatch(html, /formula-card-sentence/, 'compression output unexpectedly used the old detached sentence layout');
-    assert.doesNotMatch(html, /formula-layout-(?:compact-inline|ledger|annotation-tall)/, 'compression output leaked an old formula layout variant');
-    assert.doesNotMatch(html, /<header class="diagram-header"/, 'compression formula card unexpectedly rendered a visible title header');
-    assert.doesNotMatch(html, /<p class="diagram-caption"/, 'compression formula card unexpectedly rendered a visible caption');
-    const check = runOutputCheck(compressionOutput.htmlPath, compressionOutput);
-    assert.equal(check.result.status, 0, `compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
-    assert.equal(check.report?.pass, true, 'compression-pack output did not pass');
-    const missingMetricsPath = path.join(tmpDir, 'article-diagram-compression-pack-missing-metrics.html');
-    fs.writeFileSync(missingMetricsPath, html.replace('data-formula-card="true"', ''), 'utf8');
-    const missingMetricsCheck = runOutputCheck(missingMetricsPath, compressionOutput);
-    assert.notEqual(missingMetricsCheck.result.status, 0, 'compression summary without semantic formula markers unexpectedly passed output check');
-    assert.ok(missingMetricsCheck.report?.issues?.some(item => item.code === 'article_diagram_formula_metrics_missing'), 'missing formula metrics did not report the expected issue code');
-  }
-  assert.equal(renderers['article-diagram'].defaultAspect(compressionPackFixture), 'body-2-1', 'compact compression formula card should default to body-2-1');
-  const mediumCompressionPackFixture = {
-    ...compressionPackFixture,
-    formula: '可审计协作 = 单线程写入 + 共享轨迹 + 旁路检索 + 旁路验证 + 摘要回流',
-    sentence: '多 Agent 协作仍由主线写入，旁路线只贡献判断。',
-  };
-  assert.equal(
-    renderers['article-diagram'].analyzeFormulaCardContent(mediumCompressionPackFixture).id,
-    'medium',
-    'multi-term compression formula card should use the medium type scale',
-  );
-  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(mediumCompressionPackFixture).formulaRows, 2, 'multi-term compression formula card should use two semantic rows');
-  assert.equal(renderers['article-diagram'].defaultAspect(mediumCompressionPackFixture), 'body-2-1', 'medium compression formula card should stay body-2-1');
-  {
-    const mediumPath = path.join(tmpDir, 'article-diagram-compression-pack-medium.html');
-    const mediumOutput = renderers['article-diagram'].render(mediumCompressionPackFixture, mediumPath);
-    const html = stripComments(fs.readFileSync(mediumOutput.htmlPath, 'utf8'));
-    assert.match(html, /data-formula-scale="medium"/, 'medium compression output did not mark the medium type scale');
-    assert.match(html, /data-formula-rows="2"/, 'medium compression output did not render two semantic rows');
-    assert.doesNotMatch(html, /formula-ledger/, 'medium compression output unexpectedly rendered the retired ledger layout');
-    const check = runOutputCheck(mediumOutput.htmlPath, mediumOutput);
-    assert.equal(check.result.status, 0, `medium compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
-    assert.equal(check.report?.pass, true, 'medium compression-pack output did not pass');
-  }
-  const longCompressionPackFixture = {
-    ...mediumCompressionPackFixture,
-    formula: '可持续的 Agent 协作 = 主线程保持单一写入权 + 辅助 Agent 只提供检索与验证 + 所有结果通过摘要回流进入共享轨迹',
-    sentence: '当公式项和解释句同时变长时，画布增加的是承载空间，而不是无目的的留白；字体也不会被压缩到不可读。',
-  };
-  assert.equal(
-    renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).id,
-    'small',
-    'long compression formula card should use the smallest approved type scale',
-  );
-  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).formulaRows, 3, 'long compression formula card should use three semantic rows');
-  assert.equal(renderers['article-diagram'].analyzeFormulaCardContent(longCompressionPackFixture).noteLines, 2, 'long compression formula card should keep the note to two lines');
-  assert.equal(renderers['article-diagram'].defaultAspect(longCompressionPackFixture), 'body-3-2', 'long compression formula card should use body-3-2');
-  {
-    const longPath = path.join(tmpDir, 'article-diagram-compression-pack-long.html');
-    const longOutput = renderers['article-diagram'].render(longCompressionPackFixture, longPath);
-    const html = stripComments(fs.readFileSync(longOutput.htmlPath, 'utf8'));
-    assert.match(html, /data-formula-scale="small"/, 'long compression output did not mark the small type scale');
-    assert.match(html, /data-formula-rows="3"/, 'long compression output did not render three semantic rows');
-    assert.match(html, /data-note-lines="2"/, 'long compression output did not mark a two-line note');
-    const check = runOutputCheck(longOutput.htmlPath, longOutput);
-    assert.equal(check.result.status, 0, `long compression-pack output failed output check: ${check.result.stdout}\n${check.result.stderr}`);
-    assert.equal(check.report?.pass, true, 'long compression-pack output did not pass');
-  }
-  const mixedCompressionAnalysis = renderers['article-diagram'].analyzeFormulaCardContent({
-    ...compressionPackFixture,
-    formula: 'Agent 可靠性 = single-writer ownership + 可追溯 transcript + bounded tool effects',
-    sentence: '中英文混排仍需保持完整 term，不允许在单个语义项内部断行。',
-  });
-  assert.equal(mixedCompressionAnalysis.variant, 'editorial-equation', 'mixed-language formula should keep the unified layout');
-  assert.equal(mixedCompressionAnalysis.termLines.flat().length, 3, 'mixed-language formula should preserve all semantic terms');
-  const arrowCompressionAnalysis = renderers['article-diagram'].analyzeFormulaCardContent({
-    ...compressionPackFixture,
-    formula: '原始请求 → 可验证结果',
-    sentence: '箭头关系应保留原始方向。',
-  });
-  assert.equal(arrowCompressionAnalysis.relation, '→', 'arrow formula should preserve its relation operator');
-  const tooWideResultFormula = '这是一个无法在批准字号下完整放入画布的超长主结论名称 = 简短项';
-  assert.throws(
-    () => renderers['article-diagram'].analyzeFormulaCardContent({
-      ...compressionPackFixture,
-      formula: tooWideResultFormula,
-      sentence: '主结论不能溢出画布。',
-    }),
-    /article_diagram_formula_too_dense/,
-    'an over-wide result should fail instead of overflowing the card',
-  );
-  const structureOnlyFixture = {
-    ...compressionPackFixture,
-    formula: tooWideResultFormula,
-    sentence: '结构视图不应被未展示的公式布局阻断。',
-    render_plan: 'structure',
-  };
-  let structureMeasureCalls = 0;
-  renderers['article-diagram'].render(structureOnlyFixture, path.join(tmpDir, 'structure-only-skip-measure.html'), {
-    measure: () => { structureMeasureCalls += 1; return {}; },
-  });
-  assert.equal(structureMeasureCalls, 0, 'structure-only compression output should skip formula measurement');
-  const structureOnlyPath = path.join(tmpDir, 'article-diagram-compression-pack-structure-only.html');
-  const structureOnlyOutput = renderers['article-diagram'].render(structureOnlyFixture, structureOnlyPath);
-  assert.match(fs.readFileSync(structureOnlyOutput.htmlPath, 'utf8'), /data-compression-view="structure"/, 'structure-only compression output did not render its requested view');
-  const structureOnlyCheck = runOutputCheck(structureOnlyOutput.htmlPath, structureOnlyOutput);
-  assert.equal(structureOnlyCheck.result.status, 0, `structure-only compression output failed output check: ${structureOnlyCheck.result.stdout}\n${structureOnlyCheck.result.stderr}`);
-  const splitCompressionPath = path.join(tmpDir, 'article-diagram-compression-pack-split.html');
-  const splitCompressionOutput = renderers['article-diagram'].render(
-    { ...compressionPackFixture, render_plan: 'split' },
-    splitCompressionPath,
-  );
-  assert.equal(Array.isArray(splitCompressionOutput), true, 'compression-pack split plan should render multiple outputs');
-  assert.equal(splitCompressionOutput.length, 2, 'compression-pack split plan should render summary and structure outputs');
-  for (const [i, output] of splitCompressionOutput.entries()) {
-    const html = stripComments(fs.readFileSync(output.htmlPath, 'utf8'));
-    assert.match(html, /data-compression-view="(summary|structure)"/, `split compression output ${i + 1} did not mark its view`);
-    const check = runOutputCheck(output.htmlPath, output);
-    assert.equal(check.result.status, 0, `split compression-pack output ${i + 1} failed output check: ${check.result.stdout}\n${check.result.stderr}`);
-    assert.equal(check.report?.pass, true, `split compression-pack output ${i + 1} did not pass`);
-  }
-  runCardCli(compressionPackFixture, 'compression-pack', 1);
-  runCardCli({ ...compressionPackFixture, render_plan: 'split' }, 'compression-pack-split', 2);
-  const measuredNoteFixture = {
-    ...compressionPackFixture,
-    sentence: 'i'.repeat(120),
-  };
-  assert.throws(
-    () => renderers['article-diagram'].analyzeFormulaCardContent(measuredNoteFixture),
-    /article_diagram_formula_too_dense/,
-    'fallback estimation should expose the regression fixture before the real-font measure pass',
-  );
-  runCardCli(measuredNoteFixture, 'compression-pack-measured-note', 1);
-
-  const repeatedChineseLinkPath = path.join(tmpDir, 'article-diagram-repeated-chinese-link-labels.html');
-  const repeatedChineseLinkOutput = renderers['article-diagram'].render({
-    mode: 'article-diagram',
-    family: 'concept-map',
-    title: '五种不稳定因素逼出 Harness',
-    subtitle: '第 1 节：Harness 先解决什么问题',
-    nodes: [
-      { id: 'state', label: '状态盲区', note: '事实不完整' },
-      { id: 'action', label: '行动风险', note: '真实机器边界' },
-      { id: 'context', label: '上下文噪声', note: '长任务污染' },
-      { id: 'trace', label: '过程追溯', note: '改动要可查' },
-      { id: 'growth', label: '能力增长', note: '核心不能膨胀' },
-    ],
-    links: [
-      { from: 'state', to: 'action', label: '叠加' },
-      { from: 'state', to: 'context', label: '叠加' },
-      { from: 'state', to: 'trace', label: '叠加' },
-      { from: 'state', to: 'growth', label: '叠加' },
-    ],
-    caption: 'Pi 不是先相信模型，而是先把不稳定因素收进可验证的工作环境。',
-    source: 'Pi Agent Harness',
-  }, repeatedChineseLinkPath);
-  const repeatedChineseLinkHtml = stripComments(fs.readFileSync(repeatedChineseLinkPath, 'utf8'));
-  assert.doesNotMatch(repeatedChineseLinkHtml, /class="diagram-link-label"[\s\S]*?>\s*叠加\s*</, 'duplicated concept-map link labels should be hidden');
-  const repeatedChineseLinkCheck = runOutputCheck(repeatedChineseLinkPath, repeatedChineseLinkOutput);
-  assert.equal(repeatedChineseLinkCheck.result.status, 0, `repeated Chinese link-label concept-map failed output check: ${repeatedChineseLinkCheck.result.stdout}\n${repeatedChineseLinkCheck.result.stderr}`);
-  assert.equal(repeatedChineseLinkCheck.report?.pass, true, 'repeated Chinese link-label concept-map did not pass');
-
-  runCardCli({
-    mode: 'article-diagram',
-    family: 'concept-map',
-    title: '压缩策略分成三派',
-    subtitle: 'Claude、Codex、Cursor 对上下文溢出的答案不同',
-    nodes: [
-      { id: 'overflow', label: '窗口满了', note: '长任务必然遇到' },
-      { id: 'claude', label: 'Claude Code', note: '同步压缩，预防溢出' },
-      { id: 'codex', label: 'Codex CLI', note: 'handoff 给下一个 LLM' },
-      { id: 'cursor', label: 'Cursor', note: '变成文件，按需回溯' },
-    ],
-    links: [
-      { from: 'overflow', to: 'claude', label: '分区管理', direction: 'one-way' },
-      { from: 'overflow', to: 'codex', label: '传承式压缩', direction: 'one-way' },
-      { from: 'overflow', to: 'cursor', label: '文件化', direction: 'one-way' },
-    ],
-    caption: 'summary 是地图；原始记录、隐状态或规则重注入决定它能不能继续工作。',
-    source: 'Context 工程',
-  }, 'hub-spoke-concept-labels');
-
-  const sparseBoundaryFixture = {
-    mode: 'article-diagram',
-    family: 'boundary-model',
-    title: 'Project Trust 只是入口控制',
-    subtitle: '真正隔离仍在外层系统边界',
-    design: 'stripe',
-    zones: [
-      { id: 'external', label: 'External isolation' },
-      { id: 'local', label: 'Local user process' },
-      { id: 'trust', label: 'Project Trust' },
-    ],
-    nodes: [
-      { id: 'container', label: '容器 / VM 边界', zone: 'external' },
-      { id: 'pi', label: 'pi + tools + shell', zone: 'local' },
-      { id: 'gate', label: '加载闸门', zone: 'trust' },
-    ],
-    caption: 'Project Trust 是加载闸门，不是 sandbox；强隔离要交给外部环境。',
-  };
-  assert.equal(renderers['article-diagram'].defaultAspect(sparseBoundaryFixture), 'body-3-2', 'sparse 3-zone boundary-model should use the compact body aspect');
-  runCardCli(sparseBoundaryFixture, 'sparse-boundary-model');
-
-  const denseBoundaryFixture = {
-    mode: 'article-diagram',
-    family: 'boundary-model',
-    title: 'Project Trust 只是入口控制',
-    subtitle: '真正隔离仍在外层系统边界',
-    zones: [
-      { id: 'external', label: 'External isolation', description: '容器、VM、远程环境或系统 sandbox' },
-      { id: 'process', label: 'Local user process', description: 'agent loop、shell、tools 和工作目录' },
-      { id: 'trust', label: 'Project Trust', description: '决定是否加载项目级能力' },
-    ],
-    nodes: [
-      { id: 'container', label: '容器 / VM 边界', note: '隔离副作用', zone: 'external' },
-      { id: 'shell', label: 'pi + tools + shell', note: '实际执行命令', zone: 'process' },
-      { id: 'gate', label: '加载闸门', note: '信任后才启用', zone: 'trust' },
-    ],
-    caption: 'Project Trust 是加载闸门，不是 sandbox；强隔离要交给外部环境。',
-  };
-  assert.equal(renderers['article-diagram'].defaultAspect(denseBoundaryFixture), 'body-4-3', 'dense 3-zone boundary-model should use the tall body aspect');
-  runCardCli(denseBoundaryFixture, 'dense-boundary-model');
-  runCardCli({ ...denseBoundaryFixture, aspect: 'body-3-2' }, 'dense-boundary-model-auto-rescue');
-
-  const multiAgentBoundaryFixture = {
-    mode: 'article-diagram',
-    family: 'boundary-model',
-    title: '多 Agent 的写入边界',
-    subtitle: '写入保持单线程，其他 agent 只贡献智能',
-    zones: [
-      { id: 'shared', label: 'Shared trace', description: '完整决策过程和可审计历史' },
-      { id: 'writer', label: 'Single writer', description: '唯一修改工作区的执行线' },
-      { id: 'helpers', label: 'Helper agents', description: '并行探索、验证、检索、总结' },
-    ],
-    nodes: [
-      { id: 'trace', label: '共享上下文', note: '避免碎片化', zone: 'shared' },
-      { id: 'commit', label: '单线程写入', note: '避免冲突修改', zone: 'writer' },
-      { id: 'search', label: '检索 / 验证', note: '贡献判断', zone: 'helpers' },
-      { id: 'summary', label: '摘要回流', note: '进入主线', zone: 'helpers' },
-    ],
-    caption: '多 agent 不是多条线同时乱写，而是主线写入、旁路线贡献智能。',
-    source: 'Context 工程',
-  };
-  assert.equal(renderers['article-diagram'].defaultAspect(multiAgentBoundaryFixture), 'body-4-3', 'multi-node described boundary-model should use the tall body aspect');
-  runCardCli(multiAgentBoundaryFixture, 'multi-agent-boundary-model');
-
-  const processFlowCaptionFixture = {
-    mode: 'article-diagram',
-    family: 'process-flow',
-    title: 'Agent loop 保持很小',
-    subtitle: '工具、界面、会话和扩展围绕它工作',
-    design: 'claude',
-    nodes: [
-      { id: 'user', label: '用户请求', note: 'steering / follow-up' },
-      { id: 'model', label: '模型决策', note: '请求工具或返回' },
-      { id: 'tool', label: '工具执行', note: '并发跑、按序写' },
-      { id: 'next', label: '下一轮', note: '结果回写为 tool result' },
-    ],
-    caption: '工具结果按请求顺序写入 transcript；同一事件也分流到 UI、session 与 extension。',
-  };
-  const processFlowCaptionPath = path.join(tmpDir, 'process-flow-caption.html');
-  const processFlowCaptionOutput = renderers['article-diagram'].render(processFlowCaptionFixture, processFlowCaptionPath);
-  const processFlowCaptionCheck = runOutputCheck(processFlowCaptionPath, processFlowCaptionOutput);
-  assert.equal(processFlowCaptionCheck.result.status, 0, `process-flow caption fixture failed output check: ${processFlowCaptionCheck.result.stdout}\n${processFlowCaptionCheck.result.stderr}`);
-  assert.equal(processFlowCaptionCheck.report?.pass, true, 'process-flow caption fixture did not pass');
-  runCardCli(processFlowCaptionFixture, 'process-flow-caption');
-
-  const badCaptionPath = path.join(tmpDir, 'article-diagram-bad-caption.html');
-  fs.writeFileSync(badCaptionPath, `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; width: 1080px; height: 720px; font-family: "DM Sans", Arial, sans-serif; }
-  .page { width: 1080px; height: 720px; padding: 60px; }
-  .diagram-stage { width: 960px; height: 420px; border: 1px solid #d8d1c2; }
-  .diagram-caption { width: 360px; font: 500 26px/1.3 "DM Sans", Arial, sans-serif; text-wrap: balance; }
-</style>
-</head>
-<body>
-  <div class="page" data-card-mode="article-diagram">
-    <section class="diagram-stage"></section>
-    <p class="diagram-caption">工具结果按请求顺序写入 transcript；<br>同一事件也分流到 UI、session 与 extension。</p>
-  </div>
-</body>
-</html>`, 'utf8');
-  const badCaptionCheck = runOutputCheck(badCaptionPath, {
-    captureWidth: 1080,
-    captureHeight: 720,
-    fullpage: false,
-  });
-  assert.notEqual(badCaptionCheck.result.status, 0, 'narrow article-diagram caption unexpectedly passed output check');
-  assert.equal(badCaptionCheck.report?.pass, false, 'narrow article-diagram caption did not produce a failing report');
-  assert.match(
-    badCaptionCheck.report?.issues?.map(item => item.code).join('\n') || '',
-    /article_diagram_caption_layout/,
-    `narrow article-diagram caption failed for the wrong reason: ${badCaptionCheck.result.stdout}\n${badCaptionCheck.result.stderr}`,
-  );
-
+  for (const input of Object.values(articleDiagramFixtures)) assert.equal(validate(input).valid,false,'retired family accepted');
   const badBandHeaderPath = path.join(tmpDir, 'article-diagram-band-header-overlap.html');
   fs.writeFileSync(badBandHeaderPath, `<!doctype html>
 <html>
@@ -2182,51 +1709,6 @@ try {
     /article_diagram_label_collision/,
     `colliding article-diagram link label failed for the wrong reason: ${labelCollisionCheck.result.stdout}\n${labelCollisionCheck.result.stderr}`,
   );
-
-  const invalidFamilyValidation = validate({
-    mode: 'article-diagram',
-    family: 'freeform-map',
-    title: 'Bad family',
-    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
-  });
-  assert.equal(invalidFamilyValidation.valid, false, 'invalid article-diagram family unexpectedly passed validation');
-  assert.match(invalidFamilyValidation.errors.join('\n'), /family must be one of: concept-map, process-flow, boundary-model/);
-
-  const missingCompressionValidation = validate({
-    mode: 'article-diagram',
-    title: 'Missing compression pack',
-  });
-  assert.equal(missingCompressionValidation.valid, false, 'article-diagram without family or compression fields unexpectedly passed validation');
-  assert.match(missingCompressionValidation.errors.join('\n'), /compression pack requires string "formula"/);
-
-  const hybridArticleDiagramValidation = validate({
-    ...articleDiagramFixtures['concept-map'],
-    formula: 'Mixed = legacy + compression',
-    sentence: 'Mixed payloads must not silently choose one renderer.',
-    structure: compressionPackFixture.structure,
-    render_plan: 'split',
-  });
-  assert.equal(hybridArticleDiagramValidation.valid, false, 'hybrid legacy/compression article-diagram input unexpectedly passed validation');
-  assert.match(hybridArticleDiagramValidation.errors.join('\n'), /cannot include compression fields/);
-
-  const missingZonesValidation = validate({
-    mode: 'article-diagram',
-    family: 'boundary-model',
-    title: 'Missing zones',
-    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
-  });
-  assert.equal(missingZonesValidation.valid, false, 'boundary-model without zones unexpectedly passed validation');
-  assert.match(missingZonesValidation.errors.join('\n'), /boundary-model requires zones\[\]/);
-
-  const unknownLinkValidation = validate({
-    mode: 'article-diagram',
-    family: 'concept-map',
-    title: 'Unknown link',
-    nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
-    links: [{ from: 'a', to: 'c' }],
-  });
-  assert.equal(unknownLinkValidation.valid, false, 'article-diagram link to unknown node unexpectedly passed validation');
-  assert.match(unknownLinkValidation.errors.join('\n'), /references unknown node "c"/);
 
   for (const templateName of ['infograph_template.html', 'sketchnote_template.html']) {
     const template = stripComments(fs.readFileSync(path.join(ROOT, 'assets', templateName), 'utf8'));

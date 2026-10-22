@@ -38,6 +38,12 @@ export function verifyPersonalDiagrams() {
     if(name==='timeline-dense')assert.match(html,/timeline-vertical/);
     assert.equal(out.captureHeight,720);
   }
+  const credited={...fixtures.timeline,sentence:'条件有效',subtitle:'保留条件',caption:'来源说明',source:'示例来源',brand_name:'用户署名'};
+  assert.notDeepEqual(artifactContractProjection(credited,1),artifactContractProjection({...credited,source:'另一来源'},1),'source must bind to artifact identity');
+  const creditedPath=path.join(dir,'credited.html'); renderer.render(credited,creditedPath,ctx);
+  const creditedHtml=fs.readFileSync(creditedPath,'utf8');
+  for(const text of ['条件有效','保留条件','来源说明','示例来源','用户署名']) assert.ok(creditedHtml.includes(text),'lost optional visible content '+text);
+  assert.equal(JSON.parse(run('scripts/check-output.mjs',['--html',creditedPath,'--width','1080','--height','720','--skip-png','--json'])).pass,true);
   for(const kind of ['exchange','convergence','tension','cycle','timeline','hierarchy']) {
     const x=structuredClone(fixtures[kind]);x.structure.relations.push(x.structure.relations[0]);assert.equal(validate(x).valid,false,kind+' duplicate edge');
     const y=structuredClone(fixtures[kind]);y.render_plan='auto';assert.equal(validate(y).valid,false,kind+' auto');

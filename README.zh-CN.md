@@ -1,8 +1,10 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
+已确认的 mode 各自只保留一种个人风格，封面只保留纸上荒野。Poster 原有内容块统一采用个人札记；旧风格合同需迁移，见[迁移指南](references/personal-style-migration.md)。
+
 <h1 align="center">card-skill</h1>
 
-正文解释图请求默认采用六类个人关系布局，并用浏览器测量文字是否适配。参见[合同、适用边界与拆图规则](references/article-diagram-personal.md)。明确要求公式卡及已有结构化合同保持兼容。
+正文解释图请求默认采用六类个人关系布局，并用浏览器测量文字是否适配。参见[合同、适用边界与拆图规则](references/article-diagram-personal.md)。旧公式卡和 family 合同需重新规划。
 
 <p align="center"><strong>把文章、观点和技术决策，做成可以直接发布的视觉卡片。</strong></p>
 
@@ -64,7 +66,7 @@
 | 叙事与冲突转折 | `comic` | Studio | 步骤化叙事、前后转折与故事情境 | [文档](references/mode-comic.md) |
 | 个人随笔与反思 | `sketchnote` | Studio | 温暖亲切的手记风格视觉笔记 | [文档](references/mode-sketchnote.md) |
 
-Sketchnote 自然语言请求默认使用 `variant: "wandering-notes"` 漫游札记：共享字号与间距，按来源组织意象变化、阅读节奏和中文语义断行。仍使用 Studio 完整构图；省略变体的已有合同保持兼容。[规则与样例](references/sketchnote-wandering-notes.md)。
+Sketchnote 自然语言请求默认使用 `variant: "wandering-notes"` 漫游札记：共享字号与间距，按来源组织意象变化、阅读节奏和中文语义断行。仍使用 Studio 完整构图；省略变体同样加载漫游札记。[规则与样例](references/sketchnote-wandering-notes.md)。
 
 > **Stable 与 Studio 的区别：**
 > - **Stable 模式：** 使用内置确定性模板，渲染快、排版稳定，适合批量生产。
@@ -129,16 +131,9 @@ npx skills use KKenny0/card-skill/plugins/card-skill/skills/card-skill --skill c
 [粘贴文章正文或 URL]
 ```
 
-**纸上荒野：按需启用的封面系列**
+**纸上荒野：唯一封面系列**
 
-说“纸上荒野系列”或“野生肯尼公众号封面”，即可保留大标题、纸质地形与红色路标，并按正文改变内部场景。当前会话已选的系列会沿用；普通封面请求不会触发。内含中性母版、三个参考插画和横版排版参数，使用宿主生图能力或合适的用户指定插画，无需新增密钥或配置。两者都不可用时说明限制，不以通用 motif 替代。首版只验证 `wechat-cover`，不自动裁方图或添加署名。[系列工作流](references/cover-paper-wilderness.md)。
-
-**微信公众号封面对（明确请求）**
-```text
-把这篇文章做成公众号横版头图和方形分享图。保持短标题、适用条件和配色一致，但分别构图。交付前检查两张真实 PNG。
-```
-
-使用现有 `wechat-cover` 和 `square` 比例，在 Visual Job v3 中用 `cover_adaptation_of` 关联两个独立 output。这项受约束的例外仅允许封面对复用证据；普通内容卡仍需独立证据。方版自由构图使用现有 Studio 契约，不使用 `cover_art`。只要求一张封面时仍只生成一张。[工作流与示例](references/visual-job.md#wechat-cover-pair)。
+普通封面请求也直接使用纸上荒野：大标题、纸质地形与红色路标，意象随正文变化。renderer 自动加载系列布局；需要合适插画或可用生图能力，不回退到通用 motif。当前只支持已验证的 wechat-cover 横版，方版适配尚未提供。不自动添加署名。[系列工作流](references/cover-paper-wilderness.md)。
 
 **正文解释图 / 个人关系布局**
 ```text
@@ -269,7 +264,7 @@ card-skill 基于确定性的 HTML/CSS 模板、文字排版规则、浏览器�
 <table>
 <tr>
 <td width="50%"><img src="assets/gallery/editorial-wechat-cover.png" width="100%" alt="公众号头图"><br><strong>editorial-image</strong> · 千个模型，一个判断</td>
-<td width="50%"><img src="assets/gallery/article-formula.png" width="100%" alt="公式卡"><br><strong>article-diagram</strong> · 感觉、运动与参考系</td>
+<td width="50%"><img src="assets/gallery/article-formula.png" width="100%" alt="个人层级布局"><br><strong>article-diagram</strong> · 感觉、运动与参考系</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/big.png" width="100%" alt="一句话观点卡"><br><strong>big</strong> · 探索世界</td>
@@ -280,7 +275,7 @@ card-skill 基于确定性的 HTML/CSS 模板、文字排版规则、浏览器�
 <td><img src="assets/gallery/whiteboard.png" width="100%" alt="白板推演"><br><strong>whiteboard</strong> · 认识一个杯子</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="边界模型"><br><strong>article-diagram</strong> · 参考系边界模型</td>
+<td><img src="assets/gallery/article-boundary-legacy.png" width="100%" alt="个人汇聚布局"><br><strong>article-diagram</strong> · 特征与位置的汇聚关系</td>
 <td><img src="assets/gallery/reading-notes.png" width="100%" alt="阅读笔记"><br><strong>poster</strong> · 阅读笔记</td>
 </tr>
 <tr>
@@ -325,8 +320,8 @@ card-skill 受到以下项目的启发：
 
 ### 个人札记 Poster
 
-自然语言文字型 Poster 默认使用 field-notes 个人札记变体：固定 3:4、边栏标签、连贯段落，先按阅读关系分组再分页。相关短节可以合页，不缩小正文。详见[构图与分页规则](references/poster-field-notes.md)。显式变体、媒体/流程/数据卡、逐字读书笔记和已有结构化合同保留原有行为。
+自然语言文字型 Poster 默认使用 field-notes 个人札记变体：固定 3:4、边栏标签、连贯段落，先按阅读关系分组再分页。相关短节可以合页，不缩小正文。详见[构图与分页规则](references/poster-field-notes.md)。媒体、流程、数据和逐字划线配对统一采用个人札记，内容语义和证据保留。
 
 <p><img src="assets/gallery/article-personal.png" width="720" alt="Personal relation diagram / 个人关系解释图"><br>article-diagram · personal timeline / 个人时间演变布局</p>
 
-自然语言白板默认使用推演札记：显式边界、对置、转向与例外块，正文44px。按阅读任务选择单图或总览＋局部分支；拆图在同一 Visual Job 中校验可见页间导航。详见[构图与拆图规则](references/whiteboard-reasoning-notes.md)。已有结构化白板合同保持经典渲染。
+自然语言白板默认使用推演札记：显式边界、对置、转向与例外块，正文44px。按阅读任务选择单图或总览＋局部分支；拆图在同一 Visual Job 中校验可见页间导航。详见[构图与拆图规则](references/whiteboard-reasoning-notes.md)。省略变体同样采用推演札记，classic 已退休。

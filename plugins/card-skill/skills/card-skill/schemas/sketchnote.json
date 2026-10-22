@@ -61,7 +61,7 @@
     },
     "variant": {
       "const": "wandering-notes",
-      "description": "Opt-in roaming reading notes: shared typography and rhythm primitives, composed in content_html/custom_css. Omit for existing Studio compositions."
+      "description": "Only wandering notes; omission selects the same style."
     }
   }
 }

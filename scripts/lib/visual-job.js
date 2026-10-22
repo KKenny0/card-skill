@@ -134,6 +134,7 @@ function artifactContractProjection(contract, artifactIndex) {
     const { cards, ...series } = contract;
     return { ...series, card: cards?.[artifactIndex - 1] };
   }
+  if (contract?.mode === 'article-diagram' && contract.personal_layout) return contract;
   if (contract?.mode === 'article-diagram' && !contract.family) {
     const plan = contract.render_plan || 'auto';
     const view = plan === 'split'

@@ -4,25 +4,49 @@
   "cases": [
     {
       "id": "wechat-cover",
-      "request": "把下面文章摘要做成一张公众号头图。只输出 Visual Job JSON。",
-      "source_text": "记忆不是仓库，而是一只抽屉：下一次任务能否找到旧工作，取决于我们有没有留下可检索的把手。",
+      "request": "把摘要做成纸上荒野公众号头图。使用当前技能目录内 assets/cover-series/paper-wilderness/cooperation.png 作为用户指定插画，先解析成绝对本地路径，不重新生图。使用 wechat-cover 比例。只输出 Visual Job v3 JSON。",
+      "source_text": "采购助手把资质与风险评估交给外部机构的 Agent；双方交换任务和结果，内部实现保持不可见。",
       "publish_target": "wechat-cover",
       "tier": "stable",
-      "modes": ["editorial-image"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["use", "aspect", "cover_motif"],
-      "required_terms": ["drawer"]
+      "modes": [
+        "editorial-image"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "use",
+        "aspect",
+        "cover_art",
+        "cover_series"
+      ],
+      "required_terms": [
+        "协作"
+      ]
     },
     {
       "id": "blog-hero",
-      "request": "为下面的英文博客摘要做一张 blog hero。只输出 Visual Job JSON。",
-      "source_text": "A reliable agent does not merely finish. It leaves a receipt that lets the next person reconstruct what happened.",
+      "request": "Create a Paper Wilderness blog header using the verified wechat-cover aspect. Use the supplied illustration assets/cover-series/paper-wilderness/rest.png inside the current skill directory; resolve its absolute local path. Do not generate new artwork. Output only Visual Job v3 JSON.",
+      "source_text": "Rest can mean staying with the present instead of escaping into the past or future.",
       "publish_target": "blog-hero",
       "tier": "stable",
-      "modes": ["editorial-image"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["use", "aspect", "cover_motif"],
-      "required_terms": ["receipt"]
+      "modes": [
+        "editorial-image"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "use",
+        "aspect",
+        "cover_art",
+        "cover_series"
+      ],
+      "required_terms": [
+        "Rest"
+      ]
     },
     {
       "id": "article-split",
@@ -30,14 +54,42 @@
       "source_text": "第一节：输入契约决定系统允许什么。第二节：发布回执证明系统实际做了什么。",
       "publish_target": "article-body",
       "tier": "stable",
-      "modes": ["article-diagram"],
-      "outputs": [2, 2],
-      "source_units": [2, 2],
+      "modes": [
+        "article-diagram"
+      ],
+      "outputs": [
+        2,
+        2
+      ],
+      "source_units": [
+        2,
+        2
+      ],
       "source_unit_assignment": "one-to-one",
-      "required_contract_fields": ["title"],
+      "required_contract_fields": [
+        "title"
+      ],
       "required_source_contract_mappings": [
-        { "source_terms": ["输入", "契约"], "contract_terms": ["输入", "契约"] },
-        { "source_terms": ["发布", "回执"], "contract_terms": ["发布", "回执"] }
+        {
+          "source_terms": [
+            "输入",
+            "契约"
+          ],
+          "contract_terms": [
+            "输入",
+            "契约"
+          ]
+        },
+        {
+          "source_terms": [
+            "发布",
+            "回执"
+          ],
+          "contract_terms": [
+            "发布",
+            "回执"
+          ]
+        }
       ],
       "exclusive_source_contract_mappings": true
     },
@@ -74,25 +126,58 @@
       "source_text": "能重建，才算能验证。",
       "publish_target": "social-single",
       "tier": "stable",
-      "modes": ["big"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["phrase"],
-      "required_terms": ["重建", "验证"]
+      "modes": [
+        "big"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "phrase"
+      ],
+      "required_terms": [
+        "重建",
+        "验证"
+      ]
     },
     {
       "id": "poster",
-      "request": "把下面三点做成一个纯排版社媒系列卡组，每点一张。Visual Job 使用三个 outputs，每个 poster contract 只含一张 card；每个 artifact 的 visual_plan.visual_metaphor 必须为 null，不承诺链条、轨道、缩略图或其他 poster renderer 无法呈现的图形。每个 contract 顶层的 title 必须是非空简短步骤名，且不要逐字重复正文；普通 poster 的 cards[] 不得包含 title。每张卡逐字保留对应步骤的标题句，并用同一 source unit 内的说明句形成正文。只输出 Visual Job JSON。",
+      "request": "把下面三点做成一个纯排版社媒系列卡组，每点一张。Visual Job 使用三个 outputs，每个 poster contract 只含一张 card；每个 artifact 的 visual_plan.visual_metaphor 必须为 null，不承诺链条、轨道、缩略图或其他 poster renderer 无法呈现的图形。每个 contract 顶层的 title 必须是非空简短步骤名，且不要逐字重复正文；cards[].title 可作为独立的短主题标签。每张卡逐字保留对应步骤的标题句，并用同一 source unit 内的说明句形成正文。只输出 Visual Job JSON。",
       "source_text": "一、先确认来源。记录出处、作者与上下文，让后续判断建立在可追溯的信息上。二、再选择视觉结构。根据内容关系选择层级、流程或比较结构，让形式服务于核心信息。三、最后检查真实 PNG。同时查看缩略图与全尺寸成品，确认层级、负载和风格都达到发布标准。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [3, 3],
-      "source_units": [3, 3],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        3,
+        3
+      ],
+      "source_units": [
+        3,
+        3
+      ],
       "source_unit_assignment": "one-to-one",
-      "required_contract_fields": ["cards"],
-      "required_card_term_groups": [["来源"], ["视觉结构"], ["PNG"]],
+      "required_contract_fields": [
+        "cards"
+      ],
+      "required_card_term_groups": [
+        [
+          "来源"
+        ],
+        [
+          "视觉结构"
+        ],
+        [
+          "PNG"
+        ]
+      ],
       "exclusive_card_term_groups": true,
-      "artifact_outputs": [3, 3]
+      "artifact_outputs": [
+        3,
+        3
+      ]
     },
     {
       "id": "long",
@@ -100,10 +185,22 @@
       "source_text": "工具的价值不在于替人完成一次动作，而在于把判断、执行和证据连成一条可复用的路径。判断让人知道为什么做，执行让结果发生，证据让后来者可以复核。",
       "publish_target": "long-read",
       "tier": "stable",
-      "modes": ["long"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "body"],
-      "required_terms": ["判断", "执行", "证据"]
+      "modes": [
+        "long"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "body"
+      ],
+      "required_terms": [
+        "判断",
+        "执行",
+        "证据"
+      ]
     },
     {
       "id": "whiteboard",
@@ -111,24 +208,60 @@
       "source_text": "事实先约束选择，选择决定动作，动作产生回执，回执再更新事实。",
       "publish_target": "whiteboard",
       "tier": "stable",
-      "modes": ["whiteboard"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "steps"],
-      "required_terms": ["事实", "选择", "动作", "回执"]
+      "modes": [
+        "whiteboard"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "steps"
+      ],
+      "required_terms": [
+        "事实",
+        "选择",
+        "动作",
+        "回执"
+      ]
     },
     {
       "id": "reading-notes",
-      "request": "把下面两条明确指定的个人划线做成 reading-notes 卡组，每条一张，不要补书中不存在的内容。Visual Job 必须只有一个 output，使用 poster 的 reading-notes variant，contract 内恰好两张 cards；顶层 title 用书名，cards[].title 只写不重复原句的简短主题标签，每条原文只放在对应 reading_unit.quote。只输出 Visual Job JSON。",
+      "request": "把下面两条明确指定的个人划线做成 reading-notes 卡组，每条一张，不要补书中不存在的内容。Visual Job 必须只有一个 output，使用 poster 的 field-notes variant，contract 内恰好两张 cards；顶层 title 用书名，cards[].title 只写不重复原句的简短主题标签，每条原文只放在对应 reading_unit.quote。只输出 Visual Job JSON。",
       "source_text": "《示例书》划线一：边界让自由变得可持续。划线二：记录不是回顾，而是下一次行动的入口。",
       "publish_target": "reading-notes",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["variant", "cards"],
-      "artifact_outputs": [2, 2],
-      "required_card_term_groups": [["边界", "自由"], ["记录", "行动"]],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "variant",
+        "cards"
+      ],
+      "artifact_outputs": [
+        2,
+        2
+      ],
+      "required_card_term_groups": [
+        [
+          "边界",
+          "自由"
+        ],
+        [
+          "记录",
+          "行动"
+        ]
+      ],
       "exclusive_card_term_groups": true,
-      "forbidden_terms": ["作者认为", "全书"]
+      "forbidden_terms": [
+        "作者认为",
+        "全书"
+      ]
     },
     {
       "id": "studio-editorial-body",
@@ -136,10 +269,23 @@
       "source_text": "注意力像一束窄光：中心信息被照亮时，外围材料仍然存在，只是暂时退到暗处。",
       "publish_target": "article-body",
       "tier": "studio",
-      "modes": ["editorial-image"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["use", "aspect", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["注意力"]
+      "modes": [
+        "editorial-image"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "use",
+        "aspect",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "注意力"
+      ]
     },
     {
       "id": "comparison-infograph",
@@ -147,10 +293,24 @@
       "source_text": "本地处理：数据不离开设备，协作成本较高。云端处理：协作方便，但需要把数据交给远端服务。",
       "publish_target": "social-single",
       "tier": "studio",
-      "modes": ["infograph"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["本地", "云端", "数据"]
+      "modes": [
+        "infograph"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "本地",
+        "云端",
+        "数据"
+      ]
     },
     {
       "id": "data-infograph",
@@ -158,10 +318,24 @@
       "source_text": "本周完成 12 次运行，其中 9 次一次通过，3 次经过修订后通过。",
       "publish_target": "social-single",
       "tier": "studio",
-      "modes": ["infograph"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["12", "9", "3"]
+      "modes": [
+        "infograph"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "12",
+        "9",
+        "3"
+      ]
     },
     {
       "id": "conflict-comic",
@@ -169,10 +343,24 @@
       "source_text": "团队以为任务已经完成，直到发布前才发现没有任何人能重建结果。他们回到起点补上回执，这次每一步都有证据。",
       "publish_target": "social-single",
       "tier": "studio",
-      "modes": ["comic"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["重建", "回执", "证据"]
+      "modes": [
+        "comic"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "重建",
+        "回执",
+        "证据"
+      ]
     },
     {
       "id": "reflective-sketchnote",
@@ -180,10 +368,24 @@
       "source_text": "我总想一次写完，结果每次都卡住。后来我只要求自己先留下一个可检查的草稿，写作终于开始向前。",
       "publish_target": "social-single",
       "tier": "studio",
-      "modes": ["sketchnote"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["草稿", "检查", "向前"]
+      "modes": [
+        "sketchnote"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "草稿",
+        "检查",
+        "向前"
+      ]
     },
     {
       "id": "timeline-infograph",
@@ -191,25 +393,65 @@
       "source_text": "周一确认来源，周三完成首版，周五根据真实图片复查并发布。",
       "publish_target": "social-single",
       "tier": "studio",
-      "modes": ["infograph"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["周一", "周三", "周五"]
+      "modes": [
+        "infograph"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "周一",
+        "周三",
+        "周五"
+      ]
     },
     {
       "id": "mixed-claim-mechanism",
-      "request": "把一句主张和一个独立机制分别做成两张图。主张用 big；机制用 article-diagram 默认 Editorial Equation，formula 精确写为“回执更新输入 = 输入契约 + 允许动作 + 执行 + 回执”，完整顺序保留在 sentence。只输出 Visual Job JSON。",
+      "request": "把一句主张和一个独立机制分别做成两张图。主张用 big；机制用 article-diagram 个人关系布局，formula 精确写为“回执更新输入 = 输入契约 + 允许动作 + 执行 + 回执”，完整顺序保留在 sentence。只输出 Visual Job JSON。",
       "source_text": "主张：没有回执，就没有完成。机制：输入契约限制允许动作，执行结果生成回执，回执再更新下一次输入。",
       "publish_target": "social-single",
       "tier": "stable",
-      "modes": ["mixed"],
-      "outputs": [2, 2],
-      "source_units": [2, 2],
+      "modes": [
+        "mixed"
+      ],
+      "outputs": [
+        2,
+        2
+      ],
+      "source_units": [
+        2,
+        2
+      ],
       "source_unit_assignment": "one-to-one",
       "required_contract_fields": [],
       "required_source_contract_mappings": [
-        { "source_terms": ["主张", "回执"], "contract_terms": ["回执", "完成"] },
-        { "source_terms": ["机制", "契约"], "contract_terms": ["契约", "输入"] }
+        {
+          "source_terms": [
+            "主张",
+            "回执"
+          ],
+          "contract_terms": [
+            "回执",
+            "完成"
+          ]
+        },
+        {
+          "source_terms": [
+            "机制",
+            "契约"
+          ],
+          "contract_terms": [
+            "契约",
+            "输入"
+          ]
+        }
       ],
       "exclusive_source_contract_mappings": true
     },
@@ -219,11 +461,23 @@
       "source_text": "约束让选择变少，也让行动变得可验证。",
       "publish_target": "social-single",
       "tier": "stable",
-      "modes": ["whiteboard"],
+      "modes": [
+        "whiteboard"
+      ],
       "selection_source": "user-override",
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "steps"],
-      "required_terms": ["约束", "选择", "验证"]
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "steps"
+      ],
+      "required_terms": [
+        "约束",
+        "选择",
+        "验证"
+      ]
     },
     {
       "id": "open-source-cli-adaptive",
@@ -232,24 +486,84 @@
       "source_text": "项目类型：CLI。当前官方 README 说明输入是一个代码仓库。Quick start 命令：npx repo-packer@latest。当前输出是一个可供 AI 检查的文本包。历史素材：旧项目名 repopack 的输出截图，已经过期，不得作为当前证据。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "source_units": [4, 5],
-      "artifact_outputs": [3, 3],
-      "required_artifact_roles": ["problem", "command", "output"],
-      "required_contract_fields": ["cards"],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "source_units": [
+        4,
+        5
+      ],
+      "artifact_outputs": [
+        3,
+        3
+      ],
+      "required_artifact_roles": [
+        "problem",
+        "command",
+        "output"
+      ],
+      "required_contract_fields": [
+        "cards"
+      ],
       "required_source_contract_mappings": [
-        { "source_terms": ["输入", "代码仓库"], "contract_terms": ["代码仓库"] },
-        { "source_terms": ["npx", "repo-packer"], "contract_terms": ["npx repo-packer@latest"] },
-        { "source_terms": ["输出", "文本包"], "contract_terms": ["文本包"] }
+        {
+          "source_terms": [
+            "输入",
+            "代码仓库"
+          ],
+          "contract_terms": [
+            "代码仓库"
+          ]
+        },
+        {
+          "source_terms": [
+            "npx",
+            "repo-packer"
+          ],
+          "contract_terms": [
+            "npx repo-packer@latest"
+          ]
+        },
+        {
+          "source_terms": [
+            "输出",
+            "文本包"
+          ],
+          "contract_terms": [
+            "文本包"
+          ]
+        }
       ],
       "exclusive_source_contract_mappings": true,
-      "required_card_term_groups": [["代码仓库"], ["npx repo-packer@latest"], ["文本包"]],
+      "required_card_term_groups": [
+        [
+          "代码仓库"
+        ],
+        [
+          "npx repo-packer@latest"
+        ],
+        [
+          "文本包"
+        ]
+      ],
       "exclusive_card_term_groups": true,
       "rejected_source_expectations": [
-        { "source_terms": ["repopack", "过期"], "strength": "unusable", "freshness": "stale" }
+        {
+          "source_terms": [
+            "repopack",
+            "过期"
+          ],
+          "strength": "unusable",
+          "freshness": "stale"
+        }
       ],
-      "forbidden_terms": ["repopack"]
+      "forbidden_terms": [
+        "repopack"
+      ]
     },
     {
       "id": "open-source-launch-adaptive",
@@ -258,22 +572,96 @@
       "source_text": "发布判断：Northstar 1.0 把可复核交付作为默认工作方式。当前 benchmark：在官方 40 项回归集中，36 项一次通过。当前能力：每次执行都会保存输入、步骤和哈希回执。当前案例：示例团队用回执重建了前一晚的发布过程。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "source_units": [4, 4],
-      "artifact_outputs": [4, 4],
-      "required_artifact_roles": ["judgment", "evidence", "capability", "case"],
-      "required_contract_fields": ["cards"],
-      "required_card_term_groups": [["可复核"], ["40", "36"], ["输入", "哈希回执"], ["示例团队", "重建"]],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "source_units": [
+        4,
+        4
+      ],
+      "artifact_outputs": [
+        4,
+        4
+      ],
+      "required_artifact_roles": [
+        "judgment",
+        "evidence",
+        "capability",
+        "case"
+      ],
+      "required_contract_fields": [
+        "cards"
+      ],
+      "required_card_term_groups": [
+        [
+          "可复核"
+        ],
+        [
+          "40",
+          "36"
+        ],
+        [
+          "输入",
+          "哈希回执"
+        ],
+        [
+          "示例团队",
+          "重建"
+        ]
+      ],
       "exclusive_card_term_groups": true,
       "required_source_contract_mappings": [
-        { "source_terms": ["发布判断", "可复核"], "contract_terms": ["可复核"] },
-        { "source_terms": ["benchmark", "40"], "contract_terms": ["40", "36"] },
-        { "source_terms": ["当前能力", "哈希回执"], "contract_terms": ["输入", "哈希回执"] },
-        { "source_terms": ["当前案例", "示例团队"], "contract_terms": ["示例团队", "重建"] }
+        {
+          "source_terms": [
+            "发布判断",
+            "可复核"
+          ],
+          "contract_terms": [
+            "可复核"
+          ]
+        },
+        {
+          "source_terms": [
+            "benchmark",
+            "40"
+          ],
+          "contract_terms": [
+            "40",
+            "36"
+          ]
+        },
+        {
+          "source_terms": [
+            "当前能力",
+            "哈希回执"
+          ],
+          "contract_terms": [
+            "输入",
+            "哈希回执"
+          ]
+        },
+        {
+          "source_terms": [
+            "当前案例",
+            "示例团队"
+          ],
+          "contract_terms": [
+            "示例团队",
+            "重建"
+          ]
+        }
       ],
       "exclusive_source_contract_mappings": true,
-      "required_terms": ["Northstar", "40", "哈希回执", "示例团队"]
+      "required_terms": [
+        "Northstar",
+        "40",
+        "哈希回执",
+        "示例团队"
+      ]
     },
     {
       "id": "open-source-library-adaptive",
@@ -282,21 +670,86 @@
       "source_text": "公开契约：parse(input) 接收 UTF-8 字符串并返回节点数组。最小示例：const nodes = parse(source)。集成边界：调用方负责读取文件和保存结果，库本身不访问网络。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "source_units": [3, 3],
-      "source_unit_assignment": "one-to-one",
-      "artifact_outputs": [3, 3],
-      "required_artifact_roles": ["contract", "example", "boundary"],
-      "required_contract_fields": ["cards"],
-      "required_card_term_groups": [["parse(input)", "节点数组"], ["const nodes", "parse(source)"], ["调用方", "不访问网络"]],
-      "required_source_contract_mappings": [
-        { "source_terms": ["公开契约", "parse(input)"], "contract_terms": ["parse(input)", "节点数组"] },
-        { "source_terms": ["最小示例", "parse(source)"], "contract_terms": ["const nodes", "parse(source)"] },
-        { "source_terms": ["集成边界", "调用方"], "contract_terms": ["调用方", "不访问网络"] }
+      "modes": [
+        "poster"
       ],
-      "required_terms": ["UTF-8", "parse(source)", "不访问网络"],
-      "forbidden_terms": ["性能领先", "全面兼容", "重新定义"]
+      "outputs": [
+        1,
+        1
+      ],
+      "source_units": [
+        3,
+        3
+      ],
+      "source_unit_assignment": "one-to-one",
+      "artifact_outputs": [
+        3,
+        3
+      ],
+      "required_artifact_roles": [
+        "contract",
+        "example",
+        "boundary"
+      ],
+      "required_contract_fields": [
+        "cards"
+      ],
+      "required_card_term_groups": [
+        [
+          "parse(input)",
+          "节点数组"
+        ],
+        [
+          "const nodes",
+          "parse(source)"
+        ],
+        [
+          "调用方",
+          "不访问网络"
+        ]
+      ],
+      "required_source_contract_mappings": [
+        {
+          "source_terms": [
+            "公开契约",
+            "parse(input)"
+          ],
+          "contract_terms": [
+            "parse(input)",
+            "节点数组"
+          ]
+        },
+        {
+          "source_terms": [
+            "最小示例",
+            "parse(source)"
+          ],
+          "contract_terms": [
+            "const nodes",
+            "parse(source)"
+          ]
+        },
+        {
+          "source_terms": [
+            "集成边界",
+            "调用方"
+          ],
+          "contract_terms": [
+            "调用方",
+            "不访问网络"
+          ]
+        }
+      ],
+      "required_terms": [
+        "UTF-8",
+        "parse(source)",
+        "不访问网络"
+      ],
+      "forbidden_terms": [
+        "性能领先",
+        "全面兼容",
+        "重新定义"
+      ]
     },
     {
       "id": "open-source-stale-evidence",
@@ -305,28 +758,87 @@
       "source_text": "当前产品名：ClearDesk。当前界面：任务页显示输入、运行状态和回执。当前结果：完成后可以下载带 SHA-256 的报告。旧素材：LegacyDesk 2023 仪表盘截图，品牌和界面都已经弃用。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "source_units": [3, 4],
-      "artifact_outputs": [2, 2],
-      "required_artifact_roles": ["interface", "result"],
-      "required_contract_fields": ["cards"],
-      "required_card_term_groups": [["任务页", "运行状态"], ["SHA-256", "报告"]],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "source_units": [
+        3,
+        4
+      ],
+      "artifact_outputs": [
+        2,
+        2
+      ],
+      "required_artifact_roles": [
+        "interface",
+        "result"
+      ],
+      "required_contract_fields": [
+        "cards"
+      ],
+      "required_card_term_groups": [
+        [
+          "任务页",
+          "运行状态"
+        ],
+        [
+          "SHA-256",
+          "报告"
+        ]
+      ],
       "exclusive_card_term_groups": true,
       "required_source_contract_mappings": [
-        { "source_terms": ["当前界面", "任务页"], "contract_terms": ["任务页", "运行状态"] },
-        { "source_terms": ["当前结果", "SHA-256"], "contract_terms": ["SHA-256", "报告"] }
+        {
+          "source_terms": [
+            "当前界面",
+            "任务页"
+          ],
+          "contract_terms": [
+            "任务页",
+            "运行状态"
+          ]
+        },
+        {
+          "source_terms": [
+            "当前结果",
+            "SHA-256"
+          ],
+          "contract_terms": [
+            "SHA-256",
+            "报告"
+          ]
+        }
       ],
       "exclusive_source_contract_mappings": true,
       "rejected_source_expectations": [
-        { "source_terms": ["LegacyDesk", "2023"], "strength": "unusable", "freshness": "stale" }
+        {
+          "source_terms": [
+            "LegacyDesk",
+            "2023"
+          ],
+          "strength": "unusable",
+          "freshness": "stale"
+        }
       ],
-      "required_terms": ["ClearDesk", "任务页", "SHA-256"],
-      "forbidden_terms": ["LegacyDesk", "2023"]
+      "required_terms": [
+        "ClearDesk",
+        "任务页",
+        "SHA-256"
+      ],
+      "forbidden_terms": [
+        "LegacyDesk",
+        "2023"
+      ]
     },
     {
       "id": "content-preserve-voice",
-      "forbidden_titles": ["框越少越好"],
+      "forbidden_titles": [
+        "框越少越好"
+      ],
       "request": "把下面短文排成一张长阅读卡。只做排版。只输出 Visual Job JSON。",
       "source_text": "我起初觉得框越少越好。后来试了一次，发现没有分组，读起来反而更费劲。现在我会先看内容；如果一条线能让关系清楚，就留着。",
       "publish_target": "long-read",
@@ -426,7 +938,7 @@
     },
     {
       "id": "content-supported-formula",
-      "request": "为下面关系做一张正文公式卡。只输出 Visual Job JSON。",
+      "request": "为下面关系做一张正文关系图，保留原有公式作为关系标题，并用层级说明组成项。只输出 Visual Job JSON。",
       "source_text": "总时长 = 等待时长 + 执行时长。两段依次发生，互不重叠；如果并行执行，就不能直接相加。",
       "publish_target": "article-body",
       "tier": "stable",
@@ -457,11 +969,24 @@
       "source_text": "真正重要的不是保存更多，而是让下一次任务能找到需要的那一条。",
       "publish_target": "social-series",
       "tier": "stable",
-      "modes": ["poster"],
-      "outputs": [1, 1],
-      "artifact_outputs": [1, 1],
-      "required_contract_fields": ["cards"],
-      "required_terms": ["下一次", "找到"],
+      "modes": [
+        "poster"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "artifact_outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "cards"
+      ],
+      "required_terms": [
+        "下一次",
+        "找到"
+      ],
       "seed_issue": "too_text_heavy",
       "seed_instruction": "For the initial candidate only, use a short source-grounded title, omit kicker/subtitle, and set cards[0].body to exactly five paragraph elements repeating the complete SOURCE sentence verbatim. Do not add headings, items, or benchmark commentary. This bounded repetition is the seeded excess; the revision must remove it while preserving the source meaning."
     },
@@ -472,10 +997,23 @@
       "source_text": "事实约束选择，选择产生动作，动作留下回执。",
       "publish_target": "whiteboard",
       "tier": "stable",
-      "modes": ["whiteboard"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["title", "steps"],
-      "required_terms": ["事实", "选择", "动作", "回执"],
+      "modes": [
+        "whiteboard"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "title",
+        "steps"
+      ],
+      "required_terms": [
+        "事实",
+        "选择",
+        "动作",
+        "回执"
+      ],
       "seed_issue": "flat_hierarchy",
       "seed_instruction": "For the first candidate only, use equal-weight layers or annotation text and do not use the requested highlight/muted chain structure."
     },
@@ -486,10 +1024,24 @@
       "source_text": "注意力像一束窄光，只照亮当前最重要的信息。",
       "publish_target": "article-body",
       "tier": "studio",
-      "modes": ["editorial-image"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["use", "aspect", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["注意力", "窄光"],
+      "modes": [
+        "editorial-image"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "use",
+        "aspect",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "注意力",
+        "窄光"
+      ],
       "seed_issue": "subject_too_small",
       "seed_instruction": "For the first candidate only, ignore the final size targets: keep the target at or below 160x100 and the beam below 25% of the canvas. Put no long text inside the small object; use only 重点 or leave it empty, and place the 36px source sentence in a separate safe text area."
     },
@@ -500,11 +1052,28 @@
       "source_text": "记忆不是仓库；关键是下一次任务能否用清晰把手找到旧工作。",
       "publish_target": "article-body",
       "tier": "studio",
-      "modes": ["editorial-image"],
-      "outputs": [1, 1],
-      "required_contract_fields": ["use", "aspect", "composition_required", "content_html", "custom_css"],
-      "required_terms": ["记忆", "把手"],
-      "forbidden_terms": ["AI 大脑", "AI brain"],
+      "modes": [
+        "editorial-image"
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "required_contract_fields": [
+        "use",
+        "aspect",
+        "composition_required",
+        "content_html",
+        "custom_css"
+      ],
+      "required_terms": [
+        "记忆",
+        "把手"
+      ],
+      "forbidden_terms": [
+        "AI 大脑",
+        "AI brain"
+      ],
       "seed_issue": "generic_ai_metaphor",
       "seed_instruction": "For the first candidate, make generic_ai_metaphor the only defect: keep body text at least 36px, use token-derived surface fills only, keep shadows at 8px or less, and keep every framed label mechanically valid. If the handle contains 清晰把手, make it at least 160x130 with a text area at least 130px wide."
     }

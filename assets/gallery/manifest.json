@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.17.0",
+  "card_skill_version": "0.18.0",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -37,9 +37,9 @@
       "tone": "warm",
       "dpr": 2,
       "width": 2160,
-      "height": 2832,
+      "height": 2834,
       "render_contract_sha256": "868caaa0d340ae45d3d0db942d9f2cdf216713e28a30292169152ce8ce32118a",
-      "png_sha256": "e83d2b800deca60d5d5eb612ad08a390763e558556d6a75a0e2ade5d62bff0d6"
+      "png_sha256": "f596741c967f09d83c9d88a3cf698e437f6ce475eca373041c3f0bc12eec4dae"
     },
     {
       "fixture": "evals/gallery/jobs/article-boundary-legacy.json",
@@ -51,8 +51,8 @@
       "dpr": 2,
       "width": 2160,
       "height": 1440,
-      "render_contract_sha256": "f95c9ef8f1b55435813521ee5815cab0b31f7b498c9ea5f43ebe92bfbd2b8732",
-      "png_sha256": "8dbda29522f0d9584b979b094824039f75cbf290f5e14711d99e6bc2ef2e90fd"
+      "render_contract_sha256": "ef95b50b9fcb1cc2be8f64081d0947749e948ba092ddd7172e2b0e4add9dbcf1",
+      "png_sha256": "5fb597a19ea65b9f471345e585d21374c1e881ce1ca769fb9bc83947c7bd29e1"
     },
     {
       "fixture": "evals/gallery/jobs/article-formula.json",
@@ -63,9 +63,9 @@
       "tone": "technical",
       "dpr": 2,
       "width": 2160,
-      "height": 1080,
-      "render_contract_sha256": "3a424ca136a79354dc1f8a1915170af916a6ba6cd2d5f3db8b9eef71668e1147",
-      "png_sha256": "c97b8d76c855f2dabc63527e526d7389c7c88559cfadc5cb4946c11fbf50713a"
+      "height": 1440,
+      "render_contract_sha256": "c52165a5c70c2ef0f6a387ea5cf45fe3fb9285001f3307637d6c3ee368f9cd7f",
+      "png_sha256": "e2296aff65fac02a9385fe926c050362eacdb0f6fd63b714fd954bf003a87cf6"
     },
     {
       "fixture": "evals/gallery/jobs/article-personal.json",
@@ -103,8 +103,8 @@
       "dpr": 2,
       "width": 2160,
       "height": 920,
-      "render_contract_sha256": "729cf840d73174198921d35a7a3ba820fd21360ef36dbf04d086020bf09a813d",
-      "png_sha256": "ab06ae4616c01a8fc42fbbca823e5045ae34985bec926de1e18f4931deaf2be2"
+      "render_contract_sha256": "f2004137cddbb7e9bcbe6282deb4a9cc370ef126203b1a3e31faa6ba8a8d2df3",
+      "png_sha256": "fd7544e2d9e06e51cc53b10b41c2d525eb3af2986c18fe67b8a2e70de898d35a"
     },
     {
       "fixture": "evals/gallery/jobs/long.json",
@@ -130,7 +130,7 @@
       "width": 2160,
       "height": 2880,
       "render_contract_sha256": "41b27f9abc57bd27d90660c6ee92a5a5fbc69308c292b6f22c64b4ff758362e2",
-      "png_sha256": "c05ffe4b70d53aa84156cf5e7ae2af45ce9b5022157bb46c711458274ede02e2"
+      "png_sha256": "ba26331496cb7c1c7ccb43ed4068f7d301354c6cca612289537579ed91e72346"
     },
     {
       "fixture": "evals/gallery/jobs/reading-notes.json",
@@ -142,8 +142,8 @@
       "dpr": 2,
       "width": 2160,
       "height": 2880,
-      "render_contract_sha256": "da4f05eeb2f629cd18144cd7752541443572e3e2e9d48b3064be3bb0ef41699d",
-      "png_sha256": "0de7731f641a6050af30caa988085830e6d2e02949682cfd868ee2ed6694bfa1"
+      "render_contract_sha256": "9918c5d7edf93ee29a89570fe2ee2986629c6d2954ec2fdfe05e3eb7b2816f63",
+      "png_sha256": "6071237684c8a151d2eb9b77e756cdb6b5cc4c100c9f119c6fc468732928c37a"
     },
     {
       "fixture": "evals/gallery/jobs/reading-report.json",
@@ -156,7 +156,7 @@
       "width": 2160,
       "height": 2880,
       "render_contract_sha256": "356cb16f25708e8d20f424c679ef1c6aae63406a44870af88254ad53599239e5",
-      "png_sha256": "483115f05e463af151dc723be62499756807d757b94a24a0180c2b89c1588cbc"
+      "png_sha256": "a0c800af32e534c3264560debc644f2a592cab676fd65b38d4c9fdd407639ed8"
     },
     {
       "fixture": "evals/gallery/jobs/whiteboard.json",
@@ -167,9 +167,9 @@
       "tone": "technical",
       "dpr": 2,
       "width": 2160,
-      "height": 1484,
+      "height": 1614,
       "render_contract_sha256": "18097005ab629f5d5e48dd054f3f496a0507c8e36257c4f5bbfdc69e85c1a979",
-      "png_sha256": "19d3ac0086699b84127fdb9415dc477ccc58dbe035cbbfd01fb67399ae6ab840"
+      "png_sha256": "c793b0218b5f8d2b6370e6dd697ac8dadb7ae2d8fedccaae92a07e84d52794bf"
     }
   ]
 }
