@@ -1,0 +1,165 @@
+{
+  "rousseau": {
+    "mode": "big",
+    "tone": "sharp",
+    "phrase": "世界喧闹，仍可回到此刻的自己。",
+    "reading_lines": [
+      {
+        "text": "世界喧闹，",
+        "font_size": 108,
+        "pause_before": "none"
+      },
+      {
+        "text": "仍可回到",
+        "font_size": 126,
+        "pause_before": "long"
+      },
+      {
+        "text": "此刻的自己。",
+        "font_size": 144,
+        "pause_before": "none"
+      }
+    ],
+    "accent_words": [
+      "此刻"
+    ],
+    "attribution": "读卢梭的暂记\n片刻安顿，不等于外界冲突消失。"
+  },
+  "uncertainty": {
+    "mode": "big",
+    "tone": "sharp",
+    "phrase": "开始之前，一定要保证不会后悔吗？",
+    "reading_lines": [
+      {
+        "text": "开始之前，",
+        "font_size": 108,
+        "pause_before": "none"
+      },
+      {
+        "text": "一定要保证",
+        "font_size": 132,
+        "pause_before": "short"
+      },
+      {
+        "text": "不会后悔吗？",
+        "font_size": 144,
+        "pause_before": "none"
+      }
+    ],
+    "accent_words": [
+      "保证"
+    ],
+    "attribution": "读不确定性的暂记 · 一个关于选择的提问"
+  },
+  "short": {
+    "mode": "big",
+    "tone": "sharp",
+    "phrase": "工具不是道。",
+    "reading_lines": [
+      {
+        "text": "工具",
+        "font_size": 132,
+        "pause_before": "none"
+      },
+      {
+        "text": "不是道。",
+        "font_size": 176,
+        "pause_before": "short"
+      }
+    ],
+    "accent_words": [
+      "不是道"
+    ],
+    "attribution": "从“把工具当成了道”这一题目暂记"
+  },
+  "question": {
+    "mode": "big",
+    "tone": "sharp",
+    "phrase": "看不到内部，就不能协作吗？",
+    "reading_lines": [
+      {
+        "text": "看不到内部，",
+        "font_size": 116,
+        "pause_before": "none"
+      },
+      {
+        "text": "就不能协作吗？",
+        "font_size": 120,
+        "pause_before": "short"
+      }
+    ],
+    "accent_words": [
+      "就"
+    ],
+    "attribution": "读 A2A 的暂记\n协作靠共同约定，内部实现仍有边界。"
+  },
+  "condition": {
+    "mode": "big",
+    "tone": "sharp",
+    "phrase": "即使报告完成，只要公司同名或资质资料缺失，就必须先澄清，不能直接发出。",
+    "reading_lines": [
+      {
+        "text": "即使报告完成，",
+        "font_size": 104,
+        "pause_before": "none"
+      },
+      {
+        "text": "只要公司同名",
+        "font_size": 104,
+        "pause_before": "short"
+      },
+      {
+        "text": "或资质资料缺失，",
+        "font_size": 104,
+        "pause_before": "none"
+      },
+      {
+        "text": "就必须先澄清，",
+        "font_size": 108,
+        "pause_before": "short"
+      },
+      {
+        "text": "不能直接发出。",
+        "font_size": 108,
+        "pause_before": "none"
+      }
+    ],
+    "accent_words": [
+      "先澄清"
+    ],
+    "attribution": "假设采购规则 · 非 A2A 协议要求"
+  },
+  "six": {
+    "mode": "big",
+    "phrase": "先提出问题，再检查事实，保留必要条件，分清判断边界，然后采取行动，最后回看结果。",
+    "reading_lines": [
+      {
+        "text": "先提出问题，",
+        "font_size": 100
+      },
+      {
+        "text": "再检查事实，",
+        "font_size": 100
+      },
+      {
+        "text": "保留必要条件，",
+        "font_size": 100
+      },
+      {
+        "text": "分清判断边界，",
+        "font_size": 100
+      },
+      {
+        "text": "然后采取行动，",
+        "font_size": 100
+      },
+      {
+        "text": "最后回看结果。",
+        "font_size": 100
+      }
+    ],
+    "accent_words": [
+      "必要条件"
+    ]
+  }
+}

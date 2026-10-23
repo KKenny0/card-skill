@@ -23,10 +23,11 @@ const {
 const SCHEMAS = {
   big: {
     required: ['mode', 'phrase'],
-    optional: ['design', 'tone', 'accent_words', 'ghost_char', 'font_size', 'attribution', 'logo', 'brand_name'],
+    optional: ['design', 'tone', 'accent_words', 'ghost_char', 'font_size', 'attribution', 'logo', 'brand_name', 'reading_lines'],
     types: {
       mode: 'string',
       phrase: 'string',
+      reading_lines: 'array',
       design: 'string',
       tone: 'string',
       accent_words: 'array',
@@ -389,6 +390,8 @@ function validate(input, { checkLocalFiles = true } = {}) {
       }
     }
   }
+
+  if (mode === 'big') errors.push(...require('./big-reading').validateReading(input));
 
   if (mode === 'sketchnote' && input.variant !== undefined && input.variant !== 'wandering-notes') {
     errors.push('sketchnote variant must be wandering-notes; omit variant to use wandering-notes');

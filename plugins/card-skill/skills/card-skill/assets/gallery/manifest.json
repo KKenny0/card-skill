@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.18.0",
+  "card_skill_version": "0.19.0",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -90,8 +90,8 @@
       "dpr": 2,
       "width": 2160,
       "height": 2880,
-      "render_contract_sha256": "86627fe4f66bc4b8509c4557b48877a47f99f90f839b8d5572238bd1d32f6ccb",
-      "png_sha256": "ec34c63422c8a4aff5283a53517edb2bff876b92b328d35238a199a9d6fde2b8"
+      "render_contract_sha256": "dfe1fefa6845c006f3c5902d0a8e38b241b0c35383eddb56dca11d562dc40823",
+      "png_sha256": "f2f89d44e60d9cbe67e09717286faca6b8a7baffd0ae1f056bbf3728d6f892f5"
     },
     {
       "fixture": "evals/gallery/jobs/editorial-wechat-cover.json",

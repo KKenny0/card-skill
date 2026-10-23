@@ -1,1 +1,52 @@
-{"schema_version":1,"job_id":"gallery-big","publish_target":"social-single","source":{"kind":"pasted-text","language":"zh","label":"《千脑智能》· 杰夫·霍金斯"},"source_units":[{"id":"claim","excerpt":"大脑通过主动移动来了解世界；物体不是被动接收的图像，而是在探索中被建模。"}],"decision":{"mode":"big","tier":"stable","tone":"sharp","reason":"一个反直觉判断适合用大字卡直接落下。"},"outputs":[{"id":"big","basename":"big.png","source_unit_ids":["claim"],"transformation":"preserve","render_contract":{"mode":"big","tone":"sharp","phrase":"认识世界<br>要靠探索","accent_words":["探索"],"attribution":"—— 《千脑智能》概念转述"}}]}
+{
+  "schema_version": 1,
+  "job_id": "gallery-big",
+  "publish_target": "social-single",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "《千脑智能》· 杰夫·霍金斯"
+  },
+  "source_units": [
+    {
+      "id": "claim",
+      "excerpt": "大脑通过主动移动来了解世界；物体不是被动接收的图像，而是在探索中被建模。"
+    }
+  ],
+  "decision": {
+    "mode": "big",
+    "tier": "stable",
+    "tone": "sharp",
+    "reason": "一个反直觉判断适合用大字卡直接落下。"
+  },
+  "outputs": [
+    {
+      "id": "big",
+      "basename": "big.png",
+      "source_unit_ids": [
+        "claim"
+      ],
+      "transformation": "preserve",
+      "render_contract": {
+        "mode": "big",
+        "tone": "sharp",
+        "phrase": "认识世界，要靠探索。",
+        "accent_words": [
+          "探索"
+        ],
+        "attribution": "—— 《千脑智能》概念转述",
+        "reading_lines": [
+          {
+            "text": "认识世界，",
+            "font_size": 132
+          },
+          {
+            "text": "要靠探索。",
+            "font_size": 144,
+            "pause_before": "long"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { escapePhrase, escapeHtml } = require('../lib/escape');
-const { cssOverrides, getDesign, resolveDesignNameForInput } = require('../lib/designs');
+const { getDesign, resolveDesignNameForInput } = require('../lib/designs');
 
 const TEMPLATE_PATH = path.resolve(__dirname, '../../assets/big_template.html');
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
@@ -50,20 +50,6 @@ function resolveFontSize(phraseHtml, requested) {
 }
 
 /**
- * Derive ghost character from phrase or accent_words.
- */
-function deriveGhostChar(phraseHtml, accentWords) {
-  if (accentWords && accentWords.length > 0) {
-    return escapeHtml(accentWords[0]).charAt(0).toUpperCase();
-  }
-  const plain = phraseHtml.replace(/<[^>]+>/g, '');
-  // Take first CJK char or first letter
-  const cjk = plain.match(/[\u4e00-\u9fff\u3400-\u4dbf]/);
-  if (cjk) return cjk[0];
-  return plain.charAt(0).toUpperCase();
-}
-
-/**
  * Wrap accent_words in the phrase with <span class="accent">.
  * Only applies if phrase doesn't already contain accent spans.
  */
@@ -95,8 +81,9 @@ function render(input, outputHtmlPath) {
   let phraseHtml = escapePhrase(input.phrase);
   phraseHtml = applyAccentWords(phraseHtml, input.accent_words);
 
-  const fontSize = resolveFontSize(phraseHtml, input.font_size);
-  const ghostChar = input.ghost_char || deriveGhostChar(input.phrase, input.accent_words);
+  const sizingPhrase = input.reading_lines ? input.reading_lines.map(l => escapeHtml(l.text)).join('<br>') : phraseHtml;
+  const fontSize = resolveFontSize(sizingPhrase, input.font_size);
+  if (input.reading_lines) phraseHtml = require('../lib/big-reading').renderReading(input, Math.min(200, Math.max(100, parseFloat(fontSize))));
   const attribution = input.attribution ? escapeHtml(input.attribution) : '';
 
   const logoPath = input.logo ? path.resolve(input.logo) : '';
@@ -110,7 +97,7 @@ function render(input, outputHtmlPath) {
   template = template.replace('class="dark"', `class="${theme}"`);
 
   // Inject design tokens
-  const overrides = cssOverrides(designName);
+  // Palette changes never affect reading geometry.
   template = template.replace(/(:root\s*\{[^}]*\})/s, (match) => {
     return match.replace(/--bg:.*?;/, `--bg: ${design.canvas};`)
                .replace(/--accent:.*?;/, `--accent: ${design.accent};`)
@@ -125,7 +112,6 @@ function render(input, outputHtmlPath) {
   // the HTML comment docs and the actual body — replace() only hits the first)
   template = template.replaceAll('{{PHRASE_HTML}}', phraseHtml);
   template = template.replaceAll('{{FONT_SIZE}}', fontSize);
-  template = template.replaceAll('{{GHOST_CHAR}}', ghostChar);
   template = template.replaceAll('{{ATTRIBUTION}}', attribution);
   template = template.replaceAll('{{LOGO}}', logoPath ? escapeHtml(pathToFileURL(logoPath).href) : '');
   template = template.replaceAll('{{BRAND_NAME}}', brandName);

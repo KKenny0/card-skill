@@ -1,5 +1,7 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
+Big 现在统一使用“一句暂记”：干净纸面、完整宋体、左对齐、单一阅读重音与语义停顿。可选 `reading_lines` 在完整保留主文的前提下规划最多六行，仍须通过实际溢出与可读性检查。
+
 已确认的 mode 各自只保留一种个人风格，封面只保留纸上荒野。Poster 原有内容块统一采用个人札记；旧风格合同需迁移，见[迁移指南](references/personal-style-migration.md)。
 
 <h1 align="center">card-skill</h1>
@@ -44,9 +46,9 @@
 
 ## 30 秒看懂它能做什么
 
-五种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
+六种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
 
-<img src="assets/readme-showcase.png" width="100%" alt="五种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote">
+<img src="assets/readme-showcase.png" width="100%" alt="六种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big">
 
 | Mode | 唯一风格 | 阅读任务 |
 |---|---|---|
@@ -69,7 +71,7 @@
 | 社媒系列卡片 | `poster` | Stable | 适合小红书/社媒的多卡观点拆解 | [文档](references/mode-poster.md) |
 | 技术决策与系统推演 | `whiteboard` | Stable | 问题、约束、可选路径与最终取舍 | [文档](references/mode-whiteboard.md) |
 | 长文阅读卡 | `long` | Stable | 沉浸式排版的长篇阅读卡片 | [文档](references/mode-long.md) |
-| 单句金句与宣言 | `big` | Stable | 极简高冲击力的大字宣言卡 | [文档](references/mode-big.md) |
+| 单一判断与阅读提问 | `big` | Stable | 一句暂记：语义停顿与单一阅读重音 | [文档](references/mode-big.md) |
 | 高密度数据与对比 | `infograph` | Studio | 高信息密度的数据比较与结构展示 | [文档](references/mode-infograph.md) |
 | 叙事与冲突转折 | `comic` | Studio | 步骤化叙事、前后转折与故事情境 | [文档](references/mode-comic.md) |
 | 个人随笔与反思 | `sketchnote` | Studio | 温暖亲切的手记风格视觉笔记 | [文档](references/mode-sketchnote.md) |

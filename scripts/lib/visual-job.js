@@ -176,7 +176,7 @@ function visibleHtmlText(value) {
 function artifactVisibleStrings(contract, artifactIndex) {
   const projection = artifactContractProjection(contract, artifactIndex);
   switch (contract?.mode) {
-    case 'big': return stringLeaves([contract.phrase, contract.attribution, contract.ghost_char]);
+    case 'big': return stringLeaves([contract.phrase, contract.attribution]);
     case 'long': return stringLeaves([
       ...(contract.body || []).flatMap(element => {
         // layer labels are uppercased by the template and therefore cannot

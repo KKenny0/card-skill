@@ -1,5 +1,7 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
+Big now uses the personal reading-note style: clean paper, left-aligned complete Song type, one reading accent, and semantic pauses. Optional `reading_lines` preserves the phrase while planning up to six lines; actual overflow and readability checks still apply.
+
 Confirmed modes now have one supported personal style each. Covers use Paper Wilderness only; Poster retains all content blocks under field-notes. Old style contracts require migration; see [migration guide](references/personal-style-migration.md).
 
 <h1 align="center">card-skill</h1>
@@ -44,9 +46,9 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 
 ## See it in 30 seconds
 
-Five confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
+Six confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
 
-<img src="assets/readme-showcase.png" width="100%" alt="Five personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, and wandering sketchnote">
+<img src="assets/readme-showcase.png" width="100%" alt="Six personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, and Big reading notes">
 
 | Mode | Sole style | Reading task |
 |---|---|---|
@@ -69,7 +71,7 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | Social card series | `poster` | Stable | Multi-card breakdown for social media (Xiaohongshu, X) | [Docs](references/mode-poster.md) |
 | Technical decisions & systems | `whiteboard` | Stable | Problems, constraints, decision paths, and trade-offs | [Docs](references/mode-whiteboard.md) |
 | Long reading cards | `long` | Stable | Immersive long-form reading with rich typography | [Docs](references/mode-long.md) |
-| Single-line claims & quotes | `big` | Stable | High-impact statements and headline cards | [Docs](references/mode-big.md) |
+| Single claims & reading questions | `big` | Stable | A momentary note with semantic pauses and one reading accent | [Docs](references/mode-big.md) |
 | Dense data & comparison | `infograph` | Studio | High-density information and structural comparisons | [Docs](references/mode-infograph.md) |
 | Narrative & conflict | `comic` | Studio | Step-by-step conflict, turn, or before/after stories | [Docs](references/mode-comic.md) |
 | Personal reflections | `sketchnote` | Studio | Warm, notebook-style visual notes | [Docs](references/mode-sketchnote.md) |

@@ -805,7 +805,10 @@ async function inspectPage(opts, html, issues) {
 
         if (['H1', 'H2'].includes(el.tagName) || headlinePattern.test(className)) {
           const lineBreaks = getLineBreaks(el, /subtitle|caption|statement/i.test(className) ? 28 : 36);
-          if (lineBreaks) headlineLines.push(lineBreaks);
+          if (lineBreaks) {
+            lineBreaks.isBigMain = isBigMode && el.matches('[data-card-mode="big"] .phrase');
+            headlineLines.push(lineBreaks);
+          }
         }
       }
 
@@ -1175,7 +1178,7 @@ async function inspectPage(opts, html, issues) {
             tag: phrase.tagName,
             className: typeof phrase.className === 'string' ? phrase.className : '',
             text: (phrase.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
-            fontSize: parseFloat(cs.fontSize) || 0,
+            fontSize: Math.min(parseFloat(cs.fontSize) || 0, ...Array.from(phrase.querySelectorAll('.reading-line')).map(line => parseFloat(getComputedStyle(line).fontSize))),
             width: Math.round(rect.width),
             height: Math.round(rect.height),
             areaRatio: Number(((rect.width * rect.height) / viewportArea).toFixed(4)),

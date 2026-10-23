@@ -1,17 +1,32 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill big mode input",
-  "description": "Structured input for big mode CLI rendering. Big mode renders a large-text poster (1080x1440) with optional ghost watermark character.",
+  "description": "Personal Big: clean 3:4 paper, left-aligned complete Song type, a reading accent and semantic pauses. Supports up to six lines within measured output bounds.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "phrase"],
+  "required": [
+    "mode",
+    "phrase"
+  ],
   "properties": {
-    "mode": { "type": "string", "const": "big" },
+    "mode": {
+      "type": "string",
+      "const": "big"
+    },
     "design": {
       "type": "string",
       "description": "Optional explicit compatibility palette name. Changes colors only; the default uses the sharp house tone."
     },
-    "tone": { "type": "string", "enum": ["reflective", "sharp", "warm", "technical"], "description": "House color tone. Changes color tokens only and is ignored when design is explicit." },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
+      "description": "House color tone. Changes color tokens only and is ignored when design is explicit."
+    },
     "phrase": {
       "type": "string",
       "description": "Main body text. Use <br> for line breaks and <span class=\"accent\">word</span> to highlight words. Example: '<span class=\"accent\">Agent</span> 不是<br>加了循环'",
@@ -19,12 +34,14 @@
     },
     "accent_words": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Words from phrase to wrap in <span class=\"accent\">. Only used when phrase doesn't already contain accent spans. Example: ['Agent']"
     },
     "ghost_char": {
       "type": "string",
-      "description": "Single character used as large low-opacity watermark. Auto-derived from first accent_word or phrase character if not provided.",
+      "description": "Deprecated compatibility field; ignored by the personal style. No watermark is rendered.",
       "default": ""
     },
     "font_size": {
@@ -47,6 +64,38 @@
     "brand_name": {
       "type": "string",
       "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
+    },
+    "reading_lines": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "description": "Optional explicit reading plan. Text must reproduce the plain phrase exactly (whitespace excepted). Max 60 characters, one unique accent within one line. No automatic truncation or shrinking.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^<>\\r\\n]+$"
+          },
+          "font_size": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 200
+          },
+          "pause_before": {
+            "enum": [
+              "none",
+              "short",
+              "long"
+            ]
+          }
+        }
+      }
     }
   },
   "examples": [
@@ -54,9 +103,34 @@
       "mode": "big",
       "design": "linear",
       "phrase": "Agent 不是<br>加了循环",
-      "accent_words": ["Agent"],
+      "accent_words": [
+        "Agent"
+      ],
       "ghost_char": "A",
       "attribution": "—— 某人"
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "reading_lines"
+        ]
+      },
+      "then": {
+        "properties": {
+          "phrase": {
+            "pattern": "^[^<>]+$"
+          },
+          "accent_words": {
+            "maxItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
     }
   ]
 }

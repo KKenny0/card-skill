@@ -22,7 +22,11 @@
         "cover_series"
       ],
       "required_terms": [
-        "协作"
+        "内部",
+        "不可见"
+      ],
+      "required_contract_patterns": [
+        "协作|交换[^。！？]{0,20}结果"
       ]
     },
     {

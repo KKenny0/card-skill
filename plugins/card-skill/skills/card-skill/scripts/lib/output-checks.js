@@ -443,7 +443,7 @@ const PAGE_DECISION_CHECKS = [
         });
         const isShortLastLine = item.lineCount >= 2 && item.lastLineRatio < 0.24 && last.width < 180;
         const isCjkOrphan = item.lineCount >= 2 && cjkOnly.length > 0 && lastText.length <= 2;
-        const isTooManyLines = item.lineCount > 3 && item.fontSize >= 48;
+        const isTooManyLines = item.lineCount > (item.isBigMain === true ? 6 : 3) && item.fontSize >= 48;
         return hasShortCjkLine || isShortLastLine || isCjkOrphan || isTooManyLines;
       });
       if (badHeadlineBreaks.length > 0) {
@@ -574,6 +574,7 @@ function selfTestPageDecisionChecks() {
     { code: 'mode_label_visible', evidence: { textSizes: [{ tag: 'SPAN', className: '', text: '概念图', fontSize: 30 }] }, expectSilent: true },
     { code: 'editorial_brief_visible', evidence: { textSizes: [{ tag: 'P', className: '', text: '这一节作为正文配图使用', fontSize: 30 }] } },
     { code: 'technical_term_spacing_bad', evidence: { textSizes: [{ tag: 'P', className: '', text: 'AIAgent 是什么', fontSize: 30 }] } },
+    ...[false, true].flatMap(isBigMain => [4, 6, 7].map(lineCount => ({ code: 'text_line_break_bad', evidence: { headlineLines: [{ tag: 'DIV', className: 'phrase', isBigMain, fontSize: 104, lineCount, lastLineRatio: 1, lines: Array.from({ length: lineCount }, () => ({ text: '完整语义分行', width: 624 })) }] }, expectSilent: isBigMain && lineCount <= 6 }))),
     { code: 'text_line_break_bad', evidence: { headlineLines: [{ tag: 'H1', className: '', text: '标题文本', fontSize: 60, lineCount: 2, lastLineRatio: 0.1, lines: [{ text: '标题文', width: 300 }, { text: '本', width: 50 }] }] } },
     { code: 'text_line_break_bad', evidence: { headlineLines: [{ tag: 'H1', className: '', text: '标题文本内容', fontSize: 60, lineCount: 2, lastLineRatio: 0.5, lines: [{ text: '标题文本内容', width: 420 }, { text: '第二行较宽', width: 250 }] }] }, expectSilent: true },
   ];
