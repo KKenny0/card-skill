@@ -46,9 +46,9 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 
 ## See it in 30 seconds
 
-Seven confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
+Eight confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
 
-<img src="assets/readme-showcase.png" width="100%" alt="Seven personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, Big reading notes, and Long-page notes">
+<img src="assets/readme-showcase.png" width="100%" alt="Eight personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, Big reading notes, Long-page notes, and comparison infographs">
 
 | Mode | Sole style | Reading task |
 |---|---|---|
@@ -59,6 +59,7 @@ Seven confirmed personal styles share paper, typography, and restrained accents.
 | sketchnote | [Wandering notes](references/sketchnote-wandering-notes.md) | Let imagery evolve with the reading rhythm |
 | big | [A Momentary Note](references/mode-big.md) | One reading accent and semantic pauses, preserving the complete phrase |
 | long | [Long-page Notes](references/mode-long.md) | Continuous prose, marginal notes, heading levels and explicit quotation groups |
+| infograph | [Comparison notes](references/mode-infograph.md) | Compare dimensions and metric scopes; keep conditions visible across single or grouped pages |
 
 <sub>All showcase images are rebuilt from repository contracts through the production renderer. Open the full samples for detail. See the <a href="references/personal-style-migration.md">migration guide</a> for retired styles.</sub>
 
@@ -74,7 +75,7 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | Technical decisions & systems | `whiteboard` | Stable | Problems, constraints, decision paths, and trade-offs | [Docs](references/mode-whiteboard.md) |
 | Long reading cards | `long` | Stable | Long-page notes with continuous prose, light annotations and explicit quotation groups | [Docs](references/mode-long.md) |
 | Single claims & reading questions | `big` | Stable | A momentary note with semantic pauses and one reading accent | [Docs](references/mode-big.md) |
-| Dense data & comparison | `infograph` | Studio | High-density information and structural comparisons | [Docs](references/mode-infograph.md) |
+| Dense data & comparison | `infograph` | Studio | Comparison notes: aligned dimensions, metric scopes, and conditional conclusions; single or grouped pages | [Docs](references/mode-infograph.md) |
 | Narrative & conflict | `comic` | Studio | Step-by-step conflict, turn, or before/after stories | [Docs](references/mode-comic.md) |
 | Personal reflections | `sketchnote` | Studio | Warm, notebook-style visual notes | [Docs](references/mode-sketchnote.md) |
 
@@ -291,7 +292,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 <td><img src="assets/gallery/reading-notes.png" width="100%" alt="Reading notes"><br><strong>poster</strong> · Reading notes</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/infograph.png" width="100%" alt="Infograph"><br><strong>infograph</strong> · Local models to shared judgment</td>
+<td><img src="assets/gallery/infograph.png" width="100%" alt="Infograph"><br><strong>infograph</strong> · Comparison notes · three metric scopes</td>
 <td><img src="assets/gallery/comic.png" width="100%" alt="Comic"><br><strong>comic</strong> · After touching one edge</td>
 </tr>
 <tr>

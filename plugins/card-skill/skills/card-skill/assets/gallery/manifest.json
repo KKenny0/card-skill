@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.20.0",
+  "card_skill_version": "0.21.0",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -20,13 +20,13 @@
       "output_basename": "infograph.png",
       "mode": "infograph",
       "tier": "studio",
-      "design": "tone_technical",
-      "tone": "technical",
+      "design": "tone_sharp",
+      "tone": "sharp",
       "dpr": 2,
       "width": 2160,
-      "height": 1600,
-      "render_contract_sha256": "ede426103c686d2a81e1d2d9157973652e1f75c2a2280eae0c5186afcf0839d8",
-      "png_sha256": "5225471110602e8423b705fc6ed243ee774489152ec1c41d5e9f79d8615d0069"
+      "height": 3838,
+      "render_contract_sha256": "bd07006acab5ce140d1def7146d5b8f205317649747ae117feea9681e9aa009b",
+      "png_sha256": "de0cc5e6b38a4c103cf041677a28f569e5f789d181d0a67cb26ef69ce78a195d"
     },
     {
       "fixture": "evals/gallery/creative/sketchnote.json",
@@ -173,7 +173,7 @@
     }
   ],
   "verification_scope": {
-    "mode": "long",
+    "mode": "infograph",
     "rebuilt": 1,
     "retained": 12,
     "retained_from_version": "0.19.0"

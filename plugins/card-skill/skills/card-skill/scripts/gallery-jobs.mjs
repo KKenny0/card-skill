@@ -17,7 +17,7 @@ const VERSION = fs.readFileSync(path.join(ROOT, 'VERSION'), 'utf8').trim();
 const update = process.argv.includes('--update');
 const modeIndex = process.argv.indexOf('--mode');
 const selectedMode = modeIndex < 0 ? null : process.argv[modeIndex + 1];
-if (modeIndex >= 0 && !['long'].includes(selectedMode)) throw new Error('Scoped gallery currently supports --mode long');
+if (modeIndex >= 0 && !['long', 'infograph'].includes(selectedMode)) throw new Error('Scoped gallery currently supports --mode long or --mode infograph');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-gallery-'));
 const { publishArtifacts } = require('./lib/publish-artifacts');
 const { sha256Bytes } = require('./lib/visual-job');
@@ -61,7 +61,7 @@ function dataUri(file, mime) {
 
 async function buildReadmeShowcase(rendered) {
   const byBasename = new Map(rendered.map(item => [item.output_basename, item.png]));
-  const required = ['editorial-wechat-cover.png', 'article-personal.png', 'big.png', 'poster.png', 'whiteboard.png', 'sketchnote.png', 'long.png'];
+  const required = ['editorial-wechat-cover.png', 'article-personal.png', 'big.png', 'poster.png', 'whiteboard.png', 'sketchnote.png', 'long.png', 'infograph.png'];
   for (const basename of required) {
     assert.ok(byBasename.has(basename), `README showcase source is missing: ${basename}`);
   }
@@ -69,7 +69,7 @@ async function buildReadmeShowcase(rendered) {
   const output = path.join(temp, 'readme-showcase.png');
   const font = dataUri(path.join(ROOT, 'assets', 'fonts', 'DMSans-Variable.ttf'), 'font/ttf');
   const figures = required.map((basename, index) => {
-    const labels = ['COVER / PAPER WILDERNESS', 'ARTICLE-DIAGRAM / RELATIONS', 'BIG / A MOMENTARY NOTE', 'POSTER / FIELD NOTES', 'WHITEBOARD / REASONING NOTES', 'SKETCHNOTE / WANDERING NOTES', 'LONG / LONG-PAGE NOTES'];
+    const labels = ['COVER / PAPER WILDERNESS', 'ARTICLE-DIAGRAM / RELATIONS', 'BIG / A MOMENTARY NOTE', 'POSTER / FIELD NOTES', 'WHITEBOARD / REASONING NOTES', 'SKETCHNOTE / WANDERING NOTES', 'LONG / LONG-PAGE NOTES', 'INFOGRAPH / COMPARISON NOTES'];
     return '<figure><figcaption><b>0'+(index+1)+'</b>'+labels[index]+'</figcaption><div class="image-shell"><img src="'+dataUri(byBasename.get(basename), 'image/png')+'" alt="'+labels[index]+'"></div></figure>';
   });
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -78,12 +78,12 @@ async function buildReadmeShowcase(rendered) {
 body{font-family:"DM Sans",sans-serif;padding:54px 64px}
 header{height:100px;border-bottom:1px solid #d4cdc0;display:flex;justify-content:space-between;font-size:32px;letter-spacing:.06em}
 header span{color:#6a645b;font-size:26px}.stage{padding-top:30px;display:grid;gap:32px}
-.top{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}.bottom{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.top{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}.bottom{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
 figure{margin:0;min-width:0}figcaption{height:48px;font-size:23px;font-weight:650;letter-spacing:.025em;display:flex;align-items:flex-start;gap:16px}figcaption b{color:#a44532}
 .image-shell{border:1px solid #d4cdc0;background:#f8f5ee;display:flex;align-items:flex-start;justify-content:center;padding:0}
 .top .image-shell{height:620px;align-items:center}.bottom .image-shell{height:1000px}
 img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain}
-</style></head><body><header><strong>CARD-SKILL / KENNY STYLE</strong><span>SEVEN CONFIRMED PERSONAL STYLES</span></header><main class="stage"><section class="top">${figures.slice(0,3).join('')}</section><section class="bottom">${figures.slice(3).join('')}</section></main></body></html>`;
+</style></head><body><header><strong>CARD-SKILL / KENNY STYLE</strong><span>EIGHT CONFIRMED PERSONAL STYLES</span></header><main class="stage"><section class="top">${figures.slice(0,4).join('')}</section><section class="bottom">${figures.slice(4).join('')}</section></main></body></html>`;
 
   const browser = await chromium.launch({ headless: true });
   try {

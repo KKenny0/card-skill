@@ -1,0 +1,71 @@
+{
+  "schema_version": 3,
+  "job_id": "cursor-round2",
+  "publish_target": "article-body",
+  "source": {
+    "kind": "url",
+    "language": "zh",
+    "label": "https://prod.cursor.com/cn/blog/improved-token-efficiency"
+  },
+  "source_units": [
+    {
+      "id": "comparison",
+      "excerpt": "Cursor 官方文章报告：系统提示精简约66%；内置工具按需加载使静态上下文描述token减少60%；稳定前缀与缓存边界调整使冷缓存未命中率降低20%；综合改动降低用户token成本7%，并报告质量未下降。不同指标衡量对象不同，不能相加；实际效果需要真实流量A/B测试，缓存收益以稳定前缀为条件。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "infograph",
+    "tier": "studio",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户要求比较现有信息图与个人比较札记，同题材同证据"
+  },
+  "outputs": [
+    {
+      "id": "cursor-round2",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "cursor-round2",
+          "basename": "cursor-round2.png",
+          "role": "comparison",
+          "source_unit_ids": [
+            "comparison"
+          ],
+          "transformation": "compress",
+          "visual_plan": {
+            "core_message": "综合改动：用户 token 成本下降 7%。",
+            "content_type": "comparison",
+            "argument_structure": "compare-contrast",
+            "visual_metaphor": null,
+            "layout_strategy": "综合结果作为主重音；局部指标分别绑定对象与改动，明确不同口径不可加总",
+            "visual_hierarchy": [
+              "问题",
+              "比较证据",
+              "有条件的结论"
+            ],
+            "avoid_patterns": [
+              "指标相加",
+              "将协议排优劣",
+              "省略适用条件"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "infograph",
+        "title": "百分比，先看口径",
+        "composition_required": true,
+        "tone": "sharp",
+        "content_html": "<main><header><p class=\"eyebrow\">Cursor · 上下文效率观察</p><h1>百分比，先看口径</h1><p class=\"question\">这些降幅，究竟在衡量什么？</p></header><section class=\"overall\"><p class=\"small-label\">综合结果 · 全部改动</p><div class=\"overall-result\"><h2>7%</h2><p class=\"result-label\">用户 token 成本下降</p></div><p class=\"quality\">Cursor 报告质量未下降。</p></section><section class=\"observations\"><h2>局部观察 · 三种不同口径</h2><article class=\"metric-note\"><div class=\"metric-head\"><h3>系统提示规模</h3><span class=\"delta\">约 66%</span></div><p>删减已不再必要的指令</p></article><article class=\"metric-note\"><div class=\"metric-head\"><h3>静态工具描述 token</h3><span class=\"delta\">60%</span></div><p>部分内置工具改为按需加载</p></article><article class=\"metric-note\"><div class=\"metric-head\"><h3>冷缓存未命中率</h3><span class=\"delta\">20%</span></div><p>稳定前缀与缓存边界调整</p></article></section><footer class=\"takeaway\"><h2>不同口径不能相加。</h2><p>迁移需真实流量 A/B 验证，缓存依赖稳定前缀。</p></footer><p class=\"source\">Cursor 官方博客 · 2026-09-23 · 选取三项局部指标</p></main>",
+        "custom_css": "p{font-size:36px}.overall{padding:26px 0 32px;border-bottom:1px solid var(--hairline)}.overall-result{display:grid;grid-template-columns:250px 1fr;gap:24px;align-items:center;margin:12px 0 16px}.overall h2{font:500 124px/1.1 'DM Sans',var(--zh-serif);color:var(--accent);letter-spacing:-3px}.overall .result-label{font-size:42px;line-height:1.5}.overall .quality{font-size:36px;color:var(--ink-light)}.observations{margin-top:34px}.observations>h2{font-size:36px;font-weight:400;line-height:1.6}.metric-note{margin-top:24px;padding-left:24px;border-left:1px solid var(--hairline)}.metric-head{display:flex;align-items:baseline;justify-content:space-between;gap:24px}.metric-head h3{font-size:40px;font-weight:400;line-height:1.6}.delta{font:500 44px/1.6 'DM Sans',var(--zh-serif);white-space:nowrap}.metric-note p{margin-top:4px;color:var(--ink-light)}.takeaway{margin-top:36px}.takeaway h2{font-size:36px}.takeaway p{font-size:36px}",
+        "variant": "comparison-notes"
+      }
+    }
+  ]
+}

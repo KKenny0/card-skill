@@ -1,0 +1,71 @@
+{
+  "schema_version": 3,
+  "job_id": "a2a-round2",
+  "publish_target": "article-body",
+  "source": {
+    "kind": "file",
+    "language": "zh",
+    "label": "用户提供的 A2A 架构选型正文"
+  },
+  "source_units": [
+    {
+      "id": "comparison",
+      "excerpt": "自定义 API；业务接口与执行语义；已有稳定评分接口；单一提供方、流程不变时，额外封装未必划算。；MCP；工具、资源和提示模板；输入输出明确的评估能力；工具背后也能是 Agent，交互能力须检查版本与支持。；A2A；能力说明、消息、任务与交付物；多家独立服务，需追问、等待和多种交付时值得评估；业务口径仍须约定。；框架内部调用；运行时内的调度、状态与交接；同一程序内分派子任务；不必仅因名称是 Agent 就增加网络协议。。需要标准化持续委托的服务边界时，再评估 A2A。。跨公司不排除 MCP；A2A 不负责全局调度，也不保证成本或准确率收益。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "infograph",
+    "tier": "studio",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户要求比较现有信息图与个人比较札记，同题材同证据"
+  },
+  "outputs": [
+    {
+      "id": "a2a-round2",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "a2a-round2",
+          "basename": "a2a-round2.png",
+          "role": "comparison",
+          "source_unit_ids": [
+            "comparison"
+          ],
+          "transformation": "compress",
+          "visual_plan": {
+            "core_message": "需要标准化持续委托的服务边界时，再评估 A2A。",
+            "content_type": "comparison",
+            "argument_structure": "compare-contrast",
+            "visual_metaphor": null,
+            "layout_strategy": "选项与接口同一行；条件与限制各占宽行，保持阅读顺序，减少窄列",
+            "visual_hierarchy": [
+              "问题",
+              "比较证据",
+              "有条件的结论"
+            ],
+            "avoid_patterns": [
+              "指标相加",
+              "将协议排优劣",
+              "省略适用条件"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "infograph",
+        "title": "先看接口，再选协议",
+        "composition_required": true,
+        "tone": "sharp",
+        "content_html": "<main><header><p class=\"eyebrow\">采购评估场景 · 四种接入方式</p><h1>先看接口，再选协议</h1><p class=\"question\">调用方究竟需要看见什么？</p></header><section class=\"choice\"><div class=\"choice-head\"><h2>自定义 API</h2><p class=\"interface\">业务接口与执行语义</p></div><div class=\"condition\"><span class=\"small-label\">考虑</span><p>已有稳定评分接口；</p></div><div class=\"condition boundary\"><span class=\"small-label\">边界</span><p>单一提供方、流程不变时，额外封装未必划算。</p></div></section><section class=\"choice\"><div class=\"choice-head\"><h2>MCP</h2><p class=\"interface\">工具、资源和提示模板</p></div><div class=\"condition\"><span class=\"small-label\">考虑</span><p>输入输出明确的评估能力；</p></div><div class=\"condition boundary\"><span class=\"small-label\">边界</span><p>工具背后也能是 Agent，交互能力须检查<span class=\"reading-unit\">版本与支持。</span></p></div></section><section class=\"choice\"><div class=\"choice-head\"><h2>A2A</h2><p class=\"interface\">能力说明、消息、任务与交付物</p></div><div class=\"condition\"><span class=\"small-label\">考虑</span><p>多家独立服务，需追问、等待和多种交付时<span class=\"reading-unit\">值得评估；</span></p></div><div class=\"condition boundary\"><span class=\"small-label\">边界</span><p>业务口径仍须约定。</p></div></section><section class=\"choice\"><div class=\"choice-head\"><h2>框架内部调用</h2><p class=\"interface\">运行时内的调度、状态与交接</p></div><div class=\"condition\"><span class=\"small-label\">考虑</span><p>同一程序内分派子任务；</p></div><div class=\"condition boundary\"><span class=\"small-label\">边界</span><p>不必仅因名称是 Agent 就增加网络协议。</p></div></section><footer class=\"takeaway\"><h2>需要标准化持续委托的服务边界时，再评估 A2A。</h2><p>跨公司不排除 MCP；A2A 不负责全局调度，也不保证成本或准确率收益。</p></footer><p class=\"source\">据 A2A 上篇选型段落整理 · 工程判断，非性能排名</p></main>",
+        "custom_css": "p{font-size:36px}.choice{padding:24px 0 28px;border-top:1px solid var(--hairline)}.choice-head{display:grid;grid-template-columns:270px 1fr;gap:20px;align-items:baseline;margin-bottom:18px}.choice h2{font-size:40px;line-height:1.6;font-weight:400}.interface{font-size:36px;line-height:1.6}.condition{display:grid;grid-template-columns:110px 1fr;gap:20px;margin-top:10px;align-items:baseline}.condition .small-label{font-size:26px}.condition p{font-size:36px;line-height:1.6}.boundary p{color:var(--ink-light)}",
+        "variant": "comparison-notes"
+      }
+    }
+  ]
+}

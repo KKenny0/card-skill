@@ -179,9 +179,10 @@ const SCHEMAS = {
   },
   infograph: {
     required: ['mode', 'title', 'composition_required', 'content_html', 'custom_css'],
-    optional: ['design', 'tone', 'subtitle', 'source', 'logo', 'brand_name'],
+    optional: ['variant', 'design', 'tone', 'subtitle', 'source', 'logo', 'brand_name'],
     types: {
       mode: 'string',
+      variant: 'string',
       title: 'string',
       composition_required: 'boolean',
       content_html: 'string',
@@ -389,6 +390,10 @@ function validate(input, { checkLocalFiles = true } = {}) {
         errors.push(`logo must point to a bounded PNG, JPEG, or WebP image: ${error.message}`);
       }
     }
+  }
+
+  if (mode === 'infograph' && input.variant !== undefined && input.variant !== 'comparison-notes') {
+    errors.push('infograph variant must be comparison-notes; omit variant to use comparison-notes');
   }
 
   if (mode === 'big') errors.push(...require('./big-reading').validateReading(input));

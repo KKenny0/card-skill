@@ -8,6 +8,7 @@ This is an intentional contract change after 0.17.0. Existing PNGs and reviews r
 | Poster omitted variant | Field notes automatically; all body types remain supported |
 | Poster reading-notes | Replace variant with field-notes; retain every reading_unit quote/thought, per-card title and source |
 | Whiteboard classic | Remove classic or set reasoning-notes; retain steps and select explicit layout where required; convert old inline emphasis to plain text |
+| Infograph omitted variant | Comparison-notes shared CSS loads; preserve complete HTML/CSS composition and data capabilities, inspect spacing and semantic line breaks; explicit comparison-notes is equivalent |
 | Sketchnote omitted variant | Wandering-notes shared CSS always loads; inspect existing composition for spacing changes |
 | Article legacy family / formula summary | Replan using an explicit supported personal_layout and structure; preserve evidence, conditions and labels. Unsupported topology is a planning limitation, never an automatic conversion |
 | Cover motif / free composition | Supply topic-specific Paper Wilderness cover_art, use cover_series=paper-wilderness and wechat-cover; renderer loads shared layout |

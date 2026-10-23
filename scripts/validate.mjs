@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyInfographNotes } from './validate-infograph-notes.mjs';
 
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -1739,6 +1740,7 @@ try {
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
 
+  await verifyInfographNotes();
   await verifySketchnoteNotes();
 
   console.log(`Validation passed: ${Object.keys(inputs).length} renderer smoke tests, version sync, branding matrix, editorial-image tone selector, article-diagram families, field checks, custom composition, schema, and design registry.`);

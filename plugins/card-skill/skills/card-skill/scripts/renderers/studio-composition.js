@@ -46,6 +46,7 @@ function colophon(input, designName, comic = false) {
 
 function render(input, outputHtmlPath) {
   if (input.mode === 'sketchnote' && input.variant !== undefined && input.variant !== 'wandering-notes') throw new Error('Only wandering-notes is supported');
+  if (input.mode === 'infograph' && input.variant !== undefined && input.variant !== 'comparison-notes') throw new Error('Only comparison-notes is supported');
   const defaults = MODE_DEFAULTS[input.mode];
   if (!defaults) throw new Error(`Unsupported Studio composition mode: ${input.mode}`);
   const designName = resolveDesignNameForInput(input, defaults.fallback);
@@ -105,7 +106,10 @@ function render(input, outputHtmlPath) {
   }
 
   const wanderingNotes = input.mode === 'sketchnote';
-  const variantCss = wanderingNotes
+  const comparisonNotes = input.mode === 'infograph';
+  const variantCss = comparisonNotes
+    ? fs.readFileSync(path.join(ASSETS, 'infograph-comparison-notes.css'), 'utf8')
+    : wanderingNotes
     ? fs.readFileSync(path.join(ASSETS, 'sketchnote-wandering-notes.css'), 'utf8')
     : '';
   html = html.replaceAll('{{CUSTOM_CSS}}', `${tokenOverrides}\n${variantCss ? `${variantCss}\n` : ''}${input.custom_css}`);
@@ -117,7 +121,7 @@ function render(input, outputHtmlPath) {
     input.mode === 'comic' ? '<div class="card">' : '<div class="page">',
     input.mode === 'comic'
       ? `<div class="card" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true">`
-      : `<div class="page" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true"${wanderingNotes ? ' data-card-variant="wandering-notes"' : ''}>`,
+      : `<div class="page" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true"${comparisonNotes ? ' data-card-variant="comparison-notes"' : wanderingNotes ? ' data-card-variant="wandering-notes"' : ''}>`,
   );
 
   fs.writeFileSync(outputHtmlPath, html, 'utf8');

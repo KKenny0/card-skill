@@ -8,6 +8,8 @@ Review representative actual PNGs when changing visual behavior or instructions.
 
 When the maintainer explicitly limits a release to Long verification, use `node scripts/validate-long-notes.mjs`, `eval:fresh -- --case long` with a separate scoped report, and `gallery:update -- --mode long` / `gallery:check -- --mode long`. The scoped gallery rebuilds Long and the composite showcase, retains the other PNGs after checking their recorded hashes, and records the retained version and verification scope. It does not claim that the retained modes were rerendered for the new version. The maintainer's explicit scope takes precedence over the full-release defaults below.
 
+For an explicitly infograph-only release, run `node scripts/validate-infograph-notes.mjs`, the comparison-infograph/data-infograph/timeline-infograph fresh cases with separate scoped reports, and `gallery:update -- --mode infograph` / `gallery:check -- --mode infograph`. Retain other gallery images with their recorded hashes; do not claim other modes were freshly verified.
+
 `npm test` proves L0 only: fixture definitions, Visual Job validation, and output checks work. It does not call a model.
 
 ## Discovery versus production planning

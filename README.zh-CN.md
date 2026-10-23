@@ -46,9 +46,9 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 
 ## 30 秒看懂它能做什么
 
-七种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
+八种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
 
-<img src="assets/readme-showcase.png" width="100%" alt="七种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big、长页札记 Long">
+<img src="assets/readme-showcase.png" width="100%" alt="八种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big、长页札记 Long、比较札记 Infograph">
 
 | Mode | 唯一风格 | 阅读任务 |
 |---|---|---|
@@ -59,6 +59,7 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 | sketchnote | [漫游札记](references/sketchnote-wandering-notes.md) | 意象随阅读变化，按内容组织节奏与断行 |
 | big | [一句暂记](references/mode-big.md) | 单一重音与语义停顿，完整保留长短句 |
 | long | [长页札记](references/mode-long.md) | 连续正文、轻旁记、两级标题与同源引用组 |
+| infograph | [比较札记](references/mode-infograph.md) | 明确比较维度与指标口径，按条件密度选择单图或总览＋分组详页 |
 
 <sub>展示图均由仓库内的合同通过正式渲染流程生成。点击完整样张可查看细节；旧风格的迁移见<a href="references/personal-style-migration.md">迁移指南</a>。</sub>
 
@@ -74,7 +75,7 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 | 技术决策与系统推演 | `whiteboard` | Stable | 问题、约束、可选路径与最终取舍 | [文档](references/mode-whiteboard.md) |
 | 长文阅读卡 | `long` | Stable | 长页札记：连续正文、轻旁记与显式同源引文组 | [文档](references/mode-long.md) |
 | 单一判断与阅读提问 | `big` | Stable | 一句暂记：语义停顿与单一阅读重音 | [文档](references/mode-big.md) |
-| 高密度数据与对比 | `infograph` | Studio | 高信息密度的数据比较与结构展示 | [文档](references/mode-infograph.md) |
+| 高密度数据与对比 | `infograph` | Studio | 比较札记：统一维度、明确指标口径与条件，支持单图及总览＋分组详页 | [文档](references/mode-infograph.md) |
 | 叙事与冲突转折 | `comic` | Studio | 步骤化叙事、前后转折与故事情境 | [文档](references/mode-comic.md) |
 | 个人随笔与反思 | `sketchnote` | Studio | 温暖亲切的手记风格视觉笔记 | [文档](references/mode-sketchnote.md) |
 
@@ -291,7 +292,7 @@ card-skill 基于确定性的 HTML/CSS 模板、文字排版规则、浏览器�
 <td><img src="assets/gallery/reading-notes.png" width="100%" alt="阅读笔记"><br><strong>poster</strong> · 阅读笔记</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/infograph.png" width="100%" alt="信息图"><br><strong>infograph</strong> · 局部模型到共同判断</td>
+<td><img src="assets/gallery/infograph.png" width="100%" alt="信息图"><br><strong>infograph</strong> · 比较札记 · 三种指标口径</td>
 <td><img src="assets/gallery/comic.png" width="100%" alt="漫画"><br><strong>comic</strong> · 摸到一条边以后</td>
 </tr>
 <tr>

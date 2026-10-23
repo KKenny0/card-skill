@@ -1,0 +1,71 @@
+{
+  "schema_version": 3,
+  "job_id": "performance-metrics",
+  "publish_target": "article-body",
+  "source": {
+    "kind": "url",
+    "language": "zh",
+    "label": "https://web.dev/articles/optimize-lcp ; https://web.dev/articles/optimize-inp ; https://web.dev/articles/optimize-cls ; https://web.dev/articles/vitals"
+  },
+  "source_units": [
+    {
+      "id": "comparison",
+      "excerpt": "LCP：≤ 2.5 s：加载表现：最大内容元素出现的时间；不是整页所有资源加载完成。 INP：≤ 200 ms：交互响应：观察访问期间的交互延迟；不是网络请求耗时。 CLS：≤ 0.1：视觉稳定：内容位移的无单位分数；不是秒数，也不是百分比。 良好阈值；移动端与桌面端分开统计，各指标在页面访问的第75百分位达到目标。三项均满足才算通过核心网页指标。阈值不是实测结果，不能相加。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "infograph",
+    "tier": "studio",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "用户要求比较现有信息图与个人比较札记，同题材同证据"
+  },
+  "outputs": [
+    {
+      "id": "performance-metrics",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "performance-metrics",
+          "basename": "performance-metrics.png",
+          "role": "comparison",
+          "source_unit_ids": [
+            "comparison"
+          ],
+          "transformation": "compress",
+          "visual_plan": {
+            "core_message": "三项各自达标，不能用单项抵消。",
+            "content_type": "comparison",
+            "argument_structure": "compare-contrast",
+            "visual_metaphor": null,
+            "layout_strategy": "先解释共同判定条件，再给三个同级指标各自的单位与语义",
+            "visual_hierarchy": [
+              "问题",
+              "比较证据",
+              "有条件的结论"
+            ],
+            "avoid_patterns": [
+              "无来源收益数字",
+              "将阈值冒充实测",
+              "不同指标相加"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "infograph",
+        "title": "三个指标，三种尺度",
+        "composition_required": true,
+        "tone": "sharp",
+        "content_html": "<main><header><p class=\"eyebrow\">网页性能 · 指标口径</p><h1>三个指标，三种尺度</h1><p class=\"question\">数值不同，怎样判断整体达标？</p></header><section class=\"criterion\"><p class=\"tag\">共同判定条件 · 良好阈值</p><h2>三项各自达标，才算通过。</h2><p>移动端与桌面端分开统计；<br>每项看页面访问的第 75 百分位。</p></section><section class=\"measure\"><div class=\"measure-head\"><h2>LCP</h2><span class=\"threshold\">≤ 2.5 s</span></div><h3>加载表现</h3><p>最大内容元素出现的时间；不是整页所有资源加载完成。</p></section><section class=\"measure\"><div class=\"measure-head\"><h2>INP</h2><span class=\"threshold\">≤ 200 ms</span></div><h3>交互响应</h3><p>观察访问期间的交互延迟；不是网络请求耗时。</p></section><section class=\"measure\"><div class=\"measure-head\"><h2>CLS</h2><span class=\"threshold\">≤ 0.1</span></div><h3>视觉稳定</h3><p>内容位移的无单位分数；不是秒数，也不是百分比。</p></section><footer class=\"takeaway\"><h2>这是阈值，不是实测成绩。</h2><p>不把三项相加，也不用单项优秀抵消另一项未达标。</p></footer><p class=\"source\">来源：web.dev · Web Vitals 与指标优化文档<br>按官方判定规则整理，未测量任何具体网站。</p></main>",
+        "custom_css": "p{font-size:38px}.criterion{padding:20px 0 30px;border-bottom:1px solid var(--hairline)}.criterion h2{font-size:48px;font-weight:400;line-height:1.6;color:var(--accent);margin:12px 0}.criterion p{margin-top:12px}.measure{padding:30px 0;border-bottom:1px solid var(--hairline)}.measure-head{display:flex;justify-content:space-between;align-items:baseline;gap:24px}.measure h2{font-size:48px;font-weight:500;line-height:1.6}.threshold{font-size:56px;line-height:1.6;white-space:nowrap}.measure h3{font-size:38px;line-height:1.6;font-weight:400;margin:10px 0}.measure p{color:var(--ink-light)}",
+        "variant": "comparison-notes"
+      }
+    }
+  ]
+}
