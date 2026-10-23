@@ -11,6 +11,7 @@ import { verifyPersonalDefaults } from './validate-personal-defaults.mjs';
 import { verifySketchnoteNotes } from './validate-sketchnote-notes.mjs';
 import { verifyWhiteboardNotes } from './validate-whiteboard-notes.mjs';
 import { verifyBigReading } from './validate-big-reading.mjs';
+import { verifyLongNotes } from './validate-long-notes.mjs';
 import { verifyPersonalDiagrams } from './validate-personal-diagram.mjs';
 
 const require = createRequire(import.meta.url);
@@ -1611,6 +1612,7 @@ try {
 
   verifyPersonalDefaults();
   verifyBigReading();
+  verifyLongNotes();
   verifyPersonalDiagrams();
   verifyWhiteboardNotes();
   for (const input of Object.values(articleDiagramFixtures)) assert.equal(validate(input).valid,false,'retired family accepted');

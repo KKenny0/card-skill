@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
-Big 现在统一使用“一句暂记”：干净纸面、完整宋体、左对齐、单一阅读重音与语义停顿。可选 `reading_lines` 在完整保留主文的前提下规划最多六行，仍须通过实际溢出与可读性检查。
+Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁记、清楚的两级标题，以及显式声明的同源引文组。保留原文与出处，不自动合并相邻引文。
 
 已确认的 mode 各自只保留一种个人风格，封面只保留纸上荒野。Poster 原有内容块统一采用个人札记；旧风格合同需迁移，见[迁移指南](references/personal-style-migration.md)。
 
@@ -46,9 +46,9 @@ Big 现在统一使用“一句暂记”：干净纸面、完整宋体、左对�
 
 ## 30 秒看懂它能做什么
 
-六种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
+七种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
 
-<img src="assets/readme-showcase.png" width="100%" alt="六种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big">
+<img src="assets/readme-showcase.png" width="100%" alt="七种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big、长页札记 Long">
 
 | Mode | 唯一风格 | 阅读任务 |
 |---|---|---|
@@ -57,6 +57,8 @@ Big 现在统一使用“一句暂记”：干净纸面、完整宋体、左对�
 | article-diagram | [个人关系图](references/article-diagram-personal.md) | 六类关系布局，让结构说明内容 |
 | whiteboard | [推演札记](references/whiteboard-reasoning-notes.md) | 呈现边界、转向与例外；按需要拆成总览＋局部 |
 | sketchnote | [漫游札记](references/sketchnote-wandering-notes.md) | 意象随阅读变化，按内容组织节奏与断行 |
+| big | [一句暂记](references/mode-big.md) | 单一重音与语义停顿，完整保留长短句 |
+| long | [长页札记](references/mode-long.md) | 连续正文、轻旁记、两级标题与同源引用组 |
 
 <sub>展示图均由仓库内的合同通过正式渲染流程生成。点击完整样张可查看细节；旧风格的迁移见<a href="references/personal-style-migration.md">迁移指南</a>。</sub>
 
@@ -70,7 +72,7 @@ Big 现在统一使用“一句暂记”：干净纸面、完整宋体、左对�
 | 正文解释图 | `article-diagram` | Stable | 六类个人关系布局 | [文档](references/mode-article-diagram.md) |
 | 社媒系列卡片 | `poster` | Stable | 适合小红书/社媒的多卡观点拆解 | [文档](references/mode-poster.md) |
 | 技术决策与系统推演 | `whiteboard` | Stable | 问题、约束、可选路径与最终取舍 | [文档](references/mode-whiteboard.md) |
-| 长文阅读卡 | `long` | Stable | 沉浸式排版的长篇阅读卡片 | [文档](references/mode-long.md) |
+| 长文阅读卡 | `long` | Stable | 长页札记：连续正文、轻旁记与显式同源引文组 | [文档](references/mode-long.md) |
 | 单一判断与阅读提问 | `big` | Stable | 一句暂记：语义停顿与单一阅读重音 | [文档](references/mode-big.md) |
 | 高密度数据与对比 | `infograph` | Studio | 高信息密度的数据比较与结构展示 | [文档](references/mode-infograph.md) |
 | 叙事与冲突转折 | `comic` | Studio | 步骤化叙事、前后转折与故事情境 | [文档](references/mode-comic.md) |
@@ -281,7 +283,7 @@ card-skill 基于确定性的 HTML/CSS 模板、文字排版规则、浏览器�
 <td><img src="assets/gallery/poster.png" width="100%" alt="社媒卡片"><br><strong>poster</strong> · 三条线索</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/long.png" width="100%" alt="长文卡片"><br><strong>long</strong> · 智能是建模</td>
+<td><img src="assets/gallery/long.png" width="100%" alt="长文卡片"><br><strong>long</strong> · 卢梭：在此刻停一会儿</td>
 <td><img src="assets/gallery/whiteboard.png" width="100%" alt="白板推演"><br><strong>whiteboard</strong> · A2A 协作边界</td>
 </tr>
 <tr>

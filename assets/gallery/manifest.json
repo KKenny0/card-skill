@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "card_skill_version": "0.19.0",
+  "card_skill_version": "0.20.0",
   "images": [
     {
       "fixture": "evals/gallery/creative/comic.json",
@@ -111,13 +111,13 @@
       "output_basename": "long.png",
       "mode": "long",
       "tier": "stable",
-      "design": "tone_warm",
-      "tone": "warm",
+      "design": "tone_sharp",
+      "tone": "sharp",
       "dpr": 2,
       "width": 2160,
-      "height": 2242,
-      "render_contract_sha256": "6e17e7dfe501e32016529b555520fc31bfc345ac1c2c06fa5513158c4acf5309",
-      "png_sha256": "1e609dace7cfde7855a2f6e809ebcdfff089832f96b9df3c0c04395090b21950"
+      "height": 5078,
+      "render_contract_sha256": "275ea88ed30f22fce0c22a3df3f7b8a67254a6c1ae1ef8c1ada4334ae0fa6979",
+      "png_sha256": "69f9a28cd754d1d3a700ec9905a63af6f3d543d499acbd2a852443054338759b"
     },
     {
       "fixture": "evals/gallery/jobs/poster.json",
@@ -171,5 +171,11 @@
       "render_contract_sha256": "f44c1acc79dc556895c97dd81a276651c74aeb589fc3b0c59f65617bfcf62a28",
       "png_sha256": "5ff5d0de66e6450c0b6a93ef246546bea85796badb50c5efc1ce8a024bb6a309"
     }
-  ]
+  ],
+  "verification_scope": {
+    "mode": "long",
+    "rebuilt": 1,
+    "retained": 12,
+    "retained_from_version": "0.19.0"
+  }
 }

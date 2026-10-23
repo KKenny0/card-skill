@@ -4,6 +4,7 @@ This is an intentional contract change after 0.17.0. Existing PNGs and reviews r
 
 | Input | Migration |
 |---|---|
+| Long existing body | Long-page notes automatically; retain all text types. Quotes remain separate unless explicitly assigned a contiguous same-source quote_group; use layer_card.role for note, attribution or final footer |
 | Poster omitted variant | Field notes automatically; all body types remain supported |
 | Poster reading-notes | Replace variant with field-notes; retain every reading_unit quote/thought, per-card title and source |
 | Whiteboard classic | Remove classic or set reasoning-notes; retain steps and select explicit layout where required; convert old inline emphasis to plain text |

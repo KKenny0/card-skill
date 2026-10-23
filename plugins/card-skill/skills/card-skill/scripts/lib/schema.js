@@ -420,8 +420,8 @@ function validate(input, { checkLocalFiles = true } = {}) {
       paragraph: new Set(['type', 'text', 'dropcap']),
       heading: new Set(['type', 'text', 'level']),
       highlight: new Set(['type', 'text', 'accent']),
-      blockquote: new Set(['type', 'text']),
-      layer_card: new Set(['type', 'label', 'text']),
+      blockquote: new Set(['type', 'text', 'source_ref', 'quote_group']),
+      layer_card: new Set(['type', 'label', 'text', 'role']),
       section_break: new Set(['type']),
     };
     input.body.forEach((el, i) => {
@@ -448,6 +448,8 @@ function validate(input, { checkLocalFiles = true } = {}) {
       if (el.type === 'layer_card' && el.label !== undefined && typeof el.label !== 'string') errors.push(`body[${i}]: layer_card label must be a string`);
     });
   }
+
+  if (mode === 'long') errors.push(...require('./long-notes').validateLongNotes(input));
 
   if (mode === 'whiteboard') errors.push(...require('./whiteboard-notes').validateNotes(input));
   if (mode === 'poster' && Array.isArray(input.cards)) {

@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/logo.png" alt="card-skill logo" width="112"></p>
 
-Big now uses the personal reading-note style: clean paper, left-aligned complete Song type, one reading accent, and semantic pauses. Optional `reading_lines` preserves the phrase while planning up to six lines; actual overflow and readability checks still apply.
+Long now uses Long-page Notes as its default and sole style: continuous prose, light marginal notes, two heading levels, and explicitly declared same-source quotation groups. Original text and attribution remain intact; adjacency alone never merges quotations.
 
 Confirmed modes now have one supported personal style each. Covers use Paper Wilderness only; Poster retains all content blocks under field-notes. Old style contracts require migration; see [migration guide](references/personal-style-migration.md).
 
@@ -46,9 +46,9 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 
 ## See it in 30 seconds
 
-Six confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
+Seven confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
 
-<img src="assets/readme-showcase.png" width="100%" alt="Six personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, and Big reading notes">
+<img src="assets/readme-showcase.png" width="100%" alt="Seven personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, Big reading notes, and Long-page notes">
 
 | Mode | Sole style | Reading task |
 |---|---|---|
@@ -57,6 +57,8 @@ Six confirmed personal styles share paper, typography, and restrained accents. E
 | article-diagram | [Personal relations](references/article-diagram-personal.md) | Explain content through six relationship layouts |
 | whiteboard | [Reasoning notes](references/whiteboard-reasoning-notes.md) | Follow boundaries, turns, and exceptions; split into overview and details when needed |
 | sketchnote | [Wandering notes](references/sketchnote-wandering-notes.md) | Let imagery evolve with the reading rhythm |
+| big | [A Momentary Note](references/mode-big.md) | One reading accent and semantic pauses, preserving the complete phrase |
+| long | [Long-page Notes](references/mode-long.md) | Continuous prose, marginal notes, heading levels and explicit quotation groups |
 
 <sub>All showcase images are rebuilt from repository contracts through the production renderer. Open the full samples for detail. See the <a href="references/personal-style-migration.md">migration guide</a> for retired styles.</sub>
 
@@ -70,7 +72,7 @@ You don't need to memorize mode names—describe what you want to publish in nat
 | In-article explanation | `article-diagram` | Stable | Six personal relationship layouts | [Docs](references/mode-article-diagram.md) |
 | Social card series | `poster` | Stable | Multi-card breakdown for social media (Xiaohongshu, X) | [Docs](references/mode-poster.md) |
 | Technical decisions & systems | `whiteboard` | Stable | Problems, constraints, decision paths, and trade-offs | [Docs](references/mode-whiteboard.md) |
-| Long reading cards | `long` | Stable | Immersive long-form reading with rich typography | [Docs](references/mode-long.md) |
+| Long reading cards | `long` | Stable | Long-page notes with continuous prose, light annotations and explicit quotation groups | [Docs](references/mode-long.md) |
 | Single claims & reading questions | `big` | Stable | A momentary note with semantic pauses and one reading accent | [Docs](references/mode-big.md) |
 | Dense data & comparison | `infograph` | Studio | High-density information and structural comparisons | [Docs](references/mode-infograph.md) |
 | Narrative & conflict | `comic` | Studio | Step-by-step conflict, turn, or before/after stories | [Docs](references/mode-comic.md) |
@@ -281,7 +283,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 <td><img src="assets/gallery/poster.png" width="100%" alt="Social cards"><br><strong>poster</strong> · Three threads</td>
 </tr>
 <tr>
-<td><img src="assets/gallery/long.png" width="100%" alt="Long card"><br><strong>long</strong> · Intelligence as modeling</td>
+<td><img src="assets/gallery/long.png" width="100%" alt="Long card"><br><strong>long</strong> · Rousseau: pausing in the present</td>
 <td><img src="assets/gallery/whiteboard.png" width="100%" alt="Whiteboard"><br><strong>whiteboard</strong> · A2A collaboration boundaries</td>
 </tr>
 <tr>

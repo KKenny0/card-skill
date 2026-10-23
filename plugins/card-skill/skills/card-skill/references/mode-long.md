@@ -1,32 +1,42 @@
-# 长阅读卡（long）
+# Long：长页札记
 
-使用 `schemas/long.json` 的结构化字段，通过 Visual Job v3 的候选、检查、审核与发布链交付。`assets/long_template.html` 由 renderer 填充，不另写 HTML 或手动截图。
+默认使用长页札记：干净纸面、完整宋体、左对齐的连续正文、清楚的章节层级与少量旁记。宽1080px，高度随内容增长；不为了缩短画幅删正文或缩小字体。
 
-## 标题与正文
+## 段落与声音
 
-- `mode: "long"`、非空 `title` 和非空 `body` 必填。宽度 1080 CSS 像素，高度随内容增长。
-- `title` 是简短的阅读入口，不是正文容器。来源有标题时沿用；没有标题时，写一个忠于全文的简短中性标题。不要把整段原文复制成标题，也不要用被后文否定的句子代表全文。
-- 仅排版请求使用 `preserve`，完整正文放入 `body`，保留语气、例子、顺序、条件与否定。标题不能代替正文，也不能新增事实。用户明确禁止添加标题时，应说明当前 long 契约需要标题的限制。
-- 原文段落使用 `paragraph`，按原顺序排列。长文通过自动高度容纳，不删字或缩小文字；超出运行边界时遵守用户约束另行规划分页。
-- 真正的引文使用 `blockquote` 或完整段落逐字承载；不要为了保留原文把整段文字提升为标题。证据类别仍按 source-material 判断。
+- 保留正文段落、顺序、语气、例子和必要条件。仅排版使用 `preserve`；摘要、改写需要相应授权。标题不是正文容器。
+- 连续论证先让正文说完。不要在每段之后机械插旁记，不要求每节等长，也不把全文拆成框卡。
+- `paragraph` 正文42px、行距1.85、段后30px。`blockquote` 原文44px、行距1.9；保留原句、标点和原段落。
+- `heading.level:2` 是章节，54px并有细分隔线；`level:3` 是小节，44px。按内容的真实隶属关系选级别，不自动补编号或制造层级。
+- `highlight` 是完整关键句，48px。按标点尝试保留语义片段，长片段仍允许正常换行；不得拆否定、专名和数量短语，不以自动平衡断行代替看图。
+- `layer_card` 在本风格里是轻附注，正文36px、行距1.75。`role:note`（默认）是旁记，`attribution` 是出处，`footer` 是页尾说明。页尾必须是最后一个正文元素。显式提供的 `label` 始终显示；不根据最后一个元素的位置或标签文字猜角色。
+- 旁记通常一句即可：提出疑问、澄清边界或记录暂时判断，不复述整段。仅在用户提供想法或授权拟写时加入个人声音；不能把 Agent 拟稿写成用户经历或原话。关键条件必须留在正文，不移入旁记来腾空间。
+- 简短整理说明交代引用、转述与另拟旁记的边界，不堆叠流程说明。顶层 `source` 可独立显示出处，不依赖品牌栏。未提供署名或来源时不自动填充。
 
-## 正文元素
+## 同源引用组
 
-| type | 字段与用途 |
-|---|---|
-| `paragraph` | `text`；可选 `dropcap`，首个普通段落可用，非必需 |
-| `heading` | 短 `text`；`level` 为 2 或 3 |
-| `highlight` | 独立核心短句的 `text`；可选 `accent` |
-| `blockquote` | 引用原文 `text` |
-| `layer_card` | 并列条目的 `text` 与可选短 `label` |
-| `section_break` | 无正文，仅章节分隔 |
+独立 `blockquote` 仍可使用。默认相邻引文不合并，即使填写了相同 `source_ref`。
 
-字段文本按 renderer 的转义规则显示，不向 `body.text` 塞 HTML。不要添加 schema 未支持的列表、prompt 或容器类型。
+只有编辑者核实它们来自同一个明确来源、属于同一连续引用片段时，才给每段填写相同 `source_ref` 和 `quote_group`：
 
-## 视觉与交付
+```json
+[
+  {"type":"blockquote","text":"第一段原文。","source_ref":"book-chapter-5","quote_group":"passage-1"},
+  {"type":"blockquote","text":"第二段原文。","source_ref":"book-chapter-5","quote_group":"passage-1"},
+  {"type":"layer_card","role":"attribution","label":"出处","text":"书名 · 第五章"}
+]
+```
 
-long 只渲染上述文字元素，不绘制箭头、分支、路径或图形隐喻。`visual_plan.visual_metaphor` 使用 `null`，布局计划描述文字层级与分组；不能承诺这个 renderer 不支持的图形。
+`source_ref` 是不显示的来源标识，不能当作可见出处或原文证据。核对作者、作品与具体来源片段，不只核对作者姓名。标识相同不构成真实性证明，来源仍由 Visual Job 的证据与 Agent 审核确认。
 
-使用共享 Kenny Style 的 `tone` 或用户指定 `design`，不要另外按关键词自造颜色。`kicker`、`subtitle`、`source` 与品牌字段只在有实际内容需要且来源允许时填写。
+`quote_group` 是1–64位小写字母/数字/连字符标识，首位必须为字母或数字。它要求非空 `source_ref`（最多240字符）。同组只能连续出现并保持同一来源；混合来源或跨正文复用同一组会报错。不同作品、穿插评论、非连续原文各用独立引用或不同组。不能为了拼成一组删中间原文。
 
-保持标题简短、正文可读、分组关系清楚。看图时同时检查完整段落、标题是否忠于最终判断、换行和底部内容；交付使用 renderer 的完整页面 PNG。
+renderer 用一个 blockquote 包含多个 p，共用边线；段间30px，原文逐字保留。分组不新增、删减或拼接引文文本。真实 quote/command 仍必须使用 `preserve`，走完整逐字证据检查。
+
+## 兼容与验收
+
+保留原有 paragraph/dropcap、heading、highlight/accent、blockquote、layer_card/label、section_break、source、署名和本地logo能力。旧输入统一使用长页札记，不存在题材专用模板或旧风格开关。tone/design/theme只作用于颜色，不改变字体或几何。
+
+不绘制箭头或图形隐喻，`visual_plan.visual_metaphor` 使用 null。按 Visual Job v3 候选 → check-output → 实际 PNG 与360px查看 → hash-bound review → 本地交付。长图必须逐段检查，缩略全图不能代替正文检查。
+
+重点检查：正文连续性、章节/小节识别、旁记是否抢正文、引文是否同源且完整、来源标签是否可见、底部内容与实际高度。1080px原稿的42px正文在360px显示时约14px，适合展开滚动阅读。两级标题、两段同源引用与约千字稿已验证；不是任意长度、任意语言或多级嵌套都适合单图的承诺。超出截图预算时重新规划，不截断或隐藏。

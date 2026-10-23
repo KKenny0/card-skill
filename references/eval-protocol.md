@@ -6,6 +6,8 @@ For behavior, schema, renderer, or skill-instruction changes, run `npm run packa
 
 Review representative actual PNGs when changing visual behavior or instructions. Palette changes require reflective/sharp/warm/technical plus one explicit design; article-diagram changes require all six personal relationship layouts, dense-label boundary fixtures, and rejection checks for retired formula-only and legacy-family contracts. Use `scripts/gallery-jobs.mjs` for gallery verification; mode-specific regression fixtures remain in `scripts/validate.mjs`.
 
+When the maintainer explicitly limits a release to Long verification, use `node scripts/validate-long-notes.mjs`, `eval:fresh -- --case long` with a separate scoped report, and `gallery:update -- --mode long` / `gallery:check -- --mode long`. The scoped gallery rebuilds Long and the composite showcase, retains the other PNGs after checking their recorded hashes, and records the retained version and verification scope. It does not claim that the retained modes were rerendered for the new version. The maintainer's explicit scope takes precedence over the full-release defaults below.
+
 `npm test` proves L0 only: fixture definitions, Visual Job validation, and output checks work. It does not call a model.
 
 ## Discovery versus production planning

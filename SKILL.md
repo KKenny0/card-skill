@@ -2,7 +2,7 @@
 name: card-skill
 description: "Turn supplied text or evidence into PNG cards, article covers, and explanatory illustrations. Use for content-to-image requests, including card series and reading-note visuals."
 user_invocable: true
-version: "0.19.0"
+version: "0.20.0"
 ---
 
 # card-skill
@@ -67,13 +67,14 @@ Stable 使用结构化 renderer。Studio（`infograph`、`comic`、`sketchnote` 
 
 已确认的 mode 只提供各自一种个人风格，省略 variant 与显式个人风格等价。旧风格请求说明已退休，不擅自复现或保留隐藏入口。tone/design 仍只改变颜色；布局按内容变化，不能把风格统一理解成固定模板。
 
+- long：采用 [长页札记](references/mode-long.md)。连续段落与两级标题，轻旁记区分阅读声音；仅显式同源且连续的 quote_group 合并引用，缺少来源不猜测。保留原文、出处与全部正文类型。
 - big：只采用 [一句暂记](references/mode-big.md)，干净纸面、完整宋体、左对齐和单一阅读重音。用可选 `reading_lines` 表达语义字号与停顿，完整保留主文，最多六行；容量不足时重新规划，不删条件或缩字硬塞。
 - Poster：`field-notes` 个人札记，固定3:4，按 [分组与分页规则](references/poster-field-notes.md)。支持全部正文块，包括 `reading_unit` 原文—想法配对、media、process、data_row；内容能力不是独立风格。逐字引用和证据规则不变。
 - article-diagram：只采用 [个人关系布局](references/article-diagram-personal.md)，明确选择六类 `personal_layout`，写入 `render_plan: "structure"`，使用3:2。旧 family 和公式卡入口退休；不能自动把任意关系改成时间轴或伪造因果，无法表达时说明限制并重新规划。
 - whiteboard：只采用 `reasoning-notes` [推演札记](references/whiteboard-reasoning-notes.md)，保留全部步骤类型、单图及总览＋局部的导航。classic 退休。
 - sketchnote：只采用 `wandering-notes` [漫游札记](references/sketchnote-wandering-notes.md)。仍提供完整 Studio 构图；意象随有依据的认识变化，阅读节奏随内容变化。共享样式始终加载，检查360px PNG和语义断行。
 
-旧合同的迁移边界见 [个人风格收敛](references/personal-style-migration.md)。不改变 long、infograph、comic；不自动署名。
+旧合同的迁移边界见 [个人风格收敛](references/personal-style-migration.md)。不改变 infograph、comic；不自动署名。
 
 ## 执行与交付
 

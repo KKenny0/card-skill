@@ -1,17 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "card-skill long mode input",
-  "description": "Structured input for long mode CLI rendering. Long mode produces a reading-optimized card (1080px wide, auto height).",
+  "description": "Long-page reading notes: continuous paragraphs, explicit marginal notes and same-source quotation groups; 1080px wide, auto height.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "title", "body"],
+  "required": [
+    "mode",
+    "title",
+    "body"
+  ],
   "properties": {
-    "mode": { "type": "string", "const": "long" },
+    "mode": {
+      "type": "string",
+      "const": "long"
+    },
     "design": {
       "type": "string",
       "description": "Optional explicit compatibility palette name. Changes colors only; the default uses the reflective house tone."
     },
-    "tone": { "type": "string", "enum": ["reflective", "sharp", "warm", "technical"], "description": "House color tone. Changes color tokens only and is ignored when design is explicit." },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
+      "description": "House color tone. Changes color tokens only and is ignored when design is explicit."
+    },
     "kicker": {
       "type": "string",
       "description": "Top label / category tag. Example: 'Architecture Pattern'",
@@ -29,7 +45,10 @@
     },
     "theme": {
       "type": "string",
-      "enum": ["light", "dark"],
+      "enum": [
+        "light",
+        "dark"
+      ],
       "description": "Color theme. Defaults to 'light'.",
       "default": "light"
     },
@@ -41,58 +60,156 @@
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "paragraph" },
-              "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
-              "dropcap": { "type": "boolean", "description": "Add dropcap styling to this paragraph", "default": false }
+              "type": {
+                "type": "string",
+                "const": "paragraph"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "dropcap": {
+                "type": "boolean",
+                "description": "Add dropcap styling to this paragraph",
+                "default": false
+              }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "heading" },
-              "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
-              "level": { "type": "integer", "enum": [2, 3], "default": 2 }
+              "type": {
+                "type": "string",
+                "const": "heading"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "level": {
+                "type": "integer",
+                "enum": [
+                  2,
+                  3
+                ],
+                "default": 2
+              }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "highlight" },
-              "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
-              "accent": { "type": "boolean", "description": "Use accent color for the text", "default": false }
+              "type": {
+                "type": "string",
+                "const": "highlight"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "accent": {
+                "type": "boolean",
+                "description": "Use accent color for the text",
+                "default": false
+              }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "blockquote" },
-              "text": { "type": "string", "minLength": 1, "pattern": "\\S" }
+              "type": {
+                "type": "string",
+                "const": "blockquote"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "\\S",
+                "description": "Explicit source identity, resolved by the author from evidence. Metadata only; use a visible attribution element for readers."
+              },
+              "quote_group": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+                "description": "Only adjacent quotations with this identifier AND identical source_ref share a blockquote. Runtime rejects mixed sources or noncontiguous reuse."
+              }
+            },
+            "dependencies": {
+              "quote_group": [
+                "source_ref"
+              ]
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "text"],
+            "required": [
+              "type",
+              "text"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "layer_card" },
-              "label": { "type": "string", "description": "Layer label, e.g. 'LAYER 01'" },
-              "text": { "type": "string", "minLength": 1, "pattern": "\\S" }
+              "type": {
+                "type": "string",
+                "const": "layer_card"
+              },
+              "label": {
+                "type": "string",
+                "description": "Layer label, e.g. 'LAYER 01'"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "role": {
+                "enum": [
+                  "note",
+                  "attribution",
+                  "footer"
+                ],
+                "description": "Optional semantic role. Footer must be the last body element; labels remain visible. Defaults to note."
+              }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type"],
+            "required": [
+              "type"
+            ],
             "properties": {
-              "type": { "type": "string", "const": "section_break" }
+              "type": {
+                "type": "string",
+                "const": "section_break"
+              }
             }
           }
         ]
@@ -104,7 +221,15 @@
       "description": "Optional source attribution line.",
       "default": ""
     },
-    "logo": { "type": "string", "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))", "description": "Optional safe absolute path to a brand logo image. Omit for an unbranded output." },
-    "brand_name": { "type": "string", "description": "Optional brand name in the colophon footer. Omit for an unbranded output." }
+    "logo": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))",
+      "description": "Optional safe absolute path to a brand logo image. Omit for an unbranded output."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Optional brand name in the colophon footer. Omit for an unbranded output."
+    }
   }
 }

@@ -1,1 +1,126 @@
-{"schema_version":1,"job_id":"gallery-long","publish_target":"long-read","source":{"kind":"pasted-text","language":"zh","label":"《千脑智能》· 杰夫·霍金斯"},"source_units":[{"id":"opening","excerpt":"书中将新皮层描述为学习世界模型的记忆系统：它通过感觉、运动和预测认识物体。"}],"decision":{"mode":"long","tier":"stable","tone":"warm","reason":"这一段需要保留从常识反转到机制解释的阅读节奏。"},"outputs":[{"id":"long","basename":"long.png","source_unit_ids":["opening"],"transformation":"preserve","render_contract":{"mode":"long","tone":"warm","title":"智能来自世界模型","source":"《千脑智能》· 杰夫·霍金斯","body":[{"type":"paragraph","dropcap":true,"text":"我们常把大脑想成接收感觉、计算答案的机器。《千脑智能》提出了另一幅图景：新皮层更像一套持续建立世界模型的记忆系统。"},{"type":"paragraph","text":"手指沿着杯沿移动时，感觉会改变；但如果知道自己正位于杯子的哪个位置，改变就能被预测。于是，物体不再是一串输入，而是带有结构的模型。"},{"type":"highlight","text":"理解，是在运动中不断证实“我正处在世界的哪里”。"}]}}]}
+{
+  "schema_version": 3,
+  "job_id": "gallery-long",
+  "publish_target": "social-single",
+  "source": {
+    "kind": "pasted-text",
+    "language": "zh",
+    "label": "卢梭阅读札记：原文节选、编辑性转述与明确标记的旁记"
+  },
+  "source_units": [
+    {
+      "id": "reading",
+      "excerpt": "文章写到晚年的卢梭：著作被查禁，旧友与他反目。他所面对的，是来自外部世界的排斥。带着这层处境，再读他关于安顿的文字，休息就不只是日常生活中的一个空隙。 先停在这段原文里 卢梭《一个孤独漫步者的遐想》· 第五次漫步。节选自你提供的文章截图；此处保留原句。 这段话把注意力从过去和未来移回此刻。文中说，灵魂在一种状态下获得足够踏实的依靠，能够放松，并感受自身的存在。 可以把它读作一种片刻的安顿；不能因此推断，外部的排斥与冲突已经消失。 把问题留在这里 当外界无法立即改变，注意力是否仍能找到一处暂时停靠的地方？这是一条顺着材料生出的阅读问题，还不是关于独处的普遍答案。 独处何时是休息，何时又成了退避？ 据你提供的卢梭文章片段整理。正文为编辑性转述；阅读批注和末尾追问为本轮拟写，不代表你的个人经历或卢梭原话。",
+      "evidence": {
+        "kind": "claim",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    },
+    {
+      "id": "quote",
+      "excerpt": "不必回忆过去，也不用跳跃到未来；在这种状态下，时间对于灵魂没有任何意义，此时此刻是持续的永恒",
+      "evidence": {
+        "kind": "quote",
+        "strength": "primary",
+        "freshness": "current"
+      }
+    }
+  ],
+  "decision": {
+    "mode": "long",
+    "tier": "stable",
+    "tone": "sharp",
+    "selection_source": "user-override",
+    "reason": "以长页札记保留连续正文、引文停顿与轻旁记"
+  },
+  "outputs": [
+    {
+      "id": "rousseau-implemented",
+      "artifacts": [
+        {
+          "artifact_index": 1,
+          "id": "rousseau-implemented",
+          "basename": "long.png",
+          "role": "reading-note",
+          "source_unit_ids": [
+            "reading",
+            "quote"
+          ],
+          "transformation": "preserve",
+          "visual_plan": {
+            "core_message": "片刻安顿不等于外部冲突消失",
+            "content_type": "argument",
+            "argument_structure": "sequence",
+            "visual_metaphor": null,
+            "layout_strategy": "正式long长页札记：明确附注角色、两级标题、显式同源引文分组，保留正文与证据",
+            "visual_hierarchy": [
+              "阅读入口",
+              "连续正文与引文",
+              "明确标记的批注和开放追问"
+            ],
+            "avoid_patterns": [
+              "冒充用户原话",
+              "删必要条件",
+              "整页框卡化"
+            ]
+          }
+        }
+      ],
+      "render_contract": {
+        "mode": "long",
+        "tone": "sharp",
+        "title": "在此刻，停一会儿",
+        "kicker": "野生肯尼 · 读卢梭",
+        "body": [
+          {
+            "type": "paragraph",
+            "text": "文章写到晚年的卢梭：著作被查禁，旧友与他反目。他所面对的，是来自外部世界的排斥。带着这层处境，再读他关于安顿的文字，休息就不只是日常生活中的一个空隙。"
+          },
+          {
+            "type": "heading",
+            "text": "先停在这段原文里"
+          },
+          {
+            "type": "blockquote",
+            "text": "不必回忆过去，也不用跳跃到未来；在这种状态下，时间对于灵魂没有任何意义，此时此刻是持续的永恒"
+          },
+          {
+            "type": "layer_card",
+            "label": "出处",
+            "text": "卢梭《一个孤独漫步者的遐想》· 第五次漫步",
+            "role": "attribution"
+          },
+          {
+            "type": "paragraph",
+            "text": "这段话把注意力从过去和未来移回此刻。文中说，灵魂在一种状态下获得足够踏实的依靠，能够放松，并感受自身的存在。"
+          },
+          {
+            "type": "layer_card",
+            "label": "旁记",
+            "text": "此刻能安顿，外界的冲突却还在。",
+            "role": "note"
+          },
+          {
+            "type": "heading",
+            "text": "把问题留在这里"
+          },
+          {
+            "type": "paragraph",
+            "text": "当外界无法立即改变，注意力是否仍能找到一处暂时停靠的地方？这是一条顺着材料生出的阅读问题，还不是关于独处的普遍答案。"
+          },
+          {
+            "type": "highlight",
+            "text": "独处何时是休息，何时又成了退避？"
+          },
+          {
+            "type": "layer_card",
+            "label": "整理说明",
+            "text": "据卢梭文章片段整理；引文保留原句，旁记与追问另拟。",
+            "role": "footer"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -17,7 +17,9 @@ const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
  * Supported types: paragraph, heading, highlight, blockquote, layer_card, section_break
  */
 function renderBody(body) {
-  return body.map(el => {
+  const errors = require('../lib/long-notes').validateLongNotes({ body });
+  if (errors.length) throw new Error('input_contract: ' + errors.join('; '));
+  return body.map((el, i) => {
     switch (el.type) {
       case 'paragraph': {
         const cls = el.dropcap ? ' class="dropcap"' : '';
@@ -29,14 +31,18 @@ function renderBody(body) {
       }
       case 'highlight': {
         const cls = el.accent ? ' class="highlight accent-highlight"' : ' class="highlight"';
-        return `<div${cls}><p>${escapeHtml(el.text)}</p></div>`;
+        return `<div${cls}><p>${el.text.split(/(?<=[，。？！])/u).filter(Boolean).map(part => `<span class="reading-phrase">${escapeHtml(part)}</span>`).join('')}</p></div>`;
       }
       case 'blockquote': {
-        return `<blockquote><p>${escapeHtml(el.text)}</p></blockquote>`;
+        const grouped = el.quote_group !== undefined;
+        const previous = body[i - 1], next = body[i + 1];
+        const continues = grouped && previous?.type === 'blockquote' && previous.quote_group === el.quote_group && previous.source_ref === el.source_ref;
+        const continuesNext = grouped && next?.type === 'blockquote' && next.quote_group === el.quote_group && next.source_ref === el.source_ref;
+        return (continues ? '' : '<blockquote>') + '<p>' + escapeHtml(el.text) + '</p>' + (continuesNext ? '' : '</blockquote>');
       }
       case 'layer_card': {
         const label = el.label ? escapeHtml(el.label) : '';
-        return `<div class="layer-card"><div class="layer-label">${label}</div><div class="layer-text">${escapeHtml(el.text)}</div></div>`;
+        return `<div class="layer-card note-${el.role || 'note'}"><div class="layer-label">${label}</div><div class="layer-text">${escapeHtml(el.text)}</div></div>`;
       }
       case 'section_break': {
         return '<div class="section-break"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
