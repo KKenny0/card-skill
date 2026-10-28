@@ -411,10 +411,11 @@ function validateVisualJob(job, { checkLocalFiles = true } = {}) {
     const coverArtBudget = { bytes: 0, pixels: 0 };
     for (const output of job.outputs) {
       const contract = output?.render_contract;
-      if (contract?.mode !== 'editorial-image' || !Object.hasOwn(contract, 'cover_art')) continue;
-      if (job.schema_version !== 3) errors.push('cover_art requires Visual Job v3');
-      if (checkLocalFiles && isSafeAbsoluteLocalPath(contract.cover_art?.path)) {
-        try { accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, inspectLocalImage(contract.cover_art.path, { label: 'Cover art' })); }
+      const artKey = contract?.mode === 'comic' ? 'comic_art' : 'cover_art';
+      if (!['comic', 'editorial-image'].includes(contract?.mode) || !Object.hasOwn(contract, artKey)) continue;
+      if (job.schema_version !== 3) errors.push(`${artKey} requires Visual Job v3`);
+      if (checkLocalFiles && isSafeAbsoluteLocalPath(contract[artKey]?.path)) {
+        try { accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, inspectLocalImage(contract[artKey].path, { label: 'Cover art' })); }
         catch (error) { errors.push(`cover_art: ${error.message}`); }
       }
     }

@@ -18,3 +18,7 @@ Only verified wechat-cover is currently supported for covers. No image tool and 
 Poster supports paragraph, heading, highlight, items, reading_unit, media, process, data_row and divider in fixed 3:4. Preserve quotes verbatim, keep thought attribution, retain evidence image identity, units and sequence. Split semantic groups instead of shrinking or dropping content.
 
 Validate source fidelity, real PNGs at 360px (covers 320px), all six relations, whiteboard navigation, sketchnote rhythm, and retirement errors. Run package-skill, npm test, npm run smoke, gallery:update/check and git diff --check. Release and installation require their own requested follow-through; rollback uses 0.17.0 and the original contracts, without modifying existing output files.
+
+## Comic · 片刻札记
+
+comic 省略 variant 或显式 moment-notes 等价；旧漫画家风格分支退休。完整 HTML/CSS、SVG、对白与多页叙事能力保留。栅格概念插画改用 comic_art 与唯一 {{COMIC_ART}} 槽位，不能用 logo 或来源 media 代替。详见 mode-comic.md。

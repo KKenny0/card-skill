@@ -70,6 +70,7 @@ function receipt(job, output, artifactPlan, contract, artifact, index, binding) 
     media_snapshots: artifact.media_snapshots || [],
     logo_snapshot: artifact.logo_snapshot || null,
     cover_art_snapshot: artifact.cover_art_snapshot || null,
+    comic_art_snapshot: artifact.comic_art_snapshot || null,
     metaphor_required: Boolean(artifactPlan.visual_plan?.visual_metaphor),
     png: {
       basename: artifact.basename,
@@ -226,6 +227,7 @@ try {
         artifactIndex: artifact.index,
         mediaSnapshots: receiptData.media_snapshots,
         coverArtSnapshot: receiptData.cover_art_snapshot,
+        comicArtSnapshot: receiptData.comic_art_snapshot,
         // card.js embeds every untrusted local image from a private bounded snapshot.
         // Candidate HTML therefore needs no original caller path in the browser allow-list.
         allowedLocalFiles: [],
@@ -237,6 +239,7 @@ try {
   const coverArtDigests = new Set();
   const coverArtBudget = { bytes: 0, pixels: 0 };
   for (const artifact of stagedArtifacts) {
+    if (artifact.comicArtSnapshot) accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, artifact.comicArtSnapshot);
     if (artifact.coverArtSnapshot) accountUniqueImageSnapshot(coverArtDigests, coverArtBudget, artifact.coverArtSnapshot);
   }
   if (coverArtBudget.bytes > MAX_LOCAL_IMAGE_BYTES || coverArtBudget.pixels > MAX_LOCAL_IMAGE_PIXELS) throw new Error('safety: rendered cover art exceeds the 32 MiB or 40 million pixel aggregate budget');

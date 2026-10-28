@@ -29,7 +29,7 @@ function colophon(input, designName, comic = false) {
           ${brandName ? `<span>${brandName}</span>` : ''}
         </div>
         ${logoUrl ? `<img class="logo-mark" src="${logoUrl}" alt="">` : ''}
-        ${input.source ? `<span class="endmark">${escapeHtml(input.source)}</span>` : ''}
+        ${input.source ? `<span class="endmark info-source">${escapeHtml(input.source)}</span>` : ''}
       </div>
     `;
   }
@@ -47,6 +47,7 @@ function colophon(input, designName, comic = false) {
 function render(input, outputHtmlPath) {
   if (input.mode === 'sketchnote' && input.variant !== undefined && input.variant !== 'wandering-notes') throw new Error('Only wandering-notes is supported');
   if (input.mode === 'infograph' && input.variant !== undefined && input.variant !== 'comparison-notes') throw new Error('Only comparison-notes is supported');
+  if (input.mode === 'comic' && input.variant !== undefined && input.variant !== 'moment-notes') throw new Error('Only moment-notes is supported');
   const defaults = MODE_DEFAULTS[input.mode];
   if (!defaults) throw new Error(`Unsupported Studio composition mode: ${input.mode}`);
   const designName = resolveDesignNameForInput(input, defaults.fallback);
@@ -89,7 +90,11 @@ function render(input, outputHtmlPath) {
         ${subtitle}
       </div>
     `);
-    html = html.replaceAll('{{PANELS_HTML}}', input.content_html);
+    const art = input.comic_art;
+    const slotError = require('../lib/comic-art').comicArtSlotError(input);
+    if (slotError) throw new Error(slotError);
+    const content = art ? input.content_html.replace('{{COMIC_ART}}', `<img class="comic-art" src="${escapeHtml(pathToFileURL(path.resolve(art.path)).href)}" alt="${escapeHtml(art.alt)}">`) : input.content_html;
+    html = html.replaceAll('{{PANELS_HTML}}', content);
     html = html.replaceAll('{{COLOPHON_BLOCK}}', colophon(input, designName, true));
   } else {
     const logoUrl = input.logo ? escapeHtml(pathToFileURL(path.resolve(input.logo)).href) : '';
@@ -120,7 +125,7 @@ function render(input, outputHtmlPath) {
   html = html.replace(
     input.mode === 'comic' ? '<div class="card">' : '<div class="page">',
     input.mode === 'comic'
-      ? `<div class="card" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true">`
+      ? `<div class="card" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-card-variant="moment-notes" data-composition-required="true">`
       : `<div class="page" data-card-mode="${input.mode}" data-card-design="${escapeHtml(designName)}" data-composition-required="true"${comparisonNotes ? ' data-card-variant="comparison-notes"' : wanderingNotes ? ' data-card-variant="wandering-notes"' : ''}>`,
   );
 
@@ -128,8 +133,8 @@ function render(input, outputHtmlPath) {
   return {
     htmlPath: outputHtmlPath,
     captureWidth: 1080,
-    captureHeight: defaults.height,
-    fullpage: true,
+    captureHeight: input.mode === 'comic' ? 1440 : defaults.height,
+    fullpage: input.mode !== 'comic',
     allowedFilePaths: input.logo ? [path.resolve(input.logo)] : [],
   };
 }

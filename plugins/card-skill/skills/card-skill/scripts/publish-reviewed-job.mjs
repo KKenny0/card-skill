@@ -249,6 +249,7 @@ try {
     let plannedMediaCount = 0;
     let plannedLogoCount = 0;
     let plannedCoverArtCount = 0;
+    let plannedComicArtCount = 0;
     const receiptName = artifact.receipt;
     const receiptPath = path.join(candidateDir, receiptName);
     const receipt = readJson(receiptPath);
@@ -277,6 +278,7 @@ try {
       const plan = plannedArtifacts.get(`${artifact.output_id}:${artifact.artifact_index}`);
       const plannedOutput = visualJob.outputs.find(output => output.id === artifact.output_id);
       const plannedContract = materializeRenderContract(visualJob, plannedOutput);
+      plannedComicArtCount = plannedContract.mode === 'comic' && plannedContract.comic_art ? 1 : 0;
       plannedCoverArtCount = plannedContract.mode === 'editorial-image' && plannedContract.cover_art ? 1 : 0;
       const effectiveContract = receipt.effective_render_contract || plannedContract;
       plannedMediaCount = artifactContractProjection(plannedContract, artifact.artifact_index).card?.body?.filter(element => element?.type === 'media').length || 0;
@@ -305,6 +307,7 @@ try {
     }
     if (!receipt.job_success || receipt.checker?.pass !== true) throw new Error(`${receiptName}: renderer receipt did not pass`);
     if (plannedCoverArtCount !== (receipt.cover_art_snapshot ? 1 : 0)) throw new Error(`${receiptName}: cover art snapshot does not match the sealed contract`);
+    if (plannedComicArtCount !== (receipt.comic_art_snapshot ? 1 : 0)) throw new Error(`${receiptName}: comic art snapshot does not match the sealed contract`);
     if (review.verdict !== 'pass') throw new Error(`${reviewName}: review did not pass`);
     if (review.job_id !== receipt.job_id || review.output_id !== receipt.output_id || review.artifact_index !== receipt.artifact_index) throw new Error(`${reviewName}: review identity does not match receipt`);
     if (manifest.schema_version === 2 && (review.visual_job_sha256 !== receipt.visual_job_sha256 || review.artifact_plan_sha256 !== receipt.artifact_plan_sha256 || review.artifact_contract_sha256 !== receipt.artifact_contract_sha256)) throw new Error(`${reviewName}: Visual Job, artifact plan, or artifact contract hash does not match receipt`);
@@ -317,8 +320,7 @@ try {
     const embedded = embeddedImageInventory(checkedHtml);
     if (embedded.invalid > 0) throw new Error(`${receiptName}: checked HTML contains an unsupported embedded image resource`);
     const embeddedDigests = embedded.digests;
-    if (receipt.cover_art_snapshot) {
-      const art = receipt.cover_art_snapshot;
+    for (const art of [receipt.cover_art_snapshot, receipt.comic_art_snapshot].filter(Boolean)) {
       const resource = embedded.resources.get(art.sha256);
       if (!resource) throw new Error(`${receiptName}: cover art snapshot does not match an embedded image`);
       const metadata = imageMetadata(resource.bytes);
@@ -333,6 +335,7 @@ try {
       ...(receipt.media_snapshots || []).map(snapshot => snapshot.sha256),
       ...(receipt.logo_snapshot ? [receipt.logo_snapshot.sha256] : []),
       ...(receipt.cover_art_snapshot ? [receipt.cover_art_snapshot.sha256] : []),
+      ...(receipt.comic_art_snapshot ? [receipt.comic_art_snapshot.sha256] : []),
     ];
     // Snapshot slots are validated against the sealed contract above. At this
     // boundary we compare resource identities: one approved image may appear

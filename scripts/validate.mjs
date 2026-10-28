@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { verifyComicNotes } from './validate-comic-notes.mjs';
 import { verifyInfographNotes } from './validate-infograph-notes.mjs';
 
 import assert from 'node:assert/strict';
@@ -696,7 +697,9 @@ try {
     'editorial-image': inputs['editorial-image'],
     ...Object.fromEntries(['infograph', 'comic', 'sketchnote'].map(mode => {
       const fixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'evals', 'gallery', 'creative', `${mode}.json`), 'utf8'));
-      return [mode, fixture.outputs[0].render_contract];
+      const contract = fixture.outputs[0].render_contract;
+      if (contract.comic_art && !path.isAbsolute(contract.comic_art.path)) contract.comic_art.path = path.resolve(ROOT, contract.comic_art.path);
+      return [mode, contract];
     })),
   };
   for (const [mode, contract] of Object.entries(boundedLogoContracts)) {
@@ -1740,6 +1743,7 @@ try {
   assert.ok(listDesigns().length >= 1, 'Design registry is empty');
   assert.equal(validate({ mode: 'unknown' }).valid, false, 'Unknown mode unexpectedly passed validation');
 
+  await verifyComicNotes();
   await verifyInfographNotes();
   await verifySketchnoteNotes();
 

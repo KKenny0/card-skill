@@ -22,6 +22,8 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 
 ## 它是什么
 
+comic 现采用**片刻札记**：动作与镜头承担变化，保留干净纸面，并以同画面的无文字阅读检验叙事。可选 `comic_art` 通过正常检查与审核链封装概念插画；SVG 自由构图继续支持。
+
 **card-skill** 是专为 coding agent（Claude Code、Codex、OpenCode、Pi 等）打造的视觉卡片生成 skill。输入文章、笔记、观点或技术决策，它能自动生成排版工整、可直接发布的 PNG 卡片。
 
 与普通 AI 生图（容易生成难以预测的插画）不同，card-skill 专注于**信息层级、文字排版与结构化推演**。所有卡片均通过本地无头浏览器确定性渲染，并在导出前执行自动质量检查，呈现统一的纸质质感（**Kenny Style**）。
@@ -46,9 +48,9 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 
 ## 30 秒看懂它能做什么
 
-八种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
+九种已确认的个人风格，共用纸面、字体与克制的强调色，各自表达不同的内容关系。
 
-<img src="assets/readme-showcase.png" width="100%" alt="八种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big、长页札记 Long、比较札记 Infograph">
+<img src="assets/readme-showcase.png" width="100%" alt="九种个人风格：纸上荒野封面、个人关系图、个人札记 Poster、推演札记 Whiteboard、漫游札记 Sketchnote、一句暂记 Big、长页札记 Long、比较札记 Infograph、片刻札记 Comic">
 
 | Mode | 唯一风格 | 阅读任务 |
 |---|---|---|
@@ -60,6 +62,7 @@ Long 现在以“长页札记”为默认且唯一风格：连续正文、轻旁
 | big | [一句暂记](references/mode-big.md) | 单一重音与语义停顿，完整保留长短句 |
 | long | [长页札记](references/mode-long.md) | 连续正文、轻旁记、两级标题与同源引用组 |
 | infograph | [比较札记](references/mode-infograph.md) | 明确比较维度与指标口径，按条件密度选择单图或总览＋分组详页 |
+| comic | [片刻札记](references/mode-comic.md) | 动作与镜头承担转折，文字补充背景和边界，同画面检验无字阅读 |
 
 <sub>展示图均由仓库内的合同通过正式渲染流程生成。点击完整样张可查看细节；旧风格的迁移见<a href="references/personal-style-migration.md">迁移指南</a>。</sub>
 
@@ -293,7 +296,7 @@ card-skill 基于确定性的 HTML/CSS 模板、文字排版规则、浏览器�
 </tr>
 <tr>
 <td><img src="assets/gallery/infograph.png" width="100%" alt="信息图"><br><strong>infograph</strong> · 比较札记 · 三种指标口径</td>
-<td><img src="assets/gallery/comic.png" width="100%" alt="漫画"><br><strong>comic</strong> · 摸到一条边以后</td>
+<td><img src="assets/gallery/comic.png" width="100%" alt="漫画"><br><strong>comic</strong> · 卢梭：注意力回到手边</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/sketchnote.png" width="100%" alt="视觉手记"><br><strong>sketchnote</strong> · 卢梭：当下的安顿</td>

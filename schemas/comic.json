@@ -4,18 +4,85 @@
   "title": "Card Skill Studio Comic Contract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "title", "composition_required", "content_html", "custom_css"],
+  "required": [
+    "mode",
+    "title",
+    "composition_required",
+    "content_html",
+    "custom_css"
+  ],
   "properties": {
-    "mode": { "const": "comic" },
-    "title": { "type": "string", "minLength": 1 },
-    "composition_required": { "const": true },
-    "content_html": { "type": "string", "minLength": 1, "maxLength": 1000000 },
-    "custom_css": { "type": "string", "minLength": 1, "maxLength": 262144 },
-    "design": { "type": "string", "description": "Optional explicit compatibility palette name. Changes colors only." },
-    "tone": { "enum": ["reflective", "sharp", "warm", "technical"], "description": "House color tone. Changes color tokens only." },
-    "subtitle": { "type": "string" },
-    "source": { "type": "string" },
-    "logo": { "type": "string", "maxLength": 1024, "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))" },
-    "brand_name": { "type": "string" }
+    "mode": {
+      "const": "comic"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "composition_required": {
+      "const": true
+    },
+    "content_html": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000000
+    },
+    "custom_css": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 262144
+    },
+    "design": {
+      "type": "string",
+      "description": "Optional explicit compatibility palette name. Changes colors only."
+    },
+    "tone": {
+      "enum": [
+        "reflective",
+        "sharp",
+        "warm",
+        "technical"
+      ],
+      "description": "House color tone. Changes color tokens only."
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "variant": {
+      "const": "moment-notes"
+    },
+    "comic_art": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "alt"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?:[A-Za-z]:[\\\\/]|/(?![/?\\\\]))"
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "description": "Optional conceptual scene sheet, static local PNG/JPEG/WebP. Requires exactly one {{COMIC_ART}} in content_html. Not source evidence."
+    }
   }
 }

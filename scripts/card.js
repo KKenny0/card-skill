@@ -251,6 +251,8 @@ let localAssetFiles = [];
 let posterMediaSnapshots = [];
 let logoSnapshot = null;
 let coverArtSnapshot = null;
+let comicArtSnapshot = null;
+const embeddedComicArtHtml = new Set();
 const embeddedCoverArtHtml = new Set();
 const embeddedLogoHtml = new Set();
 const MAX_CHECKED_HTML_BYTES = 48 * 1024 * 1024;
@@ -265,6 +267,18 @@ function embedStagedCoverArt(out) {
   if (Buffer.byteLength(embedded, 'utf8') > MAX_CHECKED_HTML_BYTES) throw new Error('Rendered HTML exceeds the 48 MiB checked-HTML budget after cover art sealing');
   fs.writeFileSync(out.htmlPath, embedded, 'utf8');
   embeddedCoverArtHtml.add(out.htmlPath);
+}
+
+function embedStagedComicArt(out) {
+  if (!comicArtSnapshot || embeddedComicArtHtml.has(out.htmlPath)) return;
+  const html = fs.readFileSync(out.htmlPath, 'utf8');
+  const url = require('url').pathToFileURL(comicArtSnapshot.path).href.replaceAll('&', '&amp;');
+  const reference = `src="${url}"`;
+  if (html.split(reference).length !== 2) throw new Error('Comic art must have exactly one renderer-owned image slot');
+  const embedded = html.replace(reference, `src="data:${comicArtSnapshot.mime_type};base64,${fs.readFileSync(comicArtSnapshot.path).toString('base64')}"`);
+  if (Buffer.byteLength(embedded, 'utf8') > MAX_CHECKED_HTML_BYTES) throw new Error('Rendered HTML exceeds the 48 MiB checked-HTML budget after comic art sealing');
+  fs.writeFileSync(out.htmlPath, embedded, 'utf8');
+  embeddedComicArtHtml.add(out.htmlPath);
 }
 
 function embedStagedLogo(out) {
@@ -348,6 +362,7 @@ function runOutputCheck(out, pngPath, options = {}) {
 
 function captureWithOutputCheck(out, pngPath) {
   embedStagedCoverArt(out);
+  embedStagedComicArt(out);
   embedStagedLogo(out);
   runOutputCheck(out, pngPath, { fix: true, skipPng: true });
   runCapture(out, pngPath);
@@ -402,9 +417,10 @@ function renderEntries(input, tmpDir) {
     const htmlPath = path.join(tmpDir, `card_${input.mode}${suffix}.html`);
 
     try {
-      const rendererInput = coverArtSnapshot
+      let rendererInput = coverArtSnapshot
         ? { ...attempt.input, cover_art: { ...attempt.input.cover_art, path: coverArtSnapshot.path } }
         : attempt.input;
+      if (comicArtSnapshot) rendererInput = { ...rendererInput, comic_art: { ...rendererInput.comic_art, path: comicArtSnapshot.path } };
       const rendered = renderer.render(rendererInput, htmlPath, { measure: measurePass });
       const outputs = Array.isArray(rendered) ? rendered : [rendered];
       const entries = outputs.map((out, outputIndex) => {
@@ -470,6 +486,13 @@ function artifactReport(out, stagedPath, finalPath, checker, index, effectiveCon
       height: coverArtSnapshot.height,
       mime_type: coverArtSnapshot.mime_type,
     } : null,
+    comic_art_snapshot: embeddedComicArtHtml.has(out.htmlPath) ? {
+      sha256: comicArtSnapshot.sha256,
+      bytes: comicArtSnapshot.bytes,
+      width: comicArtSnapshot.width,
+      height: comicArtSnapshot.height,
+      mime_type: comicArtSnapshot.mime_type,
+    } : null,
     logo_snapshot: embeddedLogoHtml.has(out.htmlPath) ? {
       sha256: logoSnapshot.sha256,
       bytes: logoSnapshot.bytes,
@@ -504,6 +527,9 @@ try {
   runTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-skill-'));
   if (input.mode === 'editorial-image' && input.cover_art) {
     coverArtSnapshot = snapshotLocalImage(input.cover_art.path, path.join(runTmpDir, 'cover-art.image'), { label: 'Cover art' });
+  }
+  if (input.mode === 'comic' && input.comic_art) {
+    comicArtSnapshot = snapshotLocalImage(input.comic_art.path, path.join(runTmpDir, 'comic-art.image'), { label: 'Comic art' });
   }
   if (input.mode === 'poster') {
     const stagedMedia = stagePosterMedia(input, runTmpDir);

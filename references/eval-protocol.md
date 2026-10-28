@@ -66,3 +66,5 @@ Fresh-context and CardBench write failed-run reports with completed results, the
 
 Source-group selectors use distinctive factual terms from the evidence, not wrapper headings such as “主张”, “当前能力” or “公开契约”. Dropping such a heading from a faithful excerpt is valid. Renderer-consumed contract terms, distinct source assignment and exclusion of obsolete evidence remain mandatory.
 `--artifacts-dir <new-directory>` retains each passing case's jobs, PNGs, receipts and reviews outside the temporary installation for maintainer inspection. Use a new directory per run. These outputs are evidence only and are never reused as model answers or cached evaluation results.
+
+For an explicitly comic-only release, run `node scripts/validate-comic-notes.mjs` and `gallery:update -- --mode comic` / `gallery:check -- --mode comic`. Inspect the three actual scene PNGs and the updated showcase. Retain other gallery PNGs by recorded hash; do not describe them as freshly verified. The maintainer may omit full-suite and model evaluations.

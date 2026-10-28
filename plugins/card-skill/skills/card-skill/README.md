@@ -22,6 +22,8 @@ New article-diagram requests default to six personal, browser-measured relations
 
 ## What it is
 
+Comic now uses **Moment Notes**: scene-led actions and camera distance, clean paper, and a same-art wordless review. Optional bounded `comic_art` embeds conceptual artwork through the normal checked/reviewed pipeline; free SVG composition remains available.
+
 **card-skill** turns articles, notes, arguments, and technical decisions into publish-ready visual cards for coding agents (Claude Code, Codex, OpenCode, Pi, etc.).
 
 Unlike generic AI image generators that produce unpredictable illustrations, card-skill focuses on **information hierarchy, readable typography, and structured reasoning**. Everything renders locally via headless browser and undergoes automatic layout checks before export in a signature tactile paper aesthetic (**Kenny Style**).
@@ -46,9 +48,9 @@ Unlike generic AI image generators that produce unpredictable illustrations, car
 
 ## See it in 30 seconds
 
-Eight confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
+Nine confirmed personal styles share paper, typography, and restrained accents. Each gives a different content relationship a readable form.
 
-<img src="assets/readme-showcase.png" width="100%" alt="Eight personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, Big reading notes, Long-page notes, and comparison infographs">
+<img src="assets/readme-showcase.png" width="100%" alt="Nine personal styles: Paper Wilderness cover, relation diagram, field-note poster, reasoning whiteboard, wandering sketchnote, Big reading notes, Long-page notes, comparison infographs, and Moment Notes comics">
 
 | Mode | Sole style | Reading task |
 |---|---|---|
@@ -60,6 +62,7 @@ Eight confirmed personal styles share paper, typography, and restrained accents.
 | big | [A Momentary Note](references/mode-big.md) | One reading accent and semantic pauses, preserving the complete phrase |
 | long | [Long-page Notes](references/mode-long.md) | Continuous prose, marginal notes, heading levels and explicit quotation groups |
 | infograph | [Comparison notes](references/mode-infograph.md) | Compare dimensions and metric scopes; keep conditions visible across single or grouped pages |
+| comic | [Moment notes](references/mode-comic.md) | Actions and camera distance carry the turn; words retain context and boundaries |
 
 <sub>All showcase images are rebuilt from repository contracts through the production renderer. Open the full samples for detail. See the <a href="references/personal-style-migration.md">migration guide</a> for retired styles.</sub>
 
@@ -293,7 +296,7 @@ No. All rendering and visual checks run locally on your machine. Version checks 
 </tr>
 <tr>
 <td><img src="assets/gallery/infograph.png" width="100%" alt="Infograph"><br><strong>infograph</strong> · Comparison notes · three metric scopes</td>
-<td><img src="assets/gallery/comic.png" width="100%" alt="Comic"><br><strong>comic</strong> · After touching one edge</td>
+<td><img src="assets/gallery/comic.png" width="100%" alt="Comic"><br><strong>comic</strong> · Rousseau: attention returns to the water</td>
 </tr>
 <tr>
 <td><img src="assets/gallery/sketchnote.png" width="100%" alt="Sketchnote"><br><strong>sketchnote</strong> · Finding a moment of rest / Rousseau</td>

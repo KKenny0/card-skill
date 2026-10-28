@@ -197,9 +197,11 @@ const SCHEMAS = {
   },
   comic: {
     required: ['mode', 'title', 'composition_required', 'content_html', 'custom_css'],
-    optional: ['design', 'tone', 'subtitle', 'source', 'logo', 'brand_name'],
+    optional: ['variant', 'comic_art', 'design', 'tone', 'subtitle', 'source', 'logo', 'brand_name'],
     types: {
       mode: 'string',
+      variant: 'string',
+      comic_art: 'object',
       title: 'string',
       composition_required: 'boolean',
       content_html: 'string',
@@ -392,6 +394,28 @@ function validate(input, { checkLocalFiles = true } = {}) {
     }
   }
 
+  if (mode === 'comic') {
+    if (input.variant !== undefined && input.variant !== 'moment-notes') errors.push('comic variant must be moment-notes');
+    if (Object.hasOwn(input, 'comic_art')) {
+      const art = input.comic_art;
+      if (!art || typeof art !== 'object' || Array.isArray(art)) {
+        errors.push('comic_art must be an object with path and alt');
+      } else {
+        for (const key of Object.keys(art)) {
+          if (!['path', 'alt'].includes(key)) errors.push(`Unknown comic_art field: ${key}`);
+        }
+        if (typeof art.path !== 'string' || art.path.length > 1024 || !isSafeAbsoluteLocalPath(art.path)) {
+          errors.push('comic_art.path must be a safe absolute local path of at most 1024 characters');
+        } else if (checkLocalFiles) {
+          try { inspectLocalImage(art.path, { label: 'Comic art' }); }
+          catch (error) { errors.push(`comic_art must point to a bounded static PNG, JPEG, or WebP: ${error.message}`); }
+        }
+        if (typeof art.alt !== 'string' || !art.alt.trim() || art.alt.length > 500) errors.push('comic_art.alt must be non-empty text of at most 500 characters');
+      }
+    }
+    const slotError = require('./comic-art').comicArtSlotError(input);
+    if (slotError) errors.push(slotError);
+  }
   if (mode === 'infograph' && input.variant !== undefined && input.variant !== 'comparison-notes') {
     errors.push('infograph variant must be comparison-notes; omit variant to use comparison-notes');
   }
